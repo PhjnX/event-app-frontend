@@ -3,53 +3,40 @@ import { BrowserRouter } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import RenderRoutes from "./routes";
 import type { AppDispatch } from "./store";
 import { fetchCurrentUser } from "./store/slices/auth";
 import { STORAGE_KEYS } from "./constants";
+import ScrollToTop from "./pages/HomeTemplate/_components/common/ScrollToTop";
+import LoadingScreen from "./pages/HomeTemplate/_components/common/LoadingSrceen";
+import GlobalCursor from "./pages/HomeTemplate/_components/common/GlobalCursor";
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
-
-  // Trạng thái khởi tạo: Chặn render router cho đến khi check xong Token
   const [isInitializing, setIsInitializing] = useState(true);
-
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-
       if (token) {
         try {
-          // Nếu có token -> Gọi API lấy thông tin User mới nhất
-          // Dùng .unwrap() để bắt lỗi nếu token hết hạn
           await dispatch(fetchCurrentUser()).unwrap();
         } catch (error) {
-          console.log("Phiên đăng nhập đã hết hạn.");
+          console.log("Phiên đăng nhập đã hết hạn hoặc token không hợp lệ.");
         }
       }
-
-      // Hoàn tất quá trình khởi động -> Cho phép render giao diện
       setIsInitializing(false);
     };
 
     initAuth();
   }, [dispatch]);
 
-  // --- Màn hình chờ khi đang F5 ---
   if (isInitializing) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a0a] text-[#B5A65F]">
-        <div className="w-12 h-12 border-4 border-[#B5A65F] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <span className="font-semibold tracking-wider animate-pulse">
-          INITIALIZING...
-        </span>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <>
+      <ScrollToTop />
       <RenderRoutes />
       <ToastContainer position="top-right" autoClose={3000} theme="dark" />
     </>
@@ -58,8 +45,9 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Suspense fallback={<div>Loading App...</div>}>
+    <Suspense fallback={<LoadingScreen />}>
       <BrowserRouter>
+        <GlobalCursor />
         <AppContent />
       </BrowserRouter>
     </Suspense>

@@ -1,8 +1,11 @@
-export type User = {
-  id: string; // Hoặc number tùy DB
-  username: string; // Code cũ dùng username
+export interface User {
+  id: number;
+  username: string;
   email: string;
-  roles?: string[]; // Code cũ có check role SADMIN, ORGANIZER
-  avatar?: string;
-  // Thêm các trường khác nếu cần
-};
+  role: string;
+  avatarUrl: string | null;
+  phoneNumber: string | null;
+  address: string | null;
+  gender: string | null;
+  dateOfBirth: string | null;
+}

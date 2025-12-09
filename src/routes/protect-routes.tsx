@@ -13,5 +13,4 @@ const ProtectedRoute = () => {
   // Đã đăng nhập -> Cho phép truy cập
   return <Outlet />;
 };
-
 export default ProtectedRoute;

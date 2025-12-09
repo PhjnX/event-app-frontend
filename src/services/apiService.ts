@@ -15,11 +15,9 @@ const apiService = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  // Render server free hay bị delay lúc đầu, để 60s cho chắc ăn
   timeout: 60000,
 });
 
-// --- Interceptor Request: Tự động gắn Token vào header ---
 apiService.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -34,7 +32,6 @@ apiService.interceptors.request.use(
 // --- Interceptor Response: Xử lý dữ liệu trả về và lỗi ---
 apiService.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Chỉ lấy phần data quan trọng, bỏ qua status code, headers...
     return response.data;
   },
   (error: AxiosError) => {
@@ -44,7 +41,6 @@ apiService.interceptors.response.use(
       // Nếu Token hết hạn (401) -> Xóa token để đăng nhập lại
       if (error.response.status === 401) {
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        // Có thể thêm logic redirect về trang login nếu cần thiết
       }
     } else {
       console.error("Network Error:", error.message);
@@ -53,7 +49,6 @@ apiService.interceptors.response.use(
   }
 );
 
-// --- Hack Type: Giúp TypeScript hiểu response trả về là data luôn ---
 export default apiService as {
   get: <T = any>(url: string, config?: any) => Promise<T>;
   post: <T = any>(url: string, data?: any, config?: any) => Promise<T>;

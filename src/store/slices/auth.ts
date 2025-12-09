@@ -1,20 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { STORAGE_KEYS } from "../../constants";
+import type { User } from "../../models/user";
 
-// --- 1. ĐỊNH NGHĨA KIỂU DỮ LIỆU ---
-export interface User {
-  id: string | number;
-  username: string;
-  email: string;
-  role: string;
-  phoneNumber?: string | null;
-  address?: string | null;
-  gender?: string | null;
-  dateOfBirth?: string | null;
-  avatarUrl?: string | null;
-}
-
+// --- 1. STATE ---
 interface AuthState {
   user: User | null;
   isLoading: boolean;
@@ -22,17 +11,14 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// State khởi tạo
 const initialState: AuthState = {
   user: null,
   isLoading: false,
   error: null,
-  // --- SỬA QUAN TRỌNG: Kiểm tra token ngay lập tức ---
-  // Nếu có token trong máy -> Tạm coi là đã login (true) để Router không đá về trang Login khi F5
   isAuthenticated: !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
 };
 
-// --- 2. ASYNC THUNKS (GỌI API) ---
+// --- 2. ASYNC THUNKS ---
 
 // a. Đăng ký
 export const registerUser = createAsyncThunk(
@@ -55,13 +41,11 @@ export const loginUser = createAsyncThunk(
   async (credentials: any, { rejectWithValue }) => {
     try {
       const response: any = await apiService.post("/auth/signin", credentials);
-
       if (response.token) {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
       } else if (response.accessToken) {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
       }
-
       return response;
     } catch (error: any) {
       return rejectWithValue(
@@ -71,16 +55,36 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// c. Lấy thông tin User (Me)
+// c. Upload Avatar (Fix header multipart như đã sửa trước đó)
+export const uploadAvatar = createAsyncThunk(
+  "auth/uploadAvatar",
+  async (file: File, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      // KHÔNG set Content-Type thủ công, để axios tự xử lý boundary
+      const response: any = await apiService.post("/images/upload", formData);
+
+      // Xử lý kết quả trả về
+      if (typeof response === "string") return response;
+      if (typeof response === "object")
+        return response.url || response.secure_url || response.data || "";
+
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Lỗi upload ảnh");
+    }
+  }
+);
+
+// d. Lấy thông tin User (Me)
 export const fetchCurrentUser = createAsyncThunk(
   "auth/me",
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (!token) return rejectWithValue("No token found");
-
-      // --- SỬA ĐƯỜNG DẪN API ---
-      // Dựa vào logic update profile của bạn, đường dẫn đúng khả năng cao là /users/me
       const response = await apiService.get("/users/me");
       return response;
     } catch (error: any) {
@@ -89,7 +93,7 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-// d. Cập nhật Profile
+// e. Cập nhật Profile
 export const updateUserProfile = createAsyncThunk(
   "auth/updateProfile",
   async (userData: Partial<User>, { rejectWithValue }) => {
@@ -104,18 +108,27 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
-// e. Đăng xuất
-export const logoutUser = createAsyncThunk("auth/logout", async (_) => {
-  try {
-    await apiService.post("/auth/logout");
-  } catch (error) {
-    console.error("Logout API error", error);
-  } finally {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  }
-});
+// f. Đăng xuất (CẬP NHẬT MỚI: Gọi API logout)
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      // 1. Gọi API lên server để server hủy token/session
+      await apiService.post("/auth/logout");
 
-// --- 3. SLICE (REDUCER) ---
+      return true;
+    } catch (error: any) {
+      // Dù API lỗi hay thành công thì phía Client vẫn phải logout
+      console.warn("Logout API error:", error);
+      return rejectWithValue(error.response?.data?.message);
+    } finally {
+      // 2. Luôn xóa token ở client trong mọi trường hợp (finally)
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    }
+  }
+);
+
+// --- 3. SLICE ---
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -160,18 +173,28 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
     });
 
-    // --- Fetch Me (QUAN TRỌNG) ---
+    // --- Upload Avatar ---
+    builder.addCase(uploadAvatar.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(uploadAvatar.fulfilled, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(uploadAvatar.rejected, (state, action: any) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    // --- Fetch Me ---
     builder.addCase(fetchCurrentUser.pending, (state) => {
-      // Khi đang load, giữ nguyên trạng thái isAuthenticated từ initialState
       state.isLoading = true;
     });
     builder.addCase(fetchCurrentUser.fulfilled, (state, action: any) => {
-      state.isAuthenticated = true; // Token chuẩn -> Xác nhận login
+      state.isAuthenticated = true;
       state.user = action.payload;
       state.isLoading = false;
     });
     builder.addCase(fetchCurrentUser.rejected, (state) => {
-      // API báo lỗi (Token hết hạn/Fake) -> Lúc này mới đá user ra
       state.isAuthenticated = false;
       state.user = null;
       state.isLoading = false;
@@ -194,14 +217,17 @@ const authSlice = createSlice({
       state.error = action.payload;
     });
 
-    // --- Logout ---
+    // --- Logout (CẬP NHẬT MỚI) ---
     builder.addCase(logoutUser.fulfilled, (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.isLoading = false;
     });
+    // Dù API lỗi (rejected) thì Client vẫn phải clear state
     builder.addCase(logoutUser.rejected, (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.isLoading = false;
     });
   },
 });
