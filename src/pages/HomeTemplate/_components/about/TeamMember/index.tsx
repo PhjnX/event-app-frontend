@@ -8,9 +8,9 @@ import {
   FaArrowRight,
   FaArrowLeft,
 } from "react-icons/fa";
-import CEO from "../../../../../assets/images/ceo.jpg";
-import CTO1 from "../../../../../assets/images/CTO_1.png";
-import CTO2 from "../../../../../assets/images/CTO_2.png";
+import CEO from "@/assets/images/ceo.jpg";
+import CTO1 from "@/assets/images/CTO_1.png";
+import CTO2 from "@/assets/images/CTO_2.png";
 // --- 1. DEFINING TYPES (STRICT TYPESCRIPT) ---
 interface TeamMember {
   id: number;
