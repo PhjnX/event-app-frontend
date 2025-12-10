@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
 
   // Nếu chưa đăng nhập -> Chuyển hướng về trang Login
   if (!isAuthenticated) {
-    return <Navigate to="/dang-nhap" replace />;
+    return <Navigate to="/#" replace />;
   }
 
   // Đã đăng nhập -> Cho phép truy cập
