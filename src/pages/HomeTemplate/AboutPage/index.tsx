@@ -1,16 +1,42 @@
+import React, { Suspense } from "react";
+
 import AboutHero from "../_components/about/Banner";
-import TimelineSection from "../_components/about/TimeLine";
-import VisionSection from "../_components/about/Vision";
-import TeamSection from "../_components/about/TeamMember";
-import CustomerSection from "../_components/about/Customer";
+
+const TimelineSection = React.lazy(
+  () => import("../_components/about/TimeLine")
+);
+const VisionSection = React.lazy(() => import("../_components/about/Vision"));
+const TeamSection = React.lazy(() => import("../_components/about/TeamMember"));
+const CustomerSection = React.lazy(
+  () => import("../_components/about/Customer")
+);
+
+const SectionLoader = () => (
+  <div className="w-full h-40 flex items-center justify-center bg-[#0a0a0a]">
+    <div className="w-8 h-8 border-2 border-[#B5A65F] border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
+
 export default function AboutPage() {
   return (
-    <div>
+    <div className="w-full overflow-hidden">
       <AboutHero />
-      <TimelineSection />
-      <VisionSection />
-      <TeamSection />
-      <CustomerSection />
+
+      <Suspense fallback={<SectionLoader />}>
+        <TimelineSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <VisionSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <TeamSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <CustomerSection />
+      </Suspense>
     </div>
   );
 }
