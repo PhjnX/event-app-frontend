@@ -1,4 +1,10 @@
 export const STORAGE_KEYS = {
-  CURRENT_USER: "current_user", // Để lưu thông tin user (như name, email)
-  ACCESS_TOKEN: "access_token", // QUAN TRỌNG: Để lưu chuỗi Token dài ngoằng dùng để gọi API
+  CURRENT_USER: "current_user",
+  ACCESS_TOKEN: "access_token",
+};
+
+export const ROLES = {
+  SUPER_ADMIN: "SADMIN",
+  ORGANIZER: "ORGANIZER",
+  USER: "USER",
 };

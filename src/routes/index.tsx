@@ -1,67 +1,69 @@
-import React, { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import React, { Suspense, useEffect } from "react";
+import { useRoutes } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import HomeTemplate from "../pages/HomeTemplate";
 import ProtectedRoute from "./protect-routes";
 import LoadingScreen from "../pages/HomeTemplate/_components/common/LoadingSrceen";
-// Lazy loading pages
+import adminRoutes from "./adminRoutes"; // Import admin routes vừa tạo
+import { fetchCurrentUser } from "../store/slices/auth";
+import type { AppDispatch } from "../store";
+
+// Lazy loading User pages
 const HomePage = React.lazy(() => import("../pages/HomeTemplate/HomePage"));
 const AboutPage = React.lazy(() => import("../pages/HomeTemplate/AboutPage"));
 const ValuePage = React.lazy(() => import("../pages/HomeTemplate/ValuePage"));
 const ProfilePage = React.lazy(
   () => import("../pages/HomeTemplate/_components/Profile")
 );
-// const LoginPage = React.lazy(() => import("../pages/Login"));
+const LoginPage = React.lazy(() => import("../pages/AuthPage/LoginPage")); // Page Login mới tạo
 
-type TRoute = {
-  path?: string;
-  element: React.ReactNode;
-  children?: TRoute[];
-};
+const RenderRoutes = () => {
+  const dispatch = useDispatch<AppDispatch>();
 
-const routes: TRoute[] = [
-  {
+  // GỌI API LẤY THÔNG TIN USER KHI APP RELOAD (quan trọng)
+  useEffect(() => {
+    const token = localStorage.getItem("ACCESS_TOKEN"); // Đảm bảo key giống bên slice
+    if (token) {
+      dispatch(fetchCurrentUser());
+    }
+  }, [dispatch]);
+
+  // Cấu trúc route User
+  const userRoutes = {
     path: "/",
     element: <HomeTemplate />,
     children: [
       { path: "", element: <HomePage /> },
       { path: "about", element: <AboutPage /> },
       { path: "value", element: <ValuePage /> },
-
-      // --- Khu vực cần đăng nhập mới vào được ---
       {
         element: <ProtectedRoute />,
-        children: [
-          {
-            path: "profile",
-            element: <ProfilePage />,
-          },
-        ],
+        children: [{ path: "profile", element: <ProfilePage /> }],
       },
     ],
-  },
-  // { path: "dang-nhap", element: <LoginPage /> },
-];
+  };
 
-// Hàm đệ quy render routes lồng nhau
-const mapRoutes = (routesData: TRoute[]) => {
-  return routesData.map((route, index) => {
-    if (route.children) {
-      return (
-        <Route key={index} path={route.path} element={route.element}>
-          {mapRoutes(route.children)}
-        </Route>
-      );
-    }
-    return <Route key={index} path={route.path} element={route.element} />;
-  });
-};
+  // Route Login riêng biệt
+  const authRoutes = {
+    path: "/auth",
+    element: <LoginPage />,
+  };
 
-const RenderRoutes = () => {
-  return (
-    <Suspense fallback={<LoadingScreen />}>
-      <Routes>{mapRoutes(routes)}</Routes>
-    </Suspense>
-  );
+  // Cấu trúc Route chung cho xử lý lỗi
+  const notFoundRoute = {
+    path: "*",
+    element: <div className="p-10 text-center">404 - Not Found</div>,
+  };
+
+  // Sử dụng useRoutes để render
+  const element = useRoutes([
+    userRoutes,
+    adminRoutes, // Nhúng routes admin vào đây
+    authRoutes,
+    notFoundRoute,
+  ]);
+
+  return <Suspense fallback={<LoadingScreen />}>{element}</Suspense>;
 };
 
 export default RenderRoutes;
