@@ -1,34 +1,40 @@
 import React from "react";
 import type { RouteObject } from "react-router-dom";
-import AdminTemplate from "../pages/AdminTemplate";
+import { Navigate } from "react-router-dom";
+import AdminTemplate from "../pages/AdminTemplate"; // Import file index.tsx vừa sửa
 import AdminProtectedRoute from "./admin-protect-route";
 
-// Giả sử bạn có các component page cho admin (nếu chưa có thì tạo tạm file rỗng để test)
+// --- IMPORT CÁC PAGE CON (Lazy load) ---
+// Đảm bảo bạn đã tạo file Dashboard/index.tsx thật hoặc dùng tạm file rỗng để test
 const DashboardPage = React.lazy(
   () => import("../pages/AdminTemplate/Dashboard")
 );
-// Tạo tạm file Dashboard.tsx: export default function Dashboard() { return <div>Nội dung thống kê</div> }
 const ManageUsersPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageUsers")
 );
+// const ManageEventsPage = React.lazy(() => import("../pages/AdminTemplate/ManageEvents"));
 
 const adminRoutes: RouteObject = {
   path: "admin",
-  element: <AdminProtectedRoute />, // LỚP BẢO VỆ
+  element: <AdminProtectedRoute />, // Bảo vệ toàn bộ cụm Admin
   children: [
     {
       path: "",
-      element: <AdminTemplate />, // LAYOUT ADMIN
+      element: <AdminTemplate />, // Layout mới: Sidebar + Topbar + Outlet
       children: [
+        // Redirect mặc định vào dashboard
+        { index: true, element: <Navigate to="dashboard" replace /> },
+
         {
-          index: true,
+          path: "dashboard",
           element: <DashboardPage />,
         },
         {
-          path: "users", // đường dẫn sẽ là /admin/users
+          path: "users",
           element: <ManageUsersPage />,
         },
-        // Thêm các route khác: events, settings...
+        // Thêm các route khác tương ứng với menu
+        // { path: "events", element: <ManageEventsPage /> },
       ],
     },
   ],
