@@ -61,10 +61,14 @@ export const uploadAvatar = createAsyncThunk(
   async (file: File, { rejectWithValue }) => {
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", file); // Đảm bảo Backend cũng đang chờ field tên là "image"
 
-      // KHÔNG set Content-Type thủ công, để axios tự xử lý boundary
-      const response: any = await apiService.post("/images/upload", formData);
+      const response: any = await apiService.post("/images/upload", formData, {
+        headers: {
+          // Ghi đè header mặc định của apiService
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       // Xử lý kết quả trả về
       if (typeof response === "string") return response;
