@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { FaChevronLeft, FaChevronRight, FaArrowRight } from "react-icons/fa";
 import { SLIDES } from "./slide";
-import type { Slide } from "@/pages/HomeTemplate/_components/home/models/slide"; // Import interface từ folder models
-// Import interface từ folder models
+import type { Slide } from "@/pages/HomeTemplate/_components/home/models/slide"; 
 
-// --- SUB-COMPONENTS ---
 
 const SlideBackground = ({
   slide,
@@ -30,10 +28,9 @@ const SlideBackground = ({
 );
 
 const SlideContent = ({ slide }: { slide: Slide }) => (
-  // Bây giờ dùng class của Tailwind, không cần thẻ <style> nữa
   <div className="flex flex-col items-center animate-fade-in-up">
     <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight drop-shadow-2xl uppercase tracking-tight">
-      {slide.title} <span className="text-[#B5A65F]">{slide.highlight}</span>
+      {slide.title} <span className="text-[#D8C97B]">{slide.highlight}</span>
     </h1>
     <p className="text-base md:text-xl mb-10 text-gray-200 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light">
       {slide.subtitle}
@@ -44,7 +41,6 @@ const SlideContent = ({ slide }: { slide: Slide }) => (
         href="#"
         className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-black text-white font-bold text-sm uppercase tracking-wider rounded-full border border-white/30 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-white/60 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
       >
-        {/* Dùng class animate-shine-infinite và group-hover:... đã config */}
         <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-25 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
         <span className="relative z-20 flex items-center gap-2">
           {slide.btnPrimary} <FaArrowRight />
@@ -84,7 +80,6 @@ const NavButton = ({
   </button>
 );
 
-// --- MAIN COMPONENT ---
 export default function CarouselHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -128,7 +123,7 @@ export default function CarouselHero() {
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all duration-500 ${
               index === currentIndex
-                ? "w-10 bg-[#B5A65F]"
+                ? "w-10 bg-[#D8C97B]"
                 : "w-2 bg-white/40 hover:bg-white/80"
             }`}
           />

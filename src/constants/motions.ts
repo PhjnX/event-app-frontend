@@ -1,5 +1,4 @@
-// src/constants/motion.ts
-// src/constants/motion.ts
+
 import type { Variants } from "framer-motion";
 
 export const modalVariants: Variants = {
@@ -14,7 +13,7 @@ export const modalVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.16, 1, 0.3, 1], // Easing function "Apple style" mượt mà
+      ease: [0.16, 1, 0.3, 1], 
     },
   },
   exit: {

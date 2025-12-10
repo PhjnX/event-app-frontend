@@ -1,6 +1,5 @@
 import type { Partner } from "@/pages/HomeTemplate/_components/home/models/partner";
 
-// Import ảnh dùng alias @ cho gọn (nhờ config vite/tsconfig nãy làm)
 import c1 from "@/assets/images/Customer_1.jpg";
 import c2 from "@/assets/images/Customer_2.jpg";
 import c3 from "@/assets/images/Customer_3.jpg";

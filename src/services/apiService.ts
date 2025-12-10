@@ -29,7 +29,6 @@ apiService.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- Interceptor Response: Xử lý dữ liệu trả về và lỗi ---
 apiService.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
@@ -38,7 +37,6 @@ apiService.interceptors.response.use(
     if (error.response) {
       console.error("API Error:", error.response.data);
 
-      // Nếu Token hết hạn (401) -> Xóa token để đăng nhập lại
       if (error.response.status === 401) {
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       }

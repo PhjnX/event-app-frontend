@@ -11,7 +11,6 @@ import c7 from "../../../../../assets/images/Customer_7.jpg";
 import c8 from "../../../../../assets/images/Customer_8.jpg";
 import c9 from "../../../../../assets/images/Customer_9.jpg";
 
-// --- 1. TYPESCRIPT INTERFACES ---
 interface Partner {
   id: number;
   logo: string;
@@ -30,7 +29,6 @@ const partners: Partner[] = [
   { id: 9, logo: c9, name: "Partner 9" },
 ];
 
-// --- 2. ANIMATION VARIANTS (Cinematic Scroll) ---
 const sectionVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -43,13 +41,13 @@ const revealVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 40,
-    filter: "blur(10px)", // Hiệu ứng mờ khi ẩn
+    filter: "blur(10px)", 
     scale: 0.95,
   },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)", // Rõ nét khi hiện
+    filter: "blur(0px)", 
     scale: 1,
     transition: {
       duration: 0.8,
@@ -70,7 +68,6 @@ const sloganVariants: Variants = {
 export default function CustomerSection() {
   return (
     <section className="relative py-28 bg-[#0a0a0a] overflow-hidden font-noto text-white">
-      {/* BACKGROUND DECORATION (Tech Lines mờ) */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div
           className="absolute inset-0"
@@ -80,20 +77,17 @@ export default function CustomerSection() {
             backgroundSize: "60px 60px",
           }}
         ></div>
-        {/* Glow center */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[#B5A65F]/5 blur-[120px] rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[#D8C97B]/5 blur-[120px] rounded-full"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
-        {/* --- PART 1: LOGO GRID (Clean Style) --- */}
         <motion.div
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.3 }} // Scroll reveal settings
+          viewport={{ once: false, amount: 0.3 }} 
           className="mb-24"
         >
-          {/* Header nhỏ cho phần Partners */}
           <motion.div variants={revealVariants} className="text-center mb-12">
             <span className="text-xs font-bold tracking-[0.3em] text-gray-500 uppercase border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
               Được tin tưởng bởi
@@ -107,7 +101,7 @@ export default function CustomerSection() {
                 variants={revealVariants}
                 className="group w-full flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-500 opacity-60 hover:opacity-100 cursor-pointer"
               >
-                {/* Logo Image */}
+            
                 <img
                   src={partner.logo}
                   alt={partner.name}
@@ -116,7 +110,6 @@ export default function CustomerSection() {
               </motion.div>
             ))}
 
-            {/* Nút "Và nhiều hơn nữa" ẩn dụ */}
             <motion.div
               variants={revealVariants}
               className="flex flex-col items-center justify-center opacity-40"
@@ -131,23 +124,20 @@ export default function CustomerSection() {
           </div>
         </motion.div>
 
-        {/* --- PART 2: SLOGAN (Typography Focus) --- */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: false, amount: 0.5 }}
           className="relative text-center border-t border-white/10 pt-20"
         >
-          {/* Decorative bracket lines */}
-          <div className="absolute top-0 left-0 w-px h-20 bg-gradient-to-b from-transparent via-[#B5A65F] to-transparent opacity-50"></div>
-          <div className="absolute top-0 right-0 w-px h-20 bg-gradient-to-b from-transparent via-[#B5A65F] to-transparent opacity-50"></div>
+          <div className="absolute top-0 left-0 w-px h-20 bg-linear-to-b from-transparent via-[#D8C97B] to-transparent opacity-50"></div>
+          <div className="absolute top-0 right-0 w-px h-20 bg-linear-to-b from-transparent via-[#D8C97B] to-transparent opacity-50"></div>
 
-          {/* MAIN HEADLINE */}
           <motion.h2
             variants={sloganVariants}
-            className="text-4xl md:text-6xl lg:text-7xl font-noto font-bold text-[#B5A65F] tracking-wide mb-8 drop-shadow-2xl"
+            className="text-4xl md:text-6xl lg:text-7xl font-noto font-bold text-[#D8C97B] tracking-wide mb-8 drop-shadow-2xl"
           >
-            WEBIE – WE WILL BE
+            WEBIE - WE WILL BE
           </motion.h2>
 
           {/* SUBTEXT */}

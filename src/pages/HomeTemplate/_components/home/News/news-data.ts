@@ -1,5 +1,3 @@
-// src/pages/HomeTemplate/_components/home/News/data.ts
-// src/pages/HomeTemplate/_components/home/News/data.ts
 import type { News } from "@/pages/HomeTemplate/_components/home/models/news";
 
 export const SAMPLE_NEWS: News[] = [

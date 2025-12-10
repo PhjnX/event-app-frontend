@@ -1,6 +1,5 @@
 import type { Event } from "@/pages/HomeTemplate/_components/home/models/event";
 
-// Import ảnh dùng Alias @
 import eventImg1 from "@/assets/images/Event_1.jpg";
 import eventImg2 from "@/assets/images/Event_2.jpg";
 import eventImg3 from "@/assets/images/Event_3.jpg";
@@ -20,7 +19,6 @@ export const SAMPLE_EVENTS: Event[] = [
     status: "COMING_SOON",
     organizerName: "Khoa Kiến Trúc - Xây Dựng",
   },
-  // ... (Copy các phần tử còn lại vào đây y hệt sample cũ)
   {
     eventId: 2,
     eventName: "Talkshow: AI & Blockchain - Khởi Nghiệp Công Nghệ",

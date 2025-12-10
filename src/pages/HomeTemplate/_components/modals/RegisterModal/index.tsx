@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch, RootState } from "../../../../../store";
 import { registerUser, clearError } from "../../../../../store/slices/auth";
-import { modalVariants } from "@/constants/motions"; // Import Variants
+import { modalVariants } from "@/constants/motions"; 
 
 import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.png";
@@ -89,7 +89,7 @@ export default function RegisterModal({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#B5A65F]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
+            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
           >
             <button
               onClick={onClose}
@@ -97,7 +97,7 @@ export default function RegisterModal({
             >
               <FaTimes size={20} />
             </button>
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#D8C97B] to-transparent"></div>
 
             <div className="p-8 pt-10">
               <div className="text-center mb-6">
@@ -122,76 +122,76 @@ export default function RegisterModal({
 
               <form className="space-y-4" onSubmit={handleRegister}>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#B5A65F] uppercase ml-1">
+                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
                     Họ và Tên
                   </label>
                   <div className="relative group">
-                    <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="text"
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
                       placeholder="Nguyễn Văn A"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#B5A65F] uppercase ml-1">
+                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
                     Email
                   </label>
                   <div className="relative group">
-                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="name@example.com"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#B5A65F] uppercase ml-1">
+                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
                     Mật khẩu
                   </label>
                   <div className="relative group">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#B5A65F] uppercase ml-1">
+                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
                     Nhập lại mật khẩu
                   </label>
                   <div className="relative group">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="password"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 <button
                   disabled={isLoading}
-                  className="w-full bg-[#B5A65F] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
+                  className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
                 >
                   {isLoading ? (
                     <>
@@ -224,7 +224,7 @@ export default function RegisterModal({
                 Đã có tài khoản?{" "}
                 <button
                   onClick={onSwitchToLogin}
-                  className="text-[#B5A65F] font-bold hover:underline cursor-pointer"
+                  className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
                 >
                   Đăng nhập
                 </button>

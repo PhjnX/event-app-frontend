@@ -12,7 +12,19 @@ const DashboardPage = React.lazy(
 const ManageUsersPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageUsers")
 );
+const ManagePresentersPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManagePresenters")
+);
 // const ManageEventsPage = React.lazy(() => import("../pages/AdminTemplate/ManageEvents"));
+const ManageOrganizersPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageOrganizers")
+);
+const ManageEventsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageEvents")
+);
+const EventDetailPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageEvents/EventDetail")
+); // Import file mới tạo
 
 const adminRoutes: RouteObject = {
   path: "admin",
@@ -32,6 +44,22 @@ const adminRoutes: RouteObject = {
         {
           path: "users",
           element: <ManageUsersPage />,
+        },
+        {
+          path: "presenters",
+          element: <ManagePresentersPage />,
+        },
+        {
+          path: "organizers",
+          element: <ManageOrganizersPage />,
+        },
+        {
+          path: "events",
+          element: <ManageEventsPage />,
+        },
+        {
+          path: "events/:slug", // Route động
+          element: <EventDetailPage />,
         },
         // Thêm các route khác tương ứng với menu
         // { path: "events", element: <ManageEventsPage /> },

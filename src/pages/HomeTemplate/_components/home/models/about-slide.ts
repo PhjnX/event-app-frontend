@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export interface AboutSlide {
   id: number;
   image: string;
-  icon: ReactNode; // Vì icon là component React (FaUsers...)
+  icon: ReactNode; 
   label: string;
   title: string;
   desc: string;

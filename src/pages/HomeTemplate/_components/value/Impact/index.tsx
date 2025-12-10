@@ -23,18 +23,17 @@ const NumberCounter = ({
   suffix: string;
 }) => {
   const ref = React.useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: false, amount: 0.5 }); // Reset khi scroll
+  const isInView = useInView(ref, { once: false, amount: 0.5 }); 
   const springValue = useSpring(0, { bounce: 0, duration: 2000 });
 
   React.useEffect(() => {
     if (isInView) {
       springValue.set(value);
     } else {
-      springValue.set(0); // Reset về 0 khi scroll đi
+      springValue.set(0); 
     }
   }, [isInView, value, springValue]);
 
-  // Sync motion value to DOM text
   React.useEffect(() => {
     return springValue.on("change", (latest) => {
       if (ref.current) {
@@ -46,7 +45,7 @@ const NumberCounter = ({
   return (
     <div className="flex items-baseline justify-center font-black text-5xl md:text-7xl text-white">
       <span ref={ref}>0</span>
-      <span className="text-[#B5A65F] ml-1">{suffix}</span>
+      <span className="text-[#D8C97B] ml-1">{suffix}</span>
     </div>
   );
 };
@@ -67,7 +66,7 @@ const ImpactNumbers: React.FC = () => {
           className="text-center mb-20"
         >
           <h2 className="text-3xl md:text-4xl font-bold uppercase mb-4">
-            DẤU ẤN <span className="text-[#B5A65F]">THỰC TẾ</span>
+            DẤU ẤN <span className="text-[#D8C97B]">THỰC TẾ</span>
           </h2>
           <p className="text-gray-400 italic">"Con số không biết nói dối"</p>
         </motion.div>
@@ -84,7 +83,7 @@ const ImpactNumbers: React.FC = () => {
               className="text-center group"
             >
               <NumberCounter value={stat.value} suffix={stat.suffix} />
-              <div className="h-[2px] w-12 bg-[#B5A65F]/50 mx-auto my-4 group-hover:w-24 transition-all duration-500"></div>
+              <div className="h-0.5 w-12 bg-[#D8C97B]/50 mx-auto my-4 group-hover:w-24 transition-all duration-500"></div>
               <p className="text-gray-400 uppercase tracking-widest text-sm font-bold group-hover:text-white transition-colors">
                 {stat.label}
               </p>

@@ -55,10 +55,10 @@ const PartnerCard = ({ partner }: { partner: Partner }) => (
 const JoinCard = () => (
   <motion.div
     variants={itemVariants}
-    whileHover={{ scale: 1.02, borderColor: "#B5A65F" }}
-    className="h-32 md:h-40 border-2 border-dashed border-[#B5A65F]/30 rounded-2xl flex flex-col items-center justify-center p-6 text-[#B5A65F] hover:bg-[#B5A65F]/10 transition-all cursor-pointer group"
+    whileHover={{ scale: 1.02, borderColor: "#D8C97B" }}
+    className="h-32 md:h-40 border-2 border-dashed border-[#D8C97B]/30 rounded-2xl flex flex-col items-center justify-center p-6 text-[#D8C97B] hover:bg-[#D8C97B]/10 transition-all cursor-pointer group"
   >
-    <div className="w-10 h-10 rounded-full bg-[#B5A65F]/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+    <div className="w-10 h-10 rounded-full bg-[#D8C97B]/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
       <span className="text-2xl font-light mb-1">+</span>
     </div>
     <span className="text-xs md:text-sm font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100">
@@ -81,7 +81,7 @@ export default function PartnersSection() {
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto">
             KHÁCH HÀNG{" "}
-            <span className="text-[#B5A65F] block md:inline">TIÊU BIỂU</span>
+            <span className="text-[#D8C97B] block md:inline">TIÊU BIỂU</span>
           </h2>
           <p className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto">
             Chúng tôi vinh dự được đồng hành cùng các doanh nghiệp và tổ chức
@@ -89,7 +89,6 @@ export default function PartnersSection() {
           </p>
         </motion.div>
 
-        {/* LOGO GRID */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -101,7 +100,6 @@ export default function PartnersSection() {
             <PartnerCard key={partner.id} partner={partner} />
           ))}
 
-          {/* Card Hợp Tác */}
           <JoinCard />
         </motion.div>
       </div>

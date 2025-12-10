@@ -9,9 +9,8 @@ import { loginUser } from "@/store/slices/auth";
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
 
-// Import Assets & Components
-import logoImage from "@/assets/images/Logo_EMS.png"; // Đảm bảo đường dẫn đúng
-import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen"; // Import Loading xịn của bạn
+import logoImage from "@/assets/images/Logo_EMS.png"; 
+import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen"; 
 
 export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -73,23 +72,19 @@ export default function LoginPage() {
             backgroundSize: "40px 40px",
           }}
         ></div>
-        {/* Glow Effects */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#B5A65F]/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#B5A65F]/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#D8C97B]/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#D8C97B]/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2"></div>
       </div>
 
-      {/* --- LOGIN CARD --- */}
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-md p-8 md:p-10"
       >
-        {/* Glassmorphism Container */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-[#B5A65F]/30 rounded-3xl shadow-[0_0_40px_-10px_rgba(181,166,95,0.15)]"></div>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-[#D8C97B]/30 rounded-3xl shadow-[0_0_40px_-10px_rgba(181,166,95,0.15)]"></div>
 
         <div className="relative z-20 flex flex-col items-center">
-          {/* Logo */}
           <div className="mb-8">
             <img
               src={logoImage}
@@ -119,20 +114,19 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="w-full space-y-6">
-            {/* Input Email */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#B5A65F] uppercase tracking-widest ml-1">
+              <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-widest ml-1">
                 Email
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FaEnvelope className="text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                  <FaEnvelope className="text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                 </div>
                 <input
                   type="email"
                   name="email"
                   required
-                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#B5A65F] focus:ring-1 focus:ring-[#B5A65F] transition-all placeholder-gray-600"
+                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
                   placeholder="name@example.com"
                   value={formData.email}
                   onChange={handleChange}
@@ -140,20 +134,19 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Input Password */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#B5A65F] uppercase tracking-widest ml-1">
+              <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-widest ml-1">
                 Mật khẩu
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FaLock className="text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                  <FaLock className="text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                 </div>
                 <input
                   type="password"
                   name="password"
                   required
-                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#B5A65F] focus:ring-1 focus:ring-[#B5A65F] transition-all placeholder-gray-600"
+                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
@@ -161,11 +154,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading} // Lúc này isLoading = false mới hiện nút, true thì đã return LoadingScreen ở trên rồi
-              className="w-full py-3.5 mt-4 bg-linear-to-r from-[#B5A65F] to-[#8E803E] hover:to-[#B5A65F] text-black font-bold rounded-xl shadow-[0_0_20px_-5px_rgba(181,166,95,0.4)] transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider"
+              disabled={isLoading} 
+              className="w-full py-3.5 mt-4 bg-linear-to-r from-[#D8C97B] to-[#8E803E] hover:to-[#D8C97B] text-black font-bold rounded-xl shadow-[0_0_20px_-5px_rgba(181,166,95,0.4)] transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider"
             >
               Đăng nhập
             </button>

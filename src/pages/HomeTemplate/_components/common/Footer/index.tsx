@@ -66,7 +66,7 @@ export default function Footer() {
       title: "Công ty",
       links: [
         { label: "Liên hệ", path: "#" },
-        { label: "Về Chúng Tôi", path: "#" },
+        { label: "Về Chúng Tôi", path: "/about" },
         { label: "Tuyển Dụng", path: "#" },
         { label: "Blog", path: "#" },
       ],
@@ -84,16 +84,31 @@ export default function Footer() {
   ];
 
   const socialLinks: SocialLink[] = [
-    { id: "facebook", icon: <FaFacebookF />, url: "#" },
+    {
+      id: "facebook",
+      icon: <FaFacebookF />,
+      url: "https://www.facebook.com/Webie.Vietnam",
+    },
     { id: "twitter", icon: <FaTwitter />, url: "#" },
-    { id: "linkedin", icon: <FaLinkedinIn />, url: "#" },
-    { id: "instagram", icon: <FaInstagram />, url: "#" },
-    { id: "youtube", icon: <FaYoutube />, url: "#" },
+    {
+      id: "linkedin",
+      icon: <FaLinkedinIn />,
+      url: "https://www.linkedin.com/company/webie-vietnam-co-ltd/",
+    },
+    {
+      id: "instagram",
+      icon: <FaInstagram />,
+      url: "https://www.instagram.com/webievietnam/",
+    },
+    {
+      id: "youtube",
+      icon: <FaYoutube />,
+      url: "https://www.youtube.com/@WebieVietnamProductionHouse",
+    },
   ];
 
   return (
     <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#0a0a0a]">
-      {/* --- 1. BACKGROUND --- */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[#0a0a0a]"></div>
         <div className="absolute inset-0 opacity-10">
@@ -128,7 +143,7 @@ export default function Footer() {
         <motion.div
           animate={{ opacity: [0.05, 0.1, 0.05] }}
           transition={{ duration: 5, repeat: Infinity }}
-          className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#B5A65F] rounded-full blur-[150px] opacity-5 translate-y-[-50%]"
+          className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D8C97B] rounded-full blur-[150px] opacity-5 translate-y-[-50%]"
         />
         <motion.div
           animate={{ opacity: [0.05, 0.1, 0.05] }}
@@ -137,7 +152,6 @@ export default function Footer() {
         />
       </div>
 
-      {/* --- 2. CONTENT --- */}
       <div className="max-w-[1400px] mx-auto px-5 lg:px-10 relative z-20">
         <motion.div
           className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 mb-16"
@@ -146,7 +160,6 @@ export default function Footer() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
         >
-          {/* CỘT 1 */}
           <motion.div
             className="lg:col-span-2 flex flex-col items-center lg:items-start text-center lg:text-left"
             variants={itemVariants}
@@ -165,9 +178,10 @@ export default function Footer() {
             <div className="flex gap-3 justify-center lg:justify-start">
               {socialLinks.map((social) => (
                 <a
+                  target="_blank"
                   key={social.id}
                   href={social.url}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 transition-all duration-300 hover:bg-[#B5A65F] hover:border-[#B5A65F] hover:text-black hover:-translate-y-1"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
                 >
                   <span className="text-sm">{social.icon}</span>
                 </a>
@@ -175,14 +189,13 @@ export default function Footer() {
             </div>
           </motion.div>
 
-          {/* CÁC CỘT LINKS */}
           {footerSections.map((section) => (
             <motion.div
               key={section.id}
               className="flex flex-col"
               variants={itemVariants}
             >
-              <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[#B5A65F]/30 pb-2 w-fit">
+              <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[#D8C97B]/30 pb-2 w-fit">
                 {section.title}
               </h3>
 
@@ -196,7 +209,7 @@ export default function Footer() {
                 </h3>
                 <span
                   className={`text-white/50 transition-transform duration-300 ${
-                    openSections[section.id] ? "rotate-180 text-[#B5A65F]" : ""
+                    openSections[section.id] ? "rotate-180 text-[#D8C97B]" : ""
                   }`}
                 >
                   <FaChevronDown size={12} />
@@ -214,7 +227,7 @@ export default function Footer() {
                   <li key={index}>
                     <Link
                       to={link.path}
-                      className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#B5A65F] hover:pl-2 inline-block font-light"
+                      className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#D8C97B] hover:pl-2 inline-block font-light"
                     >
                       {link.label}
                     </Link>
@@ -225,7 +238,6 @@ export default function Footer() {
           ))}
         </motion.div>
 
-        {/* BOTTOM */}
         <motion.div
           className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left relative z-20"
           variants={itemVariants}
@@ -238,19 +250,19 @@ export default function Footer() {
           <div className="flex items-center gap-6 text-xs font-light">
             <a
               href="#"
-              className="text-gray-500 hover:text-[#B5A65F] transition-colors"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
             >
               Chính Sách Bảo Mật
             </a>
             <a
               href="#"
-              className="text-gray-500 hover:text-[#B5A65F] transition-colors"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
             >
               Điều Khoản Sử Dụng
             </a>
             <a
               href="#"
-              className="text-gray-500 hover:text-[#B5A65F] transition-colors"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
             >
               Cookies
             </a>

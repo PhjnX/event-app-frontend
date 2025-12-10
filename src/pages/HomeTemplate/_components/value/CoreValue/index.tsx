@@ -12,7 +12,6 @@ import valueImage2 from "@/assets/images/value_2.jpg";
 import valueImage3 from "@/assets/images/value_3.jpg";
 import valueImage4 from "@/assets/images/value_4.jpg";
 
-// --- Types ---
 interface ValueItem {
   id: number;
   title: string;
@@ -57,7 +56,6 @@ const VALUES: ValueItem[] = [
   },
 ];
 
-// Animation Variants (Scroll Reveal)
 const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 50, filter: "blur(10px)" },
   visible: {
@@ -74,7 +72,6 @@ const CoreValues: React.FC = () => {
   return (
     <section className="py-24 bg-[#0a0a0a] relative font-noto text-white border-t border-white/5">
       <div className="container mx-auto px-4 relative z-10 h-[700px] flex flex-col">
-        {/* HEADER */}
         <motion.div
           variants={sectionVariants}
           initial="hidden"
@@ -82,18 +79,17 @@ const CoreValues: React.FC = () => {
           viewport={{ once: false, amount: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-[#B5A65F] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#B5A65F] pb-1 mb-4 inline-block">
+          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block">
             Core Values
           </span>
           <h2 className="text-4xl md:text-5xl font-black uppercase text-white tracking-wide">
-            GIÁ TRỊ <span className="text-[#B5A65F]">CỐT LÕI</span>
+            GIÁ TRỊ <span className="text-[#D8C97B]">CỐT LÕI</span>
           </h2>
           <p className="text-gray-400 mt-4 italic text-lg font-light">
             "Kim chỉ nam cho mọi hành động tại Webie Vietnam"
           </p>
         </motion.div>
 
-        {/* ACCORDION */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -131,7 +127,7 @@ const CoreValues: React.FC = () => {
                 {isActive && (
                   <motion.div
                     layoutId="activeBorder"
-                    className="absolute inset-0 border-2 border-[#B5A65F] rounded-3xl z-20"
+                    className="absolute inset-0 border-2 border-[#D8C97B] rounded-3xl z-20"
                   />
                 )}
 
@@ -144,7 +140,7 @@ const CoreValues: React.FC = () => {
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
                         isActive
-                          ? "bg-[#B5A65F] text-black"
+                          ? "bg-[#D8C97B] text-black"
                           : "bg-white/10 text-white"
                       }`}
                     >
@@ -175,7 +171,7 @@ const CoreValues: React.FC = () => {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                       >
-                        <p className="text-gray-300 text-sm md:text-base border-l-2 border-[#B5A65F] pl-4">
+                        <p className="text-gray-300 text-sm md:text-base border-l-2 border-[#D8C97B] pl-4">
                           {item.desc}
                         </p>
                       </motion.div>

@@ -15,7 +15,7 @@ export const SLIDE_DATA: AboutSlide[] = [
     label: "Sức Mạnh Tập Thể",
     title: "15+ Chuyên gia nòng cốt",
     desc: "Đội ngũ trẻ, sáng tạo và nhiệt huyết.",
-    color: "#B5A65F",
+    color: "#D8C97B",
   },
   {
     id: 2,

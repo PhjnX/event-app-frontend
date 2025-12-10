@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { ADMIN_MENU } from "@/config/adminMenu";
-import logoImage from "@/assets/images/Logo_EMS.png"; // Thay đường dẫn logo của bạn
+import logoImage from "@/assets/images/Logo_EMS.png";
+import { ROLES } from "@/constants"; 
+import { FaCrown } from "react-icons/fa"; 
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,7 +16,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const { user } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
 
-  // Lọc menu theo Role của user
+  // Check quyền
+  const isSAdmin = user?.role === ROLES.SUPER_ADMIN;
+
   const filteredMenu = ADMIN_MENU.filter((item) =>
     user?.role ? item.roles.includes(user.role) : false
   );
@@ -24,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       initial={{ width: isCollapsed ? 80 : 280 }}
       animate={{ width: isCollapsed ? 80 : 280 }}
       transition={{ duration: 0.3, type: "spring", stiffness: 100 }}
-      className="h-screen bg-[#0a0a0a] border-r border-[#B5A65F]/20 flex flex-col fixed left-0 top-0 z-50 overflow-hidden shadow-2xl"
+      className="h-screen bg-[#0a0a0a] border-r border-[#D8C97B]/20 flex flex-col fixed left-0 top-0 z-50 overflow-hidden shadow-2xl"
     >
       {/* 1. LOGO */}
       <div className="h-20 flex items-center justify-center border-b border-white/5 bg-[#050505]">
@@ -40,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
-                className="text-[#B5A65F] font-bold text-xl font-noto whitespace-nowrap overflow-hidden"
+                className="text-[#D8C97B] font-bold text-xl font-noto whitespace-nowrap overflow-hidden"
               >
                 WEBIE ADMIN
               </motion.span>
@@ -53,7 +57,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       <div className="flex-1 py-6 overflow-y-auto px-3 custom-scrollbar">
         <ul className="space-y-2">
           {filteredMenu.map((item) => {
-            // Kiểm tra link active tương đối (Vd: vào /admin/users/1 vẫn sáng link Users)
             const isActive = location.pathname.includes(item.path);
 
             return (
@@ -63,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                   className={`relative flex items-center gap-4 px-3 py-3.5 rounded-xl transition-all duration-300 group overflow-hidden
                     ${
                       isActive
-                        ? "bg-gradient-to-r from-[#B5A65F] to-[#8E803E] text-black font-bold shadow-[0_0_15px_rgba(181,166,95,0.4)]"
+                        ? "bg-linear-to-r from-[#D8C97B] to-[#8E803E] text-black font-bold shadow-[0_0_15px_rgba(181,166,95,0.4)]"
                         : "text-gray-400 hover:text-white hover:bg-white/5"
                     }
                   `}
@@ -72,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                     className={`text-xl ${
                       isActive
                         ? "text-black"
-                        : "text-[#B5A65F] group-hover:scale-110 transition-transform"
+                        : "text-[#D8C97B] group-hover:scale-110 transition-transform"
                     }`}
                   >
                     <item.icon />
@@ -91,9 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                     )}
                   </AnimatePresence>
 
-                  {/* Tooltip khi thu nhỏ */}
                   {isCollapsed && (
-                    <div className="absolute left-16 ml-2 px-3 py-1 bg-[#B5A65F] text-black text-xs font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                    <div className="absolute left-16 ml-2 px-3 py-1 bg-[#D8C97B] text-black text-xs font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                       {item.title}
                     </div>
                   )}
@@ -104,23 +106,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         </ul>
       </div>
 
-      {/* 3. USER FOOTER */}
+      {/* 3. USER FOOTER (SỬA Ở ĐÂY) */}
       <div className="p-4 border-t border-white/5 bg-[#050505]">
         <div
           className={`flex items-center ${
             isCollapsed ? "justify-center" : "gap-3"
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-[#B5A65F]/20 flex items-center justify-center text-[#B5A65F] font-bold border border-[#B5A65F]/50">
-            {user?.username?.charAt(0).toUpperCase() || "A"}
+          {/* AVATAR LOGIC */}
+          <div
+            className={`
+            w-10 h-10 rounded-full flex items-center justify-center font-bold border transition-all duration-300
+            ${
+              isSAdmin
+                ? "bg-linear-to-br from-red-600 to-red-900 text-white border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.6)]" // Style SADMIN
+                : "bg-[#D8C97B]/20 text-[#D8C97B] border-[#D8C97B]/50" // Style ORGANIZER
+            }
+          `}
+          >
+            {/* Nếu là SAdmin thì hiện Vương Miện, còn lại hiện chữ cái đầu */}
+            {isSAdmin ? (
+              <FaCrown className="text-sm" />
+            ) : (
+              user?.username?.charAt(0).toUpperCase() || "U"
+            )}
           </div>
+
+          {/* INFO TEXT */}
           {!isCollapsed && (
             <div className="overflow-hidden">
-              <h4 className="text-white text-sm font-bold truncate">
+              <h4
+                className={`text-sm font-bold truncate ${
+                  isSAdmin ? "text-red-500" : "text-white"
+                }`}
+              >
                 {user?.username}
               </h4>
-              <p className="text-gray-500 text-[10px] truncate uppercase tracking-wider">
-                {user?.role}
+              <p className="text-gray-500 text-[10px] truncate uppercase tracking-wider font-semibold">
+                {isSAdmin ? "System Administrator" : user?.role}
               </p>
             </div>
           )}

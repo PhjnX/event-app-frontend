@@ -73,12 +73,12 @@ export default function Header() {
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     `relative block py-2 px-3 md:p-0 text-sm font-bold tracking-wide transition-colors duration-300
     after:content-[''] after:absolute after:left-0 after:bottom-[-4px] 
-    after:h-[2px] after:w-full after:bg-[#B5A65F] 
+    after:h-[2px] after:w-full after:bg-[#D8C97B] 
     after:transition-transform after:duration-300 after:origin-center
     ${
       isActive
-        ? "text-[#B5A65F] after:scale-x-100"
-        : "text-white hover:text-[#B5A65F] after:scale-x-0 hover:after:scale-x-100"
+        ? "text-[#D8C97B] after:scale-x-100"
+        : "text-white hover:text-[#D8C97B] after:scale-x-0 hover:after:scale-x-100"
     }`;
 
   const userInitial = user?.username
@@ -108,7 +108,7 @@ export default function Header() {
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-white text-2xl focus:outline-none hover:text-[#B5A65F] transition-colors cursor-pointer"
+            className="lg:hidden text-white text-2xl focus:outline-none hover:text-[#D8C97B] transition-colors cursor-pointer"
           >
             {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
@@ -151,14 +151,14 @@ export default function Header() {
               <>
                 <Link
                   to="/lien-he"
-                  className="px-5 py-2.5 rounded-full border border-[#B5A65F] text-[#B5A65F] font-bold text-sm transition-all duration-300 hover:bg-[#B5A65F] hover:text-black cursor-pointer"
+                  className="px-5 py-2.5 rounded-full border border-[#D8C97B] text-[#D8C97B] font-bold text-sm transition-all duration-300 hover:bg-[#D8C97B] hover:text-black cursor-pointer"
                 >
                   Liên hệ
                 </Link>
 
                 <button
                   onClick={openLogin}
-                  className="px-6 py-2.5 rounded-full bg-[#B5A65F] text-black font-bold text-sm shadow-[0_0_15px_-3px_rgba(181,166,95,0.4)] transition-all duration-300 hover:bg-[#dac873] hover:shadow-[0_0_20px_-3px_rgba(181,166,95,0.6)] hover:-translate-y-0.5 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full bg-[#D8C97B] text-black font-bold text-sm shadow-[0_0_15px_-3px_rgba(181,166,95,0.4)] transition-all duration-300 hover:bg-[#dac873] hover:shadow-[0_0_20px_-3px_rgba(181,166,95,0.6)] hover:-translate-y-0.5 cursor-pointer"
                 >
                   Đăng nhập
                 </button>
@@ -171,9 +171,9 @@ export default function Header() {
                 >
                   {/* --- SỬA Ở ĐÂY: Logic hiển thị ảnh avatar --- */}
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#B5A65F] 
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#D8C97B] 
   ${
-    user?.avatarUrl ? "bg-black" : "bg-linear-to-br from-[#B5A65F] to-[#8E803E]"
+    user?.avatarUrl ? "bg-black" : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"
   }`}
                   >
                     {/* LOGIC: Có ảnh thì hiện ảnh, không thì hiện chữ */}
@@ -194,7 +194,7 @@ export default function Header() {
                     <span className="text-white text-xs font-medium max-w-[100px] truncate">
                       {user?.username || "User"}
                     </span>
-                    <span className="text-[10px] text-[#B5A65F]">
+                    <span className="text-[10px] text-[#D8C97B]">
                       Thành viên
                     </span>
                   </div>
@@ -212,7 +212,7 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-3 w-56 bg-[#1a1a1a] border border-[#B5A65F]/30 rounded-xl shadow-xl overflow-hidden z-50"
+                      className="absolute right-0 mt-3 w-56 bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-xl shadow-xl overflow-hidden z-50"
                     >
                       <div className="px-4 py-3 border-b border-white/10">
                         <p className="text-sm text-white font-bold truncate">
@@ -227,7 +227,7 @@ export default function Header() {
                         <Link
                           to="/profile"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#B5A65F]/10 hover:text-[#B5A65F] transition-colors"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#D8C97B]/10 hover:text-[#D8C97B] transition-colors"
                         >
                           <FaUser /> Thông tin cá nhân
                         </Link>
@@ -259,7 +259,7 @@ export default function Header() {
             {isAuthenticated && (
               <div className="flex flex-col items-center gap-2 mb-2">
                 {/* --- SỬA Ở ĐÂY CHO MOBILE: Avatar hiển thị ảnh --- */}
-                <div className="w-16 h-16 rounded-full bg-[#B5A65F] flex items-center justify-center text-black font-bold text-2xl overflow-hidden border-2 border-[#B5A65F]">
+                <div className="w-16 h-16 rounded-full bg-[#D8C97B] flex items-center justify-center text-black font-bold text-2xl overflow-hidden border-2 border-[#D8C97B]">
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -271,7 +271,7 @@ export default function Header() {
                   )}
                 </div>
                 {/* ------------------------------------------------ */}
-                <span className="font-bold text-[#B5A65F]">
+                <span className="font-bold text-[#D8C97B]">
                   {user?.username}
                 </span>
               </div>
@@ -281,7 +281,7 @@ export default function Header() {
               <NavLink
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#B5A65F]"
+                className="hover:text-[#D8C97B]"
               >
                 Trang Chủ
               </NavLink>
@@ -290,7 +290,7 @@ export default function Header() {
               <NavLink
                 to="/about"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#B5A65F]"
+                className="hover:text-[#D8C97B]"
               >
                 Về Chúng Tôi
               </NavLink>
@@ -299,7 +299,7 @@ export default function Header() {
               <NavLink
                 to="/value"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#B5A65F]"
+                className="hover:text-[#D8C97B]"
               >
                 Giá Trị
               </NavLink>
@@ -308,7 +308,7 @@ export default function Header() {
               <NavLink
                 to="/event"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#B5A65F]"
+                className="hover:text-[#D8C97B]"
               >
                 Sự Kiện
               </NavLink>
@@ -317,7 +317,7 @@ export default function Header() {
               <NavLink
                 to="/news"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#B5A65F]"
+                className="hover:text-[#D8C97B]"
               >
                 Tin Tức
               </NavLink>
@@ -331,13 +331,13 @@ export default function Header() {
                   <Link
                     to="/lien-he"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-3 border border-[#B5A65F] text-[#B5A65F] rounded-lg font-bold cursor-pointer"
+                    className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-lg font-bold cursor-pointer"
                   >
                     Liên hệ
                   </Link>
                   <button
                     onClick={openLogin}
-                    className="w-full text-center py-3 bg-[#B5A65F] text-black rounded-lg font-bold cursor-pointer"
+                    className="w-full text-center py-3 bg-[#D8C97B] text-black rounded-lg font-bold cursor-pointer"
                   >
                     Đăng nhập
                   </button>
@@ -347,7 +347,7 @@ export default function Header() {
                   <Link
                     to="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-3 border border-white/20 text-white rounded-lg font-medium cursor-pointer hover:border-[#B5A65F] hover:text-[#B5A65F]"
+                    className="w-full text-center py-3 border border-white/20 text-white rounded-lg font-medium cursor-pointer hover:border-[#D8C97B] hover:text-[#D8C97B]"
                   >
                     Thông tin cá nhân
                   </Link>

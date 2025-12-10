@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPaperPlane, FaHandshake, FaUser } from "react-icons/fa";
-import { CONTACT_INFO } from "./form-contact-data"; // Import Data
+import { CONTACT_INFO } from "./form-contact-data"; 
 import type {
   RegistrationType,
   RegistrationFormData,
-} from "@/pages/HomeTemplate/_components/home/models/form"; // Import Model
-// Import Model
+} from "@/pages/HomeTemplate/_components/home/models/form"; 
 
-// --- COMPONENT CON 1: HÌNH NỀN & MẠCH ĐIỆN ---
+
 const BackgroundDecoration = () => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <div className="absolute inset-0 bg-[#0a0a0a]"></div>
@@ -45,7 +44,7 @@ const BackgroundDecoration = () => (
     <motion.div
       animate={{ x: [0, 50, 0], y: [0, -50, 0], opacity: [0.1, 0.2, 0.1] }}
       transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-      className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#B5A65F] rounded-full blur-[150px] opacity-10"
+      className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#D8C97B] rounded-full blur-[150px] opacity-10"
     />
     <motion.div
       animate={{ x: [0, -30, 0], y: [0, 30, 0], opacity: [0.05, 0.15, 0.05] }}
@@ -55,7 +54,6 @@ const BackgroundDecoration = () => (
   </div>
 );
 
-// --- COMPONENT CON 2: CỘT THÔNG TIN LIÊN HỆ ---
 const ContactColumn = () => (
   <motion.div
     className="lg:col-span-5 flex flex-col justify-between h-full"
@@ -67,7 +65,7 @@ const ContactColumn = () => (
     <div>
       <h3 className="text-3xl font-bold mb-6 text-white font-noto">
         Kết Nối Cùng <br />
-        <span className="text-[#B5A65F]">Kiến Tạo Tương Lai</span>
+        <span className="text-[#D8C97B]">Kiến Tạo Tương Lai</span>
       </h3>
       <p className="text-gray-400 mb-10 leading-relaxed text-justify">
         Chúng tôi luôn tìm kiếm những cơ hội hợp tác mới để mang lại giá trị tốt
@@ -79,7 +77,7 @@ const ContactColumn = () => (
       <div className="space-y-6">
         {CONTACT_INFO.map((item) => (
           <div key={item.id} className="flex items-start gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#B5A65F] group-hover:bg-[#B5A65F] group-hover:text-black transition-all duration-300">
+            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#D8C97B] group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300">
               {item.icon}
             </div>
             <div>
@@ -100,12 +98,11 @@ const ContactColumn = () => (
         alt="Teamwork"
         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
       />
-      <div className="absolute inset-0 bg-[#B5A65F]/20 mix-blend-overlay"></div>
+      <div className="absolute inset-0 bg-[#D8C97B]/20 mix-blend-overlay"></div>
     </div>
   </motion.div>
 );
 
-// --- COMPONENT CON 3: INPUT HELPER (Để đỡ lặp code input) ---
 const FormInput = ({
   label,
   placeholder,
@@ -117,13 +114,12 @@ const FormInput = ({
     </label>
     <input
       {...props}
-      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-[#B5A65F] focus:outline-none focus:ring-1 focus:ring-[#B5A65F] transition-all"
+      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none focus:ring-1 focus:ring-[#D8C97B] transition-all"
       placeholder={placeholder}
     />
   </div>
 );
 
-// --- COMPONENT CON 4: CỘT FORM ĐĂNG KÝ ---
 const RegistrationForm = () => {
   const [activeTab, setActiveTab] = useState<RegistrationType>("user");
   // Demo state handling (có thể mở rộng sau)
@@ -151,7 +147,7 @@ const RegistrationForm = () => {
     >
       <div className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
         {/* Glow trong form */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#B5A65F]/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#D8C97B]/10 rounded-full blur-[80px] pointer-events-none"></div>
 
         {/* Tabs */}
         <div className="flex p-1 bg-black/40 rounded-full mb-8 relative z-10 w-fit mx-auto lg:mx-0 border border-white/10">
@@ -159,7 +155,7 @@ const RegistrationForm = () => {
             onClick={() => setActiveTab("user")}
             className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase transition-all duration-300 ${
               activeTab === "user"
-                ? "bg-[#B5A65F] text-black shadow-lg"
+                ? "bg-[#D8C97B] text-black shadow-lg"
                 : "text-gray-400 hover:text-white"
             }`}
           >
@@ -169,7 +165,7 @@ const RegistrationForm = () => {
             onClick={() => setActiveTab("partner")}
             className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase transition-all duration-300 ${
               activeTab === "partner"
-                ? "bg-[#B5A65F] text-black shadow-lg"
+                ? "bg-[#D8C97B] text-black shadow-lg"
                 : "text-gray-400 hover:text-white"
             }`}
           >
@@ -244,7 +240,7 @@ const RegistrationForm = () => {
                       ? "Ví dụ: Sự kiện âm nhạc, hội thảo AI..."
                       : "Mô tả ngắn gọn về nhu cầu hợp tác..."
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-[#B5A65F] focus:outline-none focus:ring-1 focus:ring-[#B5A65F] transition-all resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none focus:ring-1 focus:ring-[#D8C97B] transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -252,7 +248,7 @@ const RegistrationForm = () => {
                 <input
                   type="checkbox"
                   id="policy"
-                  className=" cursor-pointer w-4 h-4 rounded border-gray-600 text-[#B5A65F] focus:ring-[#B5A65F] bg-transparent"
+                  className=" cursor-pointer w-4 h-4 rounded border-gray-600 text-[#D8C97B] focus:ring-[#D8C97B] bg-transparent"
                 />
                 <label
                   htmlFor="policy"
@@ -261,7 +257,7 @@ const RegistrationForm = () => {
                   Tôi đồng ý với{" "}
                   <a
                     href="#"
-                    className="text-[#B5A65F] underline hover:text-white"
+                    className="text-[#D8C97B] underline hover:text-white"
                   >
                     chính sách bảo mật
                   </a>{" "}
@@ -274,7 +270,7 @@ const RegistrationForm = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full group relative overflow-hidden rounded-xl bg-linear-to-r from-[#B5A65F] to-[#D8C97B] py-4 font-bold text-black uppercase tracking-widest shadow-lg mt-4"
+            className="w-full group relative overflow-hidden rounded-xl bg-linear-to-r from-[#D8C97B] to-[#D8C97B] py-4 font-bold text-black uppercase tracking-widest shadow-lg mt-4"
           >
             {/* Sử dụng class animate-shine đã config trong index.css */}
             <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shine-infinite group-hover:animate-shine-fast"></div>
@@ -304,7 +300,7 @@ export default function RegistrationSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6 font-noto drop-shadow-xl">
-            LIÊN HỆ & <span className="text-[#B5A65F]">HỢP TÁC</span>
+            LIÊN HỆ & <span className="text-[#D8C97B]">HỢP TÁC</span>
           </h2>
           <p className="text-gray-400 text-lg md:text-xl font-noto italic max-w-3xl mx-auto leading-relaxed">
             "Bạn muốn tham gia sự kiện hay trở thành đối tác chiến lược? Hãy để

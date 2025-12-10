@@ -4,13 +4,10 @@ import { FaTimes, FaEnvelope, FaLock } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 
-// --- IMPORT TỪ PROJECT CỦA BẠN ---
 import type { AppDispatch, RootState } from "../../../../../store";
 import { loginUser, clearError } from "../../../../../store/slices/auth";
-import { modalVariants } from "@/constants/motions"; // Import Variants dùng chung
+import { modalVariants } from "@/constants/motions"; 
 
-// --- IMPORT HÌNH ẢNH ---
-// Hãy đảm bảo bạn đã lưu ảnh vào đúng thư mục assets
 import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.png";
 
@@ -35,12 +32,10 @@ export default function LoginModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Effect: Đóng modal khi login thành công
   useEffect(() => {
     if (isAuthenticated && isOpen) onClose();
   }, [isAuthenticated, isOpen, onClose]);
 
-  // Effect: Clear lỗi khi mở modal
   useEffect(() => {
     if (isOpen) dispatch(clearError());
   }, [isOpen, dispatch]);
@@ -74,13 +69,12 @@ export default function LoginModal({
             className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
           />
 
-          {/* Modal Content */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#B5A65F]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
+            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
           >
             <button
               onClick={onClose}
@@ -88,10 +82,9 @@ export default function LoginModal({
             >
               <FaTimes size={20} />
             </button>
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#D8C97B] to-transparent"></div>
 
             <div className="p-8 pt-10">
-              {/* HEADER WITH LOGO */}
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <img
@@ -114,17 +107,17 @@ export default function LoginModal({
 
               <form className="space-y-5" onSubmit={handleLogin}>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#B5A65F] uppercase tracking-wider ml-1">
+                  <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-wider ml-1">
                     Email
                   </label>
                   <div className="relative group">
-                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none transition-all"
                       required
                     />
                   </div>
@@ -132,7 +125,7 @@ export default function LoginModal({
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center ml-1">
-                    <label className="text-xs font-bold text-[#B5A65F] uppercase tracking-wider">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-wider">
                       Mật khẩu
                     </label>
                     <button
@@ -144,13 +137,13 @@ export default function LoginModal({
                     </button>
                   </div>
                   <div className="relative group">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#B5A65F] focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none transition-all"
                       required
                     />
                   </div>
@@ -158,7 +151,7 @@ export default function LoginModal({
 
                 <button
                   disabled={isLoading}
-                  className="w-full bg-[#B5A65F] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <span className="inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -173,7 +166,6 @@ export default function LoginModal({
                 <div className="h-px bg-white/10 flex-1"></div>
               </div>
 
-              {/* GOOGLE BUTTON WITH IMAGE */}
               <button className="w-full bg-white text-black font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer">
                 <img
                   src={GoogleLogo}
@@ -187,7 +179,7 @@ export default function LoginModal({
                 Chưa có tài khoản?{" "}
                 <button
                   onClick={onSwitchToRegister}
-                  className="text-[#B5A65F] font-bold hover:underline cursor-pointer"
+                  className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
                 >
                   Đăng ký ngay
                 </button>

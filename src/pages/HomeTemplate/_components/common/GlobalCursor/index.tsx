@@ -7,13 +7,11 @@ export default function GlobalCursor() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Cấu hình độ trễ (Spring)
   const springConfig = { damping: 25, stiffness: 300, mass: 0.2 };
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
-    // Chỉ chạy logic này trên màn hình lớn để tiết kiệm hiệu năng
     if (window.innerWidth < 1024) return;
 
     const moveCursor = (e: MouseEvent) => {
@@ -46,9 +44,8 @@ export default function GlobalCursor() {
 
   return (
     <>
-      {/* Thêm class 'hidden lg:block' để ẩn hoàn toàn trên mobile/tablet */}
       <motion.div
-        className="hidden lg:block fixed top-0 left-0 border border-[#B5A65F] rounded-full pointer-events-none z-9999"
+        className="hidden lg:block fixed top-0 left-0 border border-[#D8C97B] rounded-full pointer-events-none z-9999"
         style={{
           x: cursorX,
           y: cursorY,

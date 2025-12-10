@@ -1,14 +1,12 @@
 import React from "react";
 import { motion, type Variants } from "framer-motion";
 
-// --- IMPORT ẢNH TỪ MÁY ---
 import cultureImage1 from "@/assets/images/culture_1.jpg";
 import cultureImage2 from "@/assets/images/culture_2.jpg";
 import cultureImage3 from "@/assets/images/culture_3.jpg";
 import cultureImage4 from "@/assets/images/culture_4.jpg";
 import cultureImage6 from "@/assets/images/culture_6.jpg";
 
-// --- DỮ LIỆU ---
 const CULTURE_IMAGES = [
   cultureImage1,
   cultureImage2,
@@ -17,7 +15,6 @@ const CULTURE_IMAGES = [
   cultureImage6,
 ];
 
-// --- VARIANTS ANIMATION ---
 const revealVariants: Variants = {
   hidden: { opacity: 0, y: 50, filter: "blur(10px)" },
   visible: {
@@ -32,7 +29,6 @@ const CultureSection: React.FC = () => {
   return (
     <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-white/5 overflow-hidden">
       <div className="container mx-auto px-4 mb-16 relative z-10">
-        {/* Header */}
         <motion.div
           variants={revealVariants}
           initial="hidden"
@@ -40,11 +36,11 @@ const CultureSection: React.FC = () => {
           viewport={{ once: false, amount: 0.5 }}
           className="text-center"
         >
-          <span className="text-[#B5A65F] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#B5A65F] pb-1 mb-4 inline-block hover:text-white transition-colors">
+          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block hover:text-white transition-colors">
             Our Culture
           </span>
           <h2 className="text-4xl md:text-5xl font-black uppercase tracking-wide mb-6">
-            WEBIE <span className="text-[#B5A65F]">DNA</span>
+            WEBIE <span className="text-[#D8C97B]">DNA</span>
           </h2>
           <p className="text-gray-400 italic text-lg max-w-2xl mx-auto hover:text-white transition-colors duration-300">
             "Chúng tôi không chỉ viết code, chúng tôi xây dựng cộng đồng những
@@ -53,9 +49,7 @@ const CultureSection: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Marquee Slider */}
       <div className="relative w-full overflow-hidden mt-10">
-        {/* Gradient mờ 2 bên */}
         <div className="absolute inset-y-0 left-0 w-24 bg-linear-to-r from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
         <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
 

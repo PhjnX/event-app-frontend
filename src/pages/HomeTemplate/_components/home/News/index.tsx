@@ -9,11 +9,10 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { SAMPLE_NEWS } from "./news-data"; // Import Data
-import type { News } from "@/pages/HomeTemplate/_components/home/models/news"; // Import Model
-// Import Model
+import { SAMPLE_NEWS } from "./news-data"; 
+import type { News } from "@/pages/HomeTemplate/_components/home/models/news"; 
 
-// --- COMPONENT CON 1: HÌNH NỀN TRANG TRÍ ---
+
 const BackgroundDecoration = () => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <div className="absolute inset-0 bg-[#0a0a0a]"></div>
@@ -36,7 +35,7 @@ const BackgroundDecoration = () => (
         <rect width="100%" height="100%" fill="url(#hexagons)" />
       </svg>
     </div>
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[500px] bg-[#B5A65F]/10 rounded-[100%] blur-[120px]"></div>
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[500px] bg-[#D8C97B]/10 rounded-[100%] blur-[120px]"></div>
     <motion.div
       initial={{ height: 0 }}
       whileInView={{ height: "100%" }}
@@ -52,7 +51,6 @@ const BackgroundDecoration = () => (
   </div>
 );
 
-// --- COMPONENT CON 2: CARD TIN TỨC ---
 interface NewsCardProps {
   news: News;
   position: "left" | "center" | "right";
@@ -74,13 +72,11 @@ const NewsCard = ({
 
   return (
     <motion.div
-      // Logic Kéo thả
       drag={isCenter ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.2}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      // Logic Animation
       initial={{
         x: isCenter ? 0 : isLeft ? -200 : 200,
         scale: 0.8,
@@ -105,7 +101,7 @@ const NewsCard = ({
         className={`relative w-full h-full rounded-3xl overflow-hidden border shadow-2xl group transition-all duration-500
             ${
               isCenter
-                ? "border-[#B5A65F]/50 shadow-[0_0_50px_rgba(181,166,95,0.15)]"
+                ? "border-[#D8C97B]/50 shadow-[0_0_50px_rgba(181,166,95,0.15)]"
                 : "border-white/5"
             }
         `}
@@ -120,20 +116,20 @@ const NewsCard = ({
         <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end pointer-events-none">
           <div className="transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
             <div className="flex flex-wrap items-center gap-4 mb-4">
-              <span className="bg-[#B5A65F] text-black text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
+              <span className="bg-[#D8C97B] text-black text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
                 {news.category}
               </span>
               <div className="flex items-center gap-4 text-xs text-gray-300 uppercase tracking-wider font-bold">
                 <span className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-[#B5A65F]" /> {news.date}
+                  <FaCalendarAlt className="text-[#D8C97B]" /> {news.date}
                 </span>
                 <span className="flex items-center gap-2">
-                  <FaUser className="text-[#B5A65F]" /> {news.author}
+                  <FaUser className="text-[#D8C97B]" /> {news.author}
                 </span>
               </div>
             </div>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#B5A65F] transition-colors pointer-events-auto">
+            <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#D8C97B] transition-colors pointer-events-auto">
               <Link to={`/news/${news.id}`}>{news.title}</Link>
             </h3>
 
@@ -146,7 +142,7 @@ const NewsCard = ({
               </p>
               <Link
                 to={`/news/${news.id}`}
-                className="inline-flex items-center gap-3 text-[#B5A65F] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#B5A65F] pb-1 hover:border-white"
+                className="inline-flex items-center gap-3 text-[#D8C97B] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#D8C97B] pb-1 hover:border-white"
               >
                 Xem chi tiết <FaArrowRight />
               </Link>
@@ -158,7 +154,6 @@ const NewsCard = ({
   );
 };
 
-// --- COMPONENT CHÍNH ---
 const NewsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -210,7 +205,6 @@ const NewsSection = () => {
       <BackgroundDecoration />
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -219,7 +213,7 @@ const NewsSection = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6 font-noto drop-shadow-xl">
-            TIN TỨC <span className="text-[#B5A65F]">MỚI NHẤT</span>
+            TIN TỨC <span className="text-[#D8C97B]">MỚI NHẤT</span>
           </h2>
           <p className="text-gray-400 text-lg md:text-xl font-noto max-w-2xl mx-auto leading-relaxed italic">
             "Cập nhật những thông tin công nghệ, xu hướng giáo dục và hoạt động
@@ -227,18 +221,17 @@ const NewsSection = () => {
           </p>
         </motion.div>
 
-        {/* Carousel Area */}
         <div className="relative h-[550px] flex items-center justify-center group/carousel">
           <button
             onClick={handlePrev}
-            className="absolute left-0 md:left-10 z-30 p-4 rounded-full bg-black/50 border border-white/10 text-white hover:bg-[#B5A65F] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+            className="absolute left-0 md:left-10 z-30 p-4 rounded-full bg-black/50 border border-white/10 text-white hover:bg-[#D8C97B] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
           >
             <FaChevronLeft size={24} />
           </button>
 
           <button
             onClick={handleNext}
-            className="absolute right-0 md:right-10 z-30 p-4 rounded-full bg-black/50 border border-white/10 text-white hover:bg-[#B5A65F] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
+            className="absolute right-0 md:right-10 z-30 p-4 rounded-full bg-black/50 border border-white/10 text-white hover:bg-[#D8C97B] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
           >
             <FaChevronRight size={24} />
           </button>

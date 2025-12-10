@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import { SLIDE_DATA } from "./data"; // Import data đã tách
-import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide"; // Import interface
-// Import interface
+import { SLIDE_DATA } from "./data"; 
+import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";
 
-// --- COMPONENT CON 1: SLIDER HÌNH ẢNH (BÊN TRÁI) ---
 const ImageSlider = ({
   currentSlide,
   currentIndex,
@@ -88,7 +86,6 @@ const ImageSlider = ({
   );
 };
 
-// --- COMPONENT CON 2: NỘI DUNG TEXT (BÊN PHẢI) ---
 const ContentSection = () => {
   return (
     <div className="pl-0 lg:pl-10 relative mt-4">
@@ -99,16 +96,16 @@ const ContentSection = () => {
         transition={{ duration: 0.8 }}
       >
         <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed text-justify">
-          <span className="text-5xl font-bold text-[#B5A65F] float-left mr-3 leading-[0.8] mt-2 font-noto">
+          <span className="text-5xl font-bold text-[#D8C97B] float-left mr-3 leading-[0.8] mt-2 font-noto">
             W
           </span>
           ebie Vietnam không chỉ đơn thuần là một công ty công nghệ, chúng tôi
           là sự kết hợp hoàn hảo giữa{" "}
-          <span className="text-white font-medium border-b border-[#B5A65F]">
+          <span className="text-white font-medium border-b border-[#D8C97B]">
             tư duy sáng tạo
           </span>{" "}
           và{" "}
-          <span className="text-white font-medium border-b border-[#B5A65F]">
+          <span className="text-white font-medium border-b border-[#D8C97B]">
             giải pháp công nghệ
           </span>
           . Chúng tôi cam kết mang lại những trải nghiệm sự kiện liền mạch và
@@ -139,7 +136,7 @@ const ContentSection = () => {
         >
           <Link
             to="/about"
-            className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-transparent text-[#B5A65F] font-bold text-sm uppercase tracking-wider rounded-full border border-[#B5A65F] overflow-hidden transition-all duration-300 hover:bg-[#B5A65F] hover:text-black hover:shadow-[0_0_30px_rgba(181,166,95,0.4)]"
+            className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-transparent text-[#D8C97B] font-bold text-sm uppercase tracking-wider rounded-full border border-[#D8C97B] overflow-hidden transition-all duration-300 hover:bg-[#D8C97B] hover:text-black hover:shadow-[0_0_30px_rgba(181,166,95,0.4)]"
           >
             <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/50 to-transparent -skew-x-12 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
             <span className="relative z-20 flex items-center gap-2">
@@ -153,7 +150,6 @@ const ContentSection = () => {
   );
 };
 
-// --- COMPONENT CHÍNH ---
 const AboutSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -168,7 +164,6 @@ const AboutSection = () => {
 
   return (
     <section className="relative py-24 bg-[#0a0a0a] overflow-hidden text-white font-noto group-section">
-      {/* Background giữ nguyên style inline */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
@@ -183,13 +178,13 @@ const AboutSection = () => {
         }}
       ></div>
 
-      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-[#B5A65F] rounded-full blur-[150px] opacity-[0.08] z-0 pointer-events-none"></div>
+      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-[#D8C97B] rounded-full blur-[150px] opacity-[0.08] z-0 pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         <div className="flex flex-col items-center text-center mb-16 animate-fade-in-up">
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight drop-shadow-2xl uppercase tracking-tight font-noto">
             VỀ CHÚNG TÔI{" "}
-            <span className="text-[#B5A65F] block md:inline">
+            <span className="text-[#D8C97B] block md:inline">
               WEBIE VIETNAM
             </span>
           </h2>
@@ -209,7 +204,6 @@ const AboutSection = () => {
         </div>
       </div>
 
-      {/* STYLE GIỮ NGUYÊN TẠI ĐÂY */}
       <style>{`
         /* Import Font Noto Serif */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');

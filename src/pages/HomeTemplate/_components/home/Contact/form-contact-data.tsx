@@ -7,18 +7,18 @@ export const CONTACT_INFO: ContactItem[] = [
     id: 1,
     icon: <FaMapMarkerAlt size={20} />,
     title: "Trụ Sở Chính",
-    content: "69/68 Đặng Thùy Trâm, P.13, Q. Bình Thạnh, TP.HCM",
+    content: "57 Đường số 53, An Phú, Thủ Đức, TP.HCM",
   },
   {
     id: 2,
     icon: <FaEnvelope size={20} />,
     title: "Email Hợp Tác",
-    content: "partnership@webie.vn",
+    content: "Huyen.dang@webie.com",
   },
   {
     id: 3,
     icon: <FaPhoneAlt size={20} />,
     title: "Hotline",
-    content: "(+84) 909 123 456",
+    content: "(+84) 969 383 467",
   },
 ];

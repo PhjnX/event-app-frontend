@@ -3,7 +3,6 @@ import apiService from "../../services/apiService";
 import { STORAGE_KEYS } from "../../constants";
 import type { User } from "../../models/user";
 
-// --- 1. STATE ---
 interface AuthState {
   user: User | null;
   isLoading: boolean;
@@ -18,9 +17,6 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
 };
 
-// --- 2. ASYNC THUNKS ---
-
-// a. Đăng ký
 export const registerUser = createAsyncThunk(
   "auth/register",
   async (userData: any, { rejectWithValue }) => {
@@ -35,7 +31,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// b. Đăng nhập
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials: any, { rejectWithValue }) => {
@@ -55,22 +50,19 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// c. Upload Avatar (Fix header multipart như đã sửa trước đó)
 export const uploadAvatar = createAsyncThunk(
   "auth/uploadAvatar",
   async (file: File, { rejectWithValue }) => {
     try {
       const formData = new FormData();
-      formData.append("image", file); // Đảm bảo Backend cũng đang chờ field tên là "image"
+      formData.append("image", file);
 
       const response: any = await apiService.post("/images/upload", formData, {
         headers: {
-          // Ghi đè header mặc định của apiService
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // Xử lý kết quả trả về
       if (typeof response === "string") return response;
       if (typeof response === "object")
         return response.url || response.secure_url || response.data || "";
@@ -82,7 +74,6 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
-// d. Lấy thông tin User (Me)
 export const fetchCurrentUser = createAsyncThunk(
   "auth/me",
   async (_, { rejectWithValue }) => {
@@ -97,7 +88,6 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-// e. Cập nhật Profile
 export const updateUserProfile = createAsyncThunk(
   "auth/updateProfile",
   async (userData: Partial<User>, { rejectWithValue }) => {
@@ -112,27 +102,22 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
-// f. Đăng xuất (CẬP NHẬT MỚI: Gọi API logout)
 export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      // 1. Gọi API lên server để server hủy token/session
       await apiService.post("/auth/logout");
 
       return true;
     } catch (error: any) {
-      // Dù API lỗi hay thành công thì phía Client vẫn phải logout
       console.warn("Logout API error:", error);
       return rejectWithValue(error.response?.data?.message);
     } finally {
-      // 2. Luôn xóa token ở client trong mọi trường hợp (finally)
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     }
   }
 );
 
-// --- 3. SLICE ---
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -148,7 +133,6 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // --- Register ---
     builder.addCase(registerUser.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -161,7 +145,6 @@ const authSlice = createSlice({
       state.error = action.payload;
     });
 
-    // --- Login ---
     builder.addCase(loginUser.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -177,7 +160,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
     });
 
-    // --- Upload Avatar ---
     builder.addCase(uploadAvatar.pending, (state) => {
       state.isLoading = true;
     });
@@ -189,7 +171,6 @@ const authSlice = createSlice({
       state.error = action.payload;
     });
 
-    // --- Fetch Me ---
     builder.addCase(fetchCurrentUser.pending, (state) => {
       state.isLoading = true;
     });
@@ -205,7 +186,6 @@ const authSlice = createSlice({
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     });
 
-    // --- Update Profile ---
     builder.addCase(updateUserProfile.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -221,13 +201,11 @@ const authSlice = createSlice({
       state.error = action.payload;
     });
 
-    // --- Logout (CẬP NHẬT MỚI) ---
     builder.addCase(logoutUser.fulfilled, (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.isLoading = false;
     });
-    // Dù API lỗi (rejected) thì Client vẫn phải clear state
     builder.addCase(logoutUser.rejected, (state) => {
       state.user = null;
       state.isAuthenticated = false;

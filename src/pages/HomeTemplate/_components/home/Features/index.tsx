@@ -6,7 +6,6 @@ import {
   FaClipboardList,
   FaCertificate,
 } from "react-icons/fa";
-// FIX 1: Import thêm TargetAndTransition để sửa lỗi Type cho icon
 import { motion, type Variants, type TargetAndTransition } from "framer-motion";
 
 const features = [
@@ -16,8 +15,8 @@ const features = [
     title: "CHECK-IN QR SIÊU TỐC",
     description:
       "Quét mã QR Check-in chỉ 01s/người. Xóa bỏ hoàn toàn cảnh xếp hàng ùn tắc tại bàn lễ tân.",
-    color: "text-[#B5A65F]",
-    bg: "bg-[#B5A65F]/20",
+    color: "text-[#D8C97B]",
+    bg: "bg-[#D8C97B]/20",
     animType: "pulse",
   },
   {
@@ -72,7 +71,6 @@ const features = [
   },
 ];
 
-// FIX 2: Khai báo kiểu Record<string, TargetAndTransition> để TypeScript hiểu đây là Animation hợp lệ
 const iconVariants: Record<string, TargetAndTransition> = {
   spin: {
     rotate: 360,
@@ -142,8 +140,7 @@ export default function FeaturesSection() {
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto">
             GIẢI PHÁP{" "}
-            {/* FIX 3: Thêm 'block md:inline' để mobile xuống dòng cả cụm, không bị rớt chữ 'DIỆN' */}
-            <span className="text-[#B5A65F] block md:inline">
+            <span className="text-[#D8C97B] block md:inline">
               QUẢN LÝ TOÀN DIỆN
             </span>
           </h2>
@@ -170,7 +167,7 @@ export default function FeaturesSection() {
               key={item.id}
               variants={itemVariants}
               whileHover={{ y: -8 }}
-              className="group relative bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 hover:bg-white/5 transition-colors duration-300 flex flex-col h-full hover:border-[#B5A65F]/30"
+              className="group relative bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 hover:bg-white/5 transition-colors duration-300 flex flex-col h-full hover:border-[#D8C97B]/30"
             >
               <div className="flex items-center justify-between mb-6">
                 <div
@@ -188,14 +185,14 @@ export default function FeaturesSection() {
                 </span>
               </div>
 
-              <h3 className="text-lg md:text-xl font-bold uppercase mb-3 text-gray-100 group-hover:text-[#B5A65F] transition-colors">
+              <h3 className="text-lg md:text-xl font-bold uppercase mb-3 text-gray-100 group-hover:text-[#D8C97B] transition-colors">
                 {item.title}
               </h3>
               <p className="text-gray-400 text-sm font-light leading-relaxed grow">
                 {item.description}
               </p>
 
-              <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#B5A65F] group-hover:w-full transition-all duration-700 ease-out opacity-0 group-hover:opacity-100"></div>
+              <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#D8C97B] group-hover:w-full transition-all duration-700 ease-out opacity-0 group-hover:opacity-100"></div>
             </motion.div>
           ))}
         </motion.div>

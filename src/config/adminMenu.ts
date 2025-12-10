@@ -7,19 +7,19 @@ import {
   FaBuilding,
   FaListAlt,
 } from "react-icons/fa";
-import { ROLES } from "@/constants"; // Đảm bảo bạn đã có file constants chứa ROLES
+import { ROLES } from "@/constants"; 
 
 export interface MenuItem {
   title: string;
   path: string;
   icon: React.ElementType;
-  roles: string[]; // Những role nào được phép thấy
+  roles: string[]; 
 }
 
 export const ADMIN_MENU: MenuItem[] = [
   {
     title: "Dashboard",
-    path: "/admin/dashboard", // Lưu ý path phải khớp với route
+    path: "/admin/dashboard", 
     icon: FaChartPie,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
@@ -41,7 +41,7 @@ export const ADMIN_MENU: MenuItem[] = [
     icon: FaTasks,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
-  // --- CHỈ SUPER ADMIN ---
+  // --- SUPER ADMIN ---
   {
     title: "Quản lý Người dùng",
     path: "/admin/users",

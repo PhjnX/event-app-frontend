@@ -5,7 +5,7 @@ export interface RegistrationFormData {
   name: string;
   email: string;
   company?: string;
-  position?: string; // Thêm field này cho Partner
+  position?: string; 
   message: string;
 }
 
