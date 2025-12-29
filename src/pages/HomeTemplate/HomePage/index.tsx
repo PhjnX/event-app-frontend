@@ -1,5 +1,6 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import CarouselHero from "../_components/home/Carousel";
+import { useLocation } from "react-router-dom";
 
 const FeaturesSection = React.lazy(
   () => import("../_components/home/Features")
@@ -20,6 +21,22 @@ const SectionLoader = () => (
 );
 
 export default function HomePage() {
+  const { hash } = useLocation();
+
+  // 👉 LOGIC SCROLL TỚI SECTION
+  useEffect(() => {
+    if (!hash) return;
+
+    // Delay nhẹ để chờ lazy component render xong
+    const timer = setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [hash]);
   return (
     <div className="w-full overflow-hidden">
       <CarouselHero />

@@ -10,20 +10,28 @@ import {
   FaCamera,
   FaSave,
   FaArrowLeft,
-  FaImage,
+  FaCheckCircle,
+  FaBriefcase,
+  FaLock, // <-- Icon Khóa
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../../../store";
-import { updateUserProfile, uploadAvatar } from "../../../../store/slices/auth"; 
+import { updateUserProfile, uploadAvatar } from "../../../../store/slices/auth";
 import { toast } from "react-toastify";
 import type { User } from "../../../../models/user";
+
+import RegisterOrganizerModal from "../modals/RegisterOrganizerModal";
+import ChangePasswordModal from "../modals/ChangePasswordModal"; 
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false); // <-- State mở Modal đổi pass
 
   const [formData, setFormData] = useState<Partial<User>>({
     username: "",
@@ -72,42 +80,30 @@ export default function ProfilePage() {
         toast.error("Ảnh quá lớn! Vui lòng chọn ảnh < 5MB.");
         return;
       }
-
       setSelectedFile(file);
-
       const objectUrl = URL.createObjectURL(file);
       setPreviewAvatar(objectUrl);
-
       return () => URL.revokeObjectURL(objectUrl);
     }
   };
 
-  const handleTriggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const handleTriggerFileInput = () => fileInputRef.current?.click();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     let currentAvatarUrl = formData.avatarUrl;
 
     if (selectedFile) {
       const uploadAction = await dispatch(uploadAvatar(selectedFile));
-
       if (uploadAvatar.fulfilled.match(uploadAction)) {
-        const uploadedUrl = uploadAction.payload as string;
-        currentAvatarUrl = uploadedUrl;
+        currentAvatarUrl = uploadAction.payload as string;
       } else {
         toast.error("Lỗi khi tải ảnh lên server.");
-        return; 
+        return;
       }
     }
 
-    const updatePayload = {
-      ...formData,
-      avatarUrl: currentAvatarUrl,
-    };
-
+    const updatePayload = { ...formData, avatarUrl: currentAvatarUrl };
     const resultAction = await dispatch(updateUserProfile(updatePayload));
 
     if (updateUserProfile.fulfilled.match(resultAction)) {
@@ -123,7 +119,6 @@ export default function ProfilePage() {
   const userInitial = user?.username
     ? user.username.charAt(0).toUpperCase()
     : "U";
-
   const displayAvatar = previewAvatar || formData.avatarUrl;
 
   return (
@@ -139,9 +134,6 @@ export default function ProfilePage() {
         }}
       ></div>
       <div className="absolute inset-0 z-0 bg-linear-to-b from-[#0a0a0a] via-[#0a0a0a]/90 to-[#0a0a0a]"></div>
-
-      <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#D8C97B] blur-[180px] opacity-10 rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500 blur-[180px] opacity-10 rounded-full pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         <Link
@@ -179,7 +171,6 @@ export default function ProfilePage() {
                           {userInitial}
                         </span>
                       )}
-
                       <div
                         onClick={handleTriggerFileInput}
                         className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer text-white gap-1 backdrop-blur-sm"
@@ -191,8 +182,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                  {/* Status dot */}
-                  <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-4 border-[#121212] rounded-full"></div>
                 </div>
 
                 <h2 className="text-2xl font-bold text-white mt-3">
@@ -218,19 +207,23 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-[#D8C97B]/20 flex items-center justify-center text-[#D8C97B]">
-                      <FaImage size={14} />
+
+                  <button
+                    onClick={() => setIsChangePassModalOpen(true)}
+                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-[#D8C97B]/10 rounded-xl border border-white/5 hover:border-[#D8C97B]/30 transition-all group cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-700/50 group-hover:bg-[#D8C97B]/20 flex items-center justify-center text-gray-400 group-hover:text-[#D8C97B] transition-colors">
+                      <FaLock size={14} />
                     </div>
-                    <div className="overflow-hidden">
-                      <p className="text-xs text-gray-400 uppercase font-bold">
-                        Trạng thái ảnh
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase font-bold group-hover:text-[#D8C97B] transition-colors">
+                        Bảo mật
                       </p>
-                      <p className="text-sm text-gray-200 truncate">
-                        {selectedFile ? "Đã chọn ảnh mới" : "Ảnh hiện tại"}
+                      <p className="text-sm text-gray-200 text-left">
+                        Đổi mật khẩu
                       </p>
                     </div>
-                  </div>
+                  </button>
                 </div>
 
                 <input
@@ -243,17 +236,41 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-linear-to-r from-[#D8C97B]/20 to-[#D8C97B]/5 border border-[#D8C97B]/20 rounded-2xl p-6 text-center">
-              <h4 className="text-[#D8C97B] font-bold mb-1">
-                Nâng cấp tài khoản?
-              </h4>
-              <p className="text-gray-400 text-xs mb-3">
-                Mở khóa các tính năng sự kiện nâng cao.
-              </p>
-              <button className="text-xs bg-[#D8C97B] text-black font-bold px-4 py-2 rounded-lg hover:bg-[#d6c56b] transition-colors">
-                Tìm hiểu thêm
-              </button>
-            </div>
+            {user?.role !== "ADMIN" && user?.role !== "SADMIN" && (
+              <>
+                {user?.role === "ORGANIZER" ? (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-green-500">
+                      <FaCheckCircle size={20} />
+                    </div>
+                    <h4 className="text-green-500 font-bold mb-1">
+                      Nhà tổ chức
+                    </h4>
+                    <p className="text-gray-400 text-xs">
+                      Tài khoản của bạn đã được xác minh.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-linear-to-r from-[#D8C97B]/20 to-[#D8C97B]/5 border border-[#D8C97B]/20 rounded-2xl p-6 text-center">
+                    <div className="w-12 h-12 bg-[#D8C97B]/20 rounded-full flex items-center justify-center mx-auto mb-3 text-[#D8C97B]">
+                      <FaBriefcase size={20} />
+                    </div>
+                    <h4 className="text-[#D8C97B] font-bold mb-1">
+                      Trở thành Nhà tổ chức?
+                    </h4>
+                    <p className="text-gray-400 text-xs mb-3">
+                      Đăng ký để tạo và quản lý sự kiện.
+                    </p>
+                    <button
+                      onClick={() => setIsRegisterModalOpen(true)}
+                      className="text-xs bg-[#D8C97B] text-black font-bold px-4 py-2 rounded-lg hover:bg-[#d6c56b] transition-colors"
+                    >
+                      Đăng ký ngay
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="lg:col-span-8">
@@ -264,7 +281,7 @@ export default function ProfilePage() {
                     Cài Đặt Hồ Sơ
                   </h3>
                   <p className="text-gray-400 text-sm">
-                    Quản lý thông tin cá nhân và bảo mật
+                    Quản lý thông tin cá nhân
                   </p>
                 </div>
                 <div className="hidden md:block">
@@ -283,10 +300,9 @@ export default function ProfilePage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all"
                     />
                   </div>
-
                   <div className="space-y-2 opacity-70">
                     <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                       <FaEnvelope /> Email (Read-only)
@@ -298,7 +314,6 @@ export default function ProfilePage() {
                       className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-gray-500 cursor-not-allowed select-none"
                     />
                   </div>
-
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase tracking-wider group-focus-within:text-white transition-colors">
                       <FaPhone /> Số điện thoại
@@ -309,10 +324,9 @@ export default function ProfilePage() {
                       value={formData.phoneNumber || ""}
                       onChange={handleChange}
                       placeholder="09xx..."
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all"
                     />
                   </div>
-
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase tracking-wider group-focus-within:text-white transition-colors">
                       <FaBirthdayCake /> Ngày sinh
@@ -325,7 +339,6 @@ export default function ProfilePage() {
                       className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all scheme-dark"
                     />
                   </div>
-
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase tracking-wider group-focus-within:text-white transition-colors">
                       <FaVenusMars /> Giới tính
@@ -366,7 +379,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="md:col-span-2 space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase tracking-wider group-focus-within:text-white transition-colors">
                       <FaMapMarkerAlt /> Địa chỉ
@@ -377,7 +389,7 @@ export default function ProfilePage() {
                       onChange={handleChange}
                       rows={3}
                       placeholder="Nhập địa chỉ..."
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all resize-none"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:bg-black/60 focus:outline-none transition-all resize-none"
                     />
                   </div>
                 </div>
@@ -386,36 +398,13 @@ export default function ProfilePage() {
                   <p className="text-xs text-gray-500 italic text-center md:text-left">
                     * Các thay đổi sẽ được cập nhật ngay sau khi lưu.
                   </p>
-
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-linear-to-r from-[#D8C97B] to-[#D8C97B] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(181,166,95,0.4)] transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none whitespace-nowrap"
+                    className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-linear-to-r from-[#D8C97B] to-[#D8C97B] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(181,166,95,0.4)] transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {isLoading ? (
-                      <span className="flex items-center gap-2">
-                        <svg
-                          className="animate-spin h-4 w-4 text-black"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Đang xử lý...
-                      </span>
+                      "Đang xử lý..."
                     ) : (
                       <>
                         <FaSave /> Lưu Thay Đổi
@@ -428,6 +417,15 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
+
+      <RegisterOrganizerModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+      />
+      <ChangePasswordModal
+        isOpen={isChangePassModalOpen}
+        onClose={() => setIsChangePassModalOpen(false)}
+      />
     </div>
   );
 }

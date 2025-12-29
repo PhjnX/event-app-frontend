@@ -1,7 +1,32 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Organizer } from "../../models/organizer";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
+import type { Organizer } from "../../models/organizer";
+
+interface OrganizerState {
+  data: Organizer[];
+  isLoading: boolean;
+  error: any;
+}
+
+const initialState: OrganizerState = {
+  data: [],
+  isLoading: false,
+  error: null,
+};
+
+export const registerOrganizer = createAsyncThunk(
+  "organizers/register",
+  async (data: any, { rejectWithValue }) => {
+    try {
+      const response = await apiService.post("/organizers", data);
+      return response;
+    } catch (error: any) {
+      toast.error(error.message || "Đăng ký thất bại");
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 export const fetchOrganizers = createAsyncThunk(
   "organizers/fetchAll",
@@ -33,7 +58,7 @@ export const deleteOrganizer = createAsyncThunk(
   "organizers/delete",
   async (slug: string, { rejectWithValue }) => {
     try {
-      await apiService.delete(`/organizers/${slug}`); 
+      await apiService.delete(`/organizers/${slug}`);
       toast.success("Đã xóa tổ chức");
       return slug;
     } catch (error: any) {
@@ -43,24 +68,23 @@ export const deleteOrganizer = createAsyncThunk(
   }
 );
 
-interface OrganizerState {
-  data: Organizer[];
-  isLoading: boolean;
-  error: any;
-}
-
-const initialState: OrganizerState = {
-  data: [],
-  isLoading: false,
-  error: null,
-};
-
 const organizerSlice = createSlice({
   name: "organizers",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(registerOrganizer.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(registerOrganizer.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(registerOrganizer.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
       .addCase(fetchOrganizers.pending, (state) => {
         state.isLoading = true;
       })

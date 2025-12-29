@@ -1,9 +1,7 @@
 @import "tailwindcss";
-@plugin "flowbite-react/plugin/tailwindcss";
-@source "../.flowbite-react/class-list.json";
 
 @theme {
-  /* 1. Định nghĩa Keyframes */
+  /* --- Keyframes cũ của bạn --- */
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -14,23 +12,41 @@
       transform: translateY(0);
     }
   }
-
   @keyframes shine {
     100% {
       left: 125%;
     }
   }
 
-  /* 2. Tạo Animation Utility classes */
-  /* Cú pháp: --animate-<tên-class>: <tên-keyframes> <thông-số> */
+  /* --- Keyframes mới cho Magic UI --- */
+  @keyframes border-beam {
+    100% {
+      offset-distance: 100%;
+    }
+  }
+  @keyframes shimmer {
+    0%,
+    90%,
+    100% {
+      box-shadow: 0 0 0 transparent;
+    }
+    50% {
+      box-shadow: 0 0 20px var(--shimmer-color);
+    }
+  }
 
+  /* --- Animation Utilities --- */
   --animate-fade-in-up: fadeInUp 0.8s ease-out forwards;
-
   --animate-shine-infinite: shine 5s infinite linear;
-
   --animate-shine-fast: shine 0.7s forwards ease-in-out;
+
+  /* Magic UI Animations */
+  --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+  --animate-shimmer: shimmer 2s linear infinite;
 }
+
 @layer utilities {
+  /* Các patterns xịn xò của bạn */
   .bg-stars-pattern {
     background-color: #0a0a0a;
     background-image: radial-gradient(
@@ -57,16 +73,9 @@
       black 85%,
       transparent
     );
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      black 15%,
-      black 85%,
-      transparent
-    );
   }
   .bg-grid-pattern {
-    background-color: #0a0a0a;
+    background-color: #09090b;
     background-image: linear-gradient(
         rgba(255, 255, 255, 0.03) 1px,
         transparent 1px
@@ -75,34 +84,43 @@
     background-size: 50px 50px;
   }
 }
-/* src/index.css */
 
+/* Tối ưu mobile và Scrollbar (Giữ nguyên code của bạn) */
 @media (max-width: 768px) {
-  /* 1. Tắt Backdrop Blur (Kẻ thù số 1 của hiệu năng mobile) */
   .backdrop-blur-xl,
   .backdrop-blur-lg,
   .backdrop-blur-md,
   .backdrop-blur-sm {
     backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    /* Tăng độ đậm nền lên để bù lại việc mất độ mờ, giúp chữ dễ đọc */
     background-color: rgba(10, 10, 10, 0.95) !important;
   }
-
-  /* 2. Ẩn bớt các đốm sáng (Orb) mờ ảo nền */
-  /* Các class có độ blur quá cao thường gây lag */
   .blur-\[150px\],
   .blur-\[100px\],
   .blur-\[120px\] {
-    display: none !important; /* Ẩn luôn cho nhẹ */
-    /* Hoặc thay bằng opacity cực thấp nếu muốn giữ lại chút màu */
-    /* opacity: 0.05 !important; */
+    display: none !important;
   }
-
-  /* 3. Tối ưu Shadow */
   .shadow-2xl,
   .shadow-xl {
     box-shadow: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Thay bóng đổ bằng viền nhẹ */
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b5a65f;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
 }

@@ -1,4 +1,3 @@
-// src/models/news.ts
 export interface News {
   id: number;
   title: string;

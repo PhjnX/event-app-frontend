@@ -1,4 +1,5 @@
 export interface Organizer {
+  organizerName: string;
   organizerId: number;
   slug: string;
   name: string;

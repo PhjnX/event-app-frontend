@@ -1,6 +1,5 @@
 export const STORAGE_KEYS = {
-  CURRENT_USER: "current_user",
-  ACCESS_TOKEN: "access_token",
+  ACCESS_TOKEN: "accessToken",
 };
 
 export const ROLES = {

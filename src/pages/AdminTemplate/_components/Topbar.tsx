@@ -1,20 +1,20 @@
 import React from "react";
-import { FaIndent, FaOutdent, FaSignOutAlt, FaHome } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux"; // Thêm useSelector
-import { Link, useNavigate } from "react-router-dom";
+import { FaSignOutAlt, FaHome, FaChevronRight } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logoutUser } from "@/store/slices/auth";
-import type { AppDispatch, RootState } from "@/store"; // Import RootState
-import { ROLES } from "@/constants"; // Import ROLES
+import type { AppDispatch, RootState } from "@/store";
+import { ROLES } from "@/constants";
 
 interface TopbarProps {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
 }
 
-const Topbar: React.FC<TopbarProps> = ({ isCollapsed, setIsCollapsed }) => {
+const Topbar: React.FC<TopbarProps> = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  // Lấy info user để check role
+  const location = useLocation();
   const { user } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = async () => {
@@ -22,44 +22,59 @@ const Topbar: React.FC<TopbarProps> = ({ isCollapsed, setIsCollapsed }) => {
     navigate("/auth");
   };
 
-  // Check quyền
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN;
 
+  const getPageTitle = (path: string) => {
+    if (path.includes("/admin/events")) return "Event Management";
+    if (path.includes("/admin/presenters")) return "Presenter Management";
+    if (path.includes("/admin/organizers")) return "Organizer Management";
+    if (path.includes("/admin/users")) return "User Management";
+    return "Dashboard";
+  };
+
+  const currentTitle = getPageTitle(location.pathname);
+
   return (
-    <header className="h-20 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#D8C97B]/20 flex items-center justify-between px-6 sticky top-0 z-40 transition-all duration-300">
-      {/* Left: Toggle */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-[#D8C97B] text-xl hover:bg-white/5 p-2 rounded-lg transition-colors focus:outline-none"
-        >
-          {isCollapsed ? <FaIndent /> : <FaOutdent />}
-        </button>
-        <h1 className="text-white font-noto font-bold text-lg hidden md:block uppercase tracking-wider">
-          {isSAdmin ? "Quản trị tối cao" : "Kênh Nhà Tổ Chức"}
-        </h1>
+    <header className="h-16 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#D8C97B]/20 flex items-center justify-between px-6 sticky top-0 z-40 transition-all duration-300">
+      <div className="flex items-center gap-2 text-sm">
+        {currentTitle !== "Dashboard" ? (
+          <>
+            <Link
+              to="/admin"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors flex items-center gap-1 font-medium"
+            >
+              <FaHome className="mt-0.5" /> Dashboard
+            </Link>
+            <FaChevronRight className="text-gray-700 text-xs" />
+            <span className="text-white font-bold  tracking-wide">
+              {currentTitle}
+            </span>
+          </>
+        ) : (
+          <span className="text-white font-bold  tracking-wide flex items-center gap-2">
+            <FaHome className="mt-0.5 text-[#D8C97B]" /> Dashboard
+          </span>
+        )}
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-4">
-        {/* LOGIC ẨN LINK TRANG CHỦ: Chỉ hiện nếu KHÔNG PHẢI là SADMIN */}
-        {!isSAdmin && (
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-gray-400 hover:text-[#D8C97B] text-sm font-medium transition-colors"
-          >
-            <FaHome /> <span className="hidden sm:inline">Trang chủ User</span>
-          </Link>
-        )}
+      <div className="flex items-center gap-6">
+        <div className="flex flex-col items-end">
+          <span className="text-[#D8C97B] font-black font-noto text-sm tracking-wider uppercase">
+            {isSAdmin ? "SUPER ADMIN" : "ORGANIZER"}
+          </span>
+          <span className="text-[10px] text-gray-500 font-mono">
+            {user?.username}
+          </span>
+        </div>
 
-        <div className="h-6 w-px bg-white/10 mx-2"></div>
+        <div className="h-8 w-px bg-white/10"></div>
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all text-sm font-bold"
+          className="group flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors"
+          title="Đăng xuất"
         >
-          <FaSignOutAlt />
-          <span className="hidden sm:inline">Đăng xuất</span>
+          <FaSignOutAlt className="group-hover:-translate-x-1 transition-transform text-lg" />
         </button>
       </div>
     </header>

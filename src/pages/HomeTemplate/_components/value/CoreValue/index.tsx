@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import React from "react";
+import { motion, type Variants } from "framer-motion";
 import {
   FaLightbulb,
   FaHandshake,
@@ -7,6 +7,7 @@ import {
   FaRocket,
 } from "react-icons/fa";
 
+// Import ảnh (Giữ nguyên)
 import valueImage1 from "@/assets/images/value_1.jpg";
 import valueImage2 from "@/assets/images/value_2.jpg";
 import valueImage3 from "@/assets/images/value_3.jpg";
@@ -26,7 +27,7 @@ const VALUES: ValueItem[] = [
     id: 1,
     title: "TIÊN PHONG",
     enTitle: "INNOVATION",
-    desc: "Không chấp nhận lối mòn. Chúng tôi liên tục thử nghiệm các công nghệ mới nhất (AI, Blockchain) để định hình lại tương lai của EdTech.",
+    desc: "Không chấp nhận lối mòn. Chúng tôi liên tục thử nghiệm các công nghệ mới nhất (AI, Blockchain) để định hình lại tương lai.",
     icon: FaLightbulb,
     image: valueImage1,
   },
@@ -50,145 +51,113 @@ const VALUES: ValueItem[] = [
     id: 4,
     title: "TỐC ĐỘ",
     enTitle: "VELOCITY",
-    desc: "Trong kỷ nguyên số, chậm trễ là thất bại. Chúng tôi tối ưu hóa quy trình để mang lại giải pháp nhanh nhất mà không hy sinh chất lượng.",
+    desc: "Trong kỷ nguyên số, chậm trễ là thất bại. Tối ưu hóa quy trình để mang lại giải pháp nhanh nhất mà không hy sinh chất lượng.",
     icon: FaRocket,
     image: valueImage4,
   },
 ];
 
-const sectionVariants: Variants = {
-  hidden: { opacity: 0, y: 50, filter: "blur(10px)" },
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 50 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.8 },
+    transition: { duration: 0.6, ease: "easeOut" },
   },
 };
 
 const CoreValues: React.FC = () => {
-  const [activeId, setActiveId] = useState<number>(1);
-
   return (
-    <section className="py-24 bg-[#0a0a0a] relative font-noto text-white border-t border-white/5">
-      <div className="container mx-auto px-4 relative z-10 h-[700px] flex flex-col">
+    <section className="py-24 bg-[#0a0a0a] relative font-noto text-white overflow-hidden border-t border-white/5">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D8C97B]/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.5 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
         >
           <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block">
             Core Values
           </span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase text-white tracking-wide">
-            GIÁ TRỊ <span className="text-[#D8C97B]">CỐT LÕI</span>
+          <h2 className="text-4xl md:text-6xl font-black uppercase text-white tracking-wide mb-6">
+            GIÁ TRỊ{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
+              CỐT LÕI
+            </span>
           </h2>
-          <p className="text-gray-400 mt-4 italic text-lg font-light">
-            "Kim chỉ nam cho mọi hành động tại Webie Vietnam"
+          <p className="text-gray-400 italic text-lg font-light max-w-2xl mx-auto">
+            "Kim chỉ nam dẫn lối cho mọi hành động và quyết định tại Webie
+            Vietnam"
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: false }}
-          transition={{ duration: 0.8 }}
-          className="flex flex-col md:flex-row gap-4 h-full w-full"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {VALUES.map((item) => {
-            const isActive = activeId === item.id;
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                onClick={() => setActiveId(item.id)}
-                onHoverStart={() => setActiveId(item.id)}
-                className={`relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-700 ease-in-out group
-                  ${
-                    isActive
-                      ? "md:flex-3 flex-3 h-[300px] md:h-auto"
-                      : "md:flex-1 flex-1 h-20 md:h-auto"
-                  }
-                `}
-              >
+          {VALUES.map((item) => (
+            <motion.div
+              key={item.id}
+              variants={cardVariants}
+              className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer"
+            >
+              <div className="absolute inset-0">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="absolute inset-0 w-full h-full object-cover filter brightness-[0.3] group-hover:brightness-[0.4] transition-all duration-700 scale-105"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter grayscale group-hover:grayscale-0"
                 />
-                <div
-                  className={`absolute inset-0 bg-linear-to-b from-transparent via-black/20 to-black/90 transition-opacity duration-500 ${
-                    isActive ? "opacity-100" : "opacity-80"
-                  }`}
-                ></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
+              </div>
 
-                {isActive && (
-                  <motion.div
-                    layoutId="activeBorder"
-                    className="absolute inset-0 border-2 border-[#D8C97B] rounded-3xl z-20"
-                  />
-                )}
+              <div className="absolute inset-0 border border-white/10 rounded-3xl transition-colors duration-300 group-hover:border-[#D8C97B]/50"></div>
 
-                <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10">
-                  <div
-                    className={`flex items-center gap-4 ${
-                      isActive ? "mb-4" : "justify-center md:justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
-                        isActive
-                          ? "bg-[#D8C97B] text-black"
-                          : "bg-white/10 text-white"
-                      }`}
-                    >
-                      <item.icon className="text-xl" />
-                    </div>
-                    <div
-                      className={`${
-                        !isActive &&
-                        "hidden md:block md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                      }`}
-                    >
-                      <h3
-                        className={`font-bold uppercase leading-none ${
-                          isActive
-                            ? "text-2xl md:text-3xl text-white"
-                            : "text-lg text-gray-400"
-                        }`}
-                      >
-                        {item.title}
-                      </h3>
-                    </div>
+              <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
+                <div className="flex justify-between items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-[#D8C97B] text-2xl group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300 shadow-lg">
+                    <item.icon />
+                  </div>
+                  <span className="text-6xl font-black text-white/5 group-hover:text-[#D8C97B]/10 transition-colors duration-300 select-none">
+                    0{item.id}
+                  </span>
+                </div>
+
+                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-px w-8 bg-[#D8C97B] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                    <span className="text-[#D8C97B] text-xs font-bold tracking-[0.2em] uppercase">
+                      {item.enTitle}
+                    </span>
                   </div>
 
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                      >
-                        <p className="text-gray-300 text-sm md:text-base border-l-2 border-[#D8C97B] pl-4">
-                          {item.desc}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <h3 className="text-3xl font-bold text-white mb-4 uppercase leading-none group-hover:text-[#D8C97B] transition-colors duration-300">
+                    {item.title}
+                  </h3>
 
-                  {!isActive && (
-                    <div className="hidden md:flex absolute inset-0 items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      <span className="transform -rotate-90 text-xl font-bold tracking-widest text-gray-500 uppercase">
-                        {item.enTitle}
-                      </span>
-                    </div>
-                  )}
+                  <p className="text-gray-400 text-sm leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-3">
+                    {item.desc}
+                  </p>
                 </div>
-              </motion.div>
-            );
-          })}
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>

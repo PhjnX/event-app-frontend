@@ -1,4 +1,3 @@
-// src/models/event.ts
 export interface Event {
   eventId: number;
   eventName: string;

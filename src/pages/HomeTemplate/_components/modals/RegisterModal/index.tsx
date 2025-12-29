@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaEnvelope, FaLock, FaUser } from "react-icons/fa";
+import { FaTimes, FaEnvelope, FaLock, FaUser, FaKey } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch, RootState } from "../../../../../store";
-import { registerUser, clearError } from "../../../../../store/slices/auth";
-import { modalVariants } from "@/constants/motions"; 
+import {
+  registerUser,
+  verifyUser,
+  clearError,
+} from "../../../../../store/slices/auth";
+import { modalVariants } from "@/constants/motions";
 
-import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.png";
 
 interface RegisterModalProps {
@@ -25,22 +28,29 @@ export default function RegisterModal({
   const dispatch = useDispatch<AppDispatch>();
   const { isLoading, error } = useSelector((state: RootState) => state.auth);
 
+  const [step, setStep] = useState<1 | 2>(1);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  const [verificationCode, setVerificationCode] = useState("");
+
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
+      setStep(1);
       setFormData({
         username: "",
         email: "",
         password: "",
         confirmPassword: "",
       });
+      setVerificationCode("");
       setLocalError(null);
       dispatch(clearError());
     }
@@ -64,11 +74,28 @@ export default function RegisterModal({
 
     const resultAction = await dispatch(registerUser(formData));
     if (registerUser.fulfilled.match(resultAction)) {
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      onSwitchToLogin();
-    } else {
-      const errMsg = resultAction.payload as string;
-      toast.error(errMsg || "Đăng ký thất bại");
+      toast.success("Đăng ký thành công! Mã xác thực đã được gửi về email.");
+      setStep(2); 
+      dispatch(clearError());
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode.trim()) {
+      setLocalError("Vui lòng nhập mã xác thực.");
+      return;
+    }
+
+    const verifyData = {
+      email: formData.email,
+      verificationCode: verificationCode,
+    };
+
+    const resultAction = await dispatch(verifyUser(verifyData));
+    if (verifyUser.fulfilled.match(resultAction)) {
+      toast.success("Xác thực thành công! Bạn có thể đăng nhập ngay.");
+      onSwitchToLogin(); 
     }
   };
 
@@ -107,10 +134,14 @@ export default function RegisterModal({
                     alt="Webie Logo"
                     className="w-10 h-10 object-contain"
                   />
-                  <h2 className="text-3xl font-bold text-white">Đăng Ký</h2>
+                  <h2 className="text-3xl font-bold text-white">
+                    {step === 1 ? "Đăng Ký" : "Xác Thực Email"}
+                  </h2>
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Tham gia cùng chúng tôi ngay hôm nay
+                  {step === 1
+                    ? "Tham gia cùng chúng tôi ngay hôm nay"
+                    : `Vui lòng nhập mã OTP đã gửi tới ${formData.email}`}
                 </p>
               </div>
 
@@ -120,115 +151,148 @@ export default function RegisterModal({
                 </div>
               )}
 
-              <form className="space-y-4" onSubmit={handleRegister}>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
-                    Họ và Tên
-                  </label>
-                  <div className="relative group">
-                    <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
-                    <input
-                      type="text"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder="Nguyễn Văn A"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
-                    />
+              {step === 1 && (
+                <form className="space-y-4" onSubmit={handleRegister}>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                      Họ và Tên
+                    </label>
+                    <div className="relative group">
+                      <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Nguyễn Văn A"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
-                    Email
-                  </label>
-                  <div className="relative group">
-                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="name@example.com"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
-                    />
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                      Email
+                    </label>
+                    <div className="relative group">
+                      <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="name@example.com"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
-                    Mật khẩu
-                  </label>
-                  <div className="relative group">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
-                    />
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                      Mật khẩu
+                    </label>
+                    <div className="relative group">
+                      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
-                    Nhập lại mật khẩu
-                  </label>
-                  <div className="relative group">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
-                    />
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                      Nhập lại mật khẩu
+                    </label>
+                    <div className="relative group">
+                      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  disabled={isLoading}
-                  className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
-                >
-                  {isLoading ? (
-                    <>
-                      {" "}
-                      <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>{" "}
-                      Đang xử lý...{" "}
-                    </>
-                  ) : (
-                    "Đăng Ký Ngay"
-                  )}
-                </button>
-              </form>
+                  <button
+                    disabled={isLoading}
+                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
+                        Đang đăng ký...
+                      </>
+                    ) : (
+                      "Tiếp tục"
+                    )}
+                  </button>
+                </form>
+              )}
 
-              <div className="flex items-center gap-4 my-4">
-                <div className="h-px bg-white/10 flex-1"></div>
-                <span className="text-gray-500 text-xs uppercase">Hoặc</span>
-                <div className="h-px bg-white/10 flex-1"></div>
-              </div>
+              {step === 2 && (
+                <form className="space-y-6" onSubmit={handleVerify}>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                      Mã xác thực (OTP)
+                    </label>
+                    <div className="relative group">
+                      <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="Nhập mã OTP..."
+                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white text-lg tracking-widest focus:border-[#D8C97B] focus:outline-none transition-all"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
 
-              <button className="w-full bg-white text-black font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer">
-                <img
-                  src={GoogleLogo}
-                  alt="Google"
-                  className="w-5 h-5 object-contain"
-                />
-                <span>Đăng ký với Google</span>
-              </button>
+                  <button
+                    disabled={isLoading}
+                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
+                        Đang xác thực...
+                      </>
+                    ) : (
+                      "Hoàn tất đăng ký"
+                    )}
+                  </button>
 
-              <p className="text-center text-gray-500 text-sm mt-6">
-                Đã có tài khoản?{" "}
-                <button
-                  onClick={onSwitchToLogin}
-                  className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
-                >
-                  Đăng nhập
-                </button>
-              </p>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="text-gray-500 hover:text-white text-sm underline cursor-pointer"
+                    >
+                      Quay lại bước trước
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {step === 1 && (
+                <p className="text-center text-gray-500 text-sm mt-6">
+                  Đã có tài khoản?{" "}
+                  <button
+                    onClick={onSwitchToLogin}
+                    className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
+                  >
+                    Đăng nhập
+                  </button>
+                </p>
+              )}
             </div>
           </motion.div>
         </div>

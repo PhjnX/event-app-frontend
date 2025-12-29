@@ -1,4 +1,3 @@
-// src/pages/HomeTemplate/_components/home/Registration/data.tsx
 import { FaMapMarkerAlt, FaEnvelope, FaPhoneAlt } from "react-icons/fa";
 import type { ContactItem } from "@/pages/HomeTemplate/_components/home/models/form";
 

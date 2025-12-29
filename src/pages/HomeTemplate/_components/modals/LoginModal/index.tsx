@@ -6,10 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch, RootState } from "../../../../../store";
 import { loginUser, clearError } from "../../../../../store/slices/auth";
-import { modalVariants } from "@/constants/motions"; 
+import { modalVariants } from "@/constants/motions";
 
 import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.png";
+
+const GOOGLE_LOGIN_URL =
+  "https://ems-backend-jkjx.onrender.com/oauth2/authorization/google";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -25,6 +28,7 @@ export default function LoginModal({
   onSwitchToForgot,
 }: LoginModalProps) {
   const dispatch = useDispatch<AppDispatch>();
+
   const { isLoading, error, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
@@ -42,17 +46,28 @@ export default function LoginModal({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+
+    if (!email.trim() || !password) {
       toast.warning("Vui lòng nhập Email và Mật khẩu.");
       return;
     }
 
     const resultAction = await dispatch(loginUser({ email, password }));
+
     if (loginUser.fulfilled.match(resultAction)) {
       toast.success("Đăng nhập thành công! 🎉");
     } else {
-      const errMsg = resultAction.payload as string;
-      toast.error(errMsg || "Email hoặc mật khẩu không đúng.");
+      const rawMsg = (resultAction.payload as string) || "";
+
+      if (
+        rawMsg.includes("Bad credentials") ||
+        rawMsg.includes("Lỗi hệ thống") ||
+        rawMsg.includes("User not found")
+      ) {
+        toast.error("Email hoặc mật khẩu không chính xác!");
+      } else {
+        toast.error(rawMsg || "Đăng nhập thất bại. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -60,7 +75,6 @@ export default function LoginModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -82,6 +96,7 @@ export default function LoginModal({
             >
               <FaTimes size={20} />
             </button>
+
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#D8C97B] to-transparent"></div>
 
             <div className="p-8 pt-10">
@@ -89,7 +104,7 @@ export default function LoginModal({
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <img
                     src={LogoApp}
-                    alt="Webie Logo"
+                    alt="Logo"
                     className="w-10 h-10 object-contain"
                   />
                   <h2 className="text-3xl font-bold text-white">Đăng Nhập</h2>
@@ -99,7 +114,7 @@ export default function LoginModal({
                 </p>
               </div>
 
-              {error && (
+              {error && !error.includes("Bad credentials") && (
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
                   {error}
                 </div>
@@ -166,14 +181,17 @@ export default function LoginModal({
                 <div className="h-px bg-white/10 flex-1"></div>
               </div>
 
-              <button className="w-full bg-white text-black font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer">
+              <a
+                href={GOOGLE_LOGIN_URL}
+                className="w-full bg-white text-black font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer no-underline"
+              >
                 <img
                   src={GoogleLogo}
                   alt="Google"
                   className="w-5 h-5 object-contain"
                 />
                 <span>Đăng nhập với Google</span>
-              </button>
+              </a>
 
               <p className="text-center text-gray-500 text-sm mt-8">
                 Chưa có tài khoản?{" "}

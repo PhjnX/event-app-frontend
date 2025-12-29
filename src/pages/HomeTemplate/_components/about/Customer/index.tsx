@@ -1,6 +1,5 @@
 import { motion, type Variants } from "framer-motion";
 
-// Import hình ảnh (Giả sử đường dẫn đúng như bạn cung cấp)
 import c1 from "../../../../../assets/images/Customer_1.jpg";
 import c2 from "../../../../../assets/images/Customer_2.jpg";
 import c3 from "../../../../../assets/images/Customer_3.jpg";
@@ -140,7 +139,6 @@ export default function CustomerSection() {
             WEBIE - WE WILL BE
           </motion.h2>
 
-          {/* SUBTEXT */}
           <motion.div
             variants={revealVariants}
             className="max-w-3xl mx-auto space-y-2"
@@ -153,7 +151,6 @@ export default function CustomerSection() {
             </p>
           </motion.div>
 
-          {/* Decorative Signature / Bottom Line */}
           <motion.div
             variants={revealVariants}
             className="mt-12 flex justify-center items-center gap-4 opacity-30"

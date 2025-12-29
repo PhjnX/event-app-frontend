@@ -1,18 +1,19 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import Sidebar from "./_components/Sidebar";
 import Topbar from "./_components/Topbar";
-import { useState } from "react";
 
 export default function AdminTemplate() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-sans">
-      <Sidebar isCollapsed={isCollapsed} />
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
       <main
         className="flex-1 flex flex-col h-full transition-all duration-300 ease-in-out"
-        style={{ marginLeft: isCollapsed ? "80px" : "280px" }}
+        style={{ marginLeft: "80px" }} 
       >
         <Topbar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 

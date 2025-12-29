@@ -31,15 +31,31 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const verifyUser = createAsyncThunk(
+  "auth/verify",
+  async (
+    data: { email: string; verificationCode: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await apiService.post("/auth/verify", data);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Mã xác thực không đúng"
+      );
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials: any, { rejectWithValue }) => {
     try {
       const response: any = await apiService.post("/auth/signin", credentials);
-      if (response.token) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.token);
-      } else if (response.accessToken) {
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+      const token = response.token || response.accessToken;
+      if (token) {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
       }
       return response;
     } catch (error: any) {
@@ -56,17 +72,12 @@ export const uploadAvatar = createAsyncThunk(
     try {
       const formData = new FormData();
       formData.append("image", file);
-
       const response: any = await apiService.post("/images/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
       if (typeof response === "string") return response;
       if (typeof response === "object")
         return response.url || response.secure_url || response.data || "";
-
       return response;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Lỗi upload ảnh");
@@ -79,10 +90,13 @@ export const fetchCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      if (!token) return rejectWithValue("No token found");
+      if (!token) return rejectWithValue("Không tìm thấy token");
       const response = await apiService.get("/users/me");
       return response;
     } catch (error: any) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      }
       return rejectWithValue(error.response?.data?.message || "Lỗi xác thực");
     }
   }
@@ -107,10 +121,8 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await apiService.post("/auth/logout");
-
       return true;
     } catch (error: any) {
-      console.warn("Logout API error:", error);
       return rejectWithValue(error.response?.data?.message);
     } finally {
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -133,84 +145,92 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(registerUser.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    });
-    builder.addCase(registerUser.fulfilled, (state) => {
-      state.isLoading = false;
-    });
-    builder.addCase(registerUser.rejected, (state, action: any) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
+    builder
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(registerUser.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
 
-    builder.addCase(loginUser.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    });
-    builder.addCase(loginUser.fulfilled, (state, action: any) => {
-      state.isLoading = false;
-      state.isAuthenticated = true;
-      state.user = action.payload.user || action.payload;
-    });
-    builder.addCase(loginUser.rejected, (state, action: any) => {
-      state.isLoading = false;
-      state.error = action.payload;
-      state.isAuthenticated = false;
-    });
+    builder
+      .addCase(verifyUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyUser.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(verifyUser.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
 
-    builder.addCase(uploadAvatar.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(uploadAvatar.fulfilled, (state) => {
-      state.isLoading = false;
-    });
-    builder.addCase(uploadAvatar.rejected, (state, action: any) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user || action.payload;
+      })
+      .addCase(loginUser.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.isAuthenticated = false;
+      });
 
-    builder.addCase(fetchCurrentUser.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(fetchCurrentUser.fulfilled, (state, action: any) => {
-      state.isAuthenticated = true;
-      state.user = action.payload;
-      state.isLoading = false;
-    });
-    builder.addCase(fetchCurrentUser.rejected, (state) => {
-      state.isAuthenticated = false;
-      state.user = null;
-      state.isLoading = false;
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    });
-
-    builder.addCase(updateUserProfile.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    });
-    builder.addCase(updateUserProfile.fulfilled, (state, action: any) => {
-      state.isLoading = false;
-      if (state.user) {
-        state.user = { ...state.user, ...action.payload };
-      }
-    });
-    builder.addCase(updateUserProfile.rejected, (state, action: any) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
-
-    builder.addCase(logoutUser.fulfilled, (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.isLoading = false;
-    });
-    builder.addCase(logoutUser.rejected, (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.isLoading = false;
-    });
+    builder
+      .addCase(uploadAvatar.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(uploadAvatar.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(uploadAvatar.rejected, (state) => {
+        state.isLoading = false;
+      });
+    builder
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action: any) => {
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        state.isLoading = false;
+      });
+    builder
+      .addCase(updateUserProfile.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action: any) => {
+        state.isLoading = false;
+        if (state.user) state.user = { ...state.user, ...action.payload };
+      })
+      .addCase(updateUserProfile.rejected, (state) => {
+        state.isLoading = false;
+      });
+    builder
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+      });
   },
 });
 

@@ -1,4 +1,3 @@
-// src/models/registration.ts
 export type RegistrationType = "user" | "partner";
 
 export interface RegistrationFormData {

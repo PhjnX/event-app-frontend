@@ -6,6 +6,10 @@ import {
   FaUser,
   FaSignOutAlt,
   FaChevronDown,
+  FaArrowUp, 
+  FaTachometerAlt, 
+  FaBuilding, 
+  FaLock, 
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "../../../../../assets/images/Logo_EMS.png";
@@ -14,15 +18,24 @@ import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../../../../store";
 import { logoutUser } from "../../../../../store/slices/auth";
+import { ROLES } from "@/constants";
 
 import LoginModal from "../../modals/LoginModal";
 import RegisterModal from "../../modals/RegisterModal";
 import ForgotPasswordModal from "../../modals/ForgotPasswordModal";
+import RegisterOrganizerModal from "../../modals/RegisterOrganizerModal";
+import ChangePasswordModal from "../../modals/ChangePasswordModal"; 
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false); 
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { isAuthenticated, user } = useSelector(
@@ -36,8 +49,15 @@ export default function Header() {
   >(null);
 
   useEffect(() => {
+    if (isAuthenticated && user?.role === ROLES.SUPER_ADMIN) {
+      window.location.href = "/admin/dashboard";
+    }
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+      setShowBackToTop(window.scrollY > 400);
     };
     window.addEventListener("scroll", handleScroll);
 
@@ -56,6 +76,10 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const openLogin = () => {
     setModalType("LOGIN");
@@ -85,12 +109,14 @@ export default function Header() {
     ? user.username.charAt(0).toUpperCase()
     : "U";
 
+  if (isAuthenticated && user?.role === ROLES.SUPER_ADMIN) return null;
+
   return (
     <>
       <nav
         className={`font-noto fixed w-full z-50 top-0 start-0 transition-all duration-500 ${
           isScrolled
-            ? "bg-black/40 shadow-md py-3 backdrop-blur-none"
+            ? "bg-black/none shadow-md py-3 backdrop-blur-md"
             : "bg-transparent py-5"
         }`}
       >
@@ -100,6 +126,7 @@ export default function Header() {
             className="flex items-center space-x-3 rtl:space-x-reverse group"
           >
             <img
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               src={logoImage}
               className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:-translate-y-1 drop-shadow-md"
               alt="Logo"
@@ -119,7 +146,13 @@ export default function Header() {
           >
             <ul className="flex flex-col p-4 lg:p-0 mt-4 font-medium lg:space-x-8 rtl:space-x-reverse lg:flex-row lg:mt-0 lg:border-0 bg-transparent">
               <li>
-                <NavLink to="/" className={getLinkClass}>
+                <NavLink
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  to="/"
+                  className={getLinkClass}
+                >
                   Trang Chủ
                 </NavLink>
               </li>
@@ -134,7 +167,7 @@ export default function Header() {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/event" className={getLinkClass}>
+                <NavLink to="/events" className={getLinkClass}>
                   Sự Kiện
                 </NavLink>
               </li>
@@ -150,7 +183,7 @@ export default function Header() {
             {!isAuthenticated ? (
               <>
                 <Link
-                  to="/lien-he"
+                  to="/#contact"
                   className="px-5 py-2.5 rounded-full border border-[#D8C97B] text-[#D8C97B] font-bold text-sm transition-all duration-300 hover:bg-[#D8C97B] hover:text-black cursor-pointer"
                 >
                   Liên hệ
@@ -169,33 +202,33 @@ export default function Header() {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center gap-2 focus:outline-none group"
                 >
-                  {/* --- SỬA Ở ĐÂY: Logic hiển thị ảnh avatar --- */}
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#D8C97B] 
-  ${
-    user?.avatarUrl ? "bg-black" : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"
-  }`}
+                    ${
+                      user?.avatarUrl
+                        ? "bg-black"
+                        : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"
+                    }`}
                   >
-                    {/* LOGIC: Có ảnh thì hiện ảnh, không thì hiện chữ */}
                     {user?.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
                         alt="User"
-                        className="w-full h-full object-cover" // Dùng object-cover để ảnh lấp đầy khung tròn
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      // Nếu không có ảnh, hiện chữ cái đầu trên nền vàng
                       <span className="pb-0.5">{userInitial}</span>
                     )}
                   </div>
-                  {/* ------------------------------------------- */}
 
                   <div className="hidden xl:flex flex-col items-start">
                     <span className="text-white text-xs font-medium max-w-[100px] truncate">
                       {user?.username || "User"}
                     </span>
                     <span className="text-[10px] text-[#D8C97B]">
-                      Thành viên
+                      {user?.role === ROLES.ORGANIZER
+                        ? "Nhà Tổ Chức"
+                        : "Thành viên"}
                     </span>
                   </div>
                   <FaChevronDown
@@ -212,7 +245,7 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-3 w-56 bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-xl shadow-xl overflow-hidden z-50"
+                      className="absolute right-0 mt-3 w-64 bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-xl shadow-xl overflow-hidden z-50"
                     >
                       <div className="px-4 py-3 border-b border-white/10">
                         <p className="text-sm text-white font-bold truncate">
@@ -223,7 +256,29 @@ export default function Header() {
                         </p>
                       </div>
 
-                      <div className="py-1">
+                      <div className="py-2">
+                        {user?.role === ROLES.ORGANIZER && (
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[#D8C97B]/10 font-bold transition-colors border-b border-white/5"
+                          >
+                            <FaTachometerAlt /> Trang quản lý
+                          </Link>
+                        )}
+
+                        {user?.role !== ROLES.ORGANIZER && (
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              setIsOrgModalOpen(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-400/10 transition-colors text-left border-b border-white/5"
+                          >
+                            <FaBuilding /> Đăng ký làm Nhà tổ chức
+                          </button>
+                        )}
+
                         <Link
                           to="/profile"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -231,6 +286,16 @@ export default function Header() {
                         >
                           <FaUser /> Thông tin cá nhân
                         </Link>
+
+                        <button
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            setIsChangePassModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#D8C97B]/10 hover:text-[#D8C97B] transition-colors text-left"
+                        >
+                          <FaLock /> Đổi mật khẩu
+                        </button>
 
                         <button
                           onClick={handleLogout}
@@ -258,7 +323,6 @@ export default function Header() {
           <ul className="flex flex-col items-center gap-6 text-white text-lg">
             {isAuthenticated && (
               <div className="flex flex-col items-center gap-2 mb-2">
-                {/* --- SỬA Ở ĐÂY CHO MOBILE: Avatar hiển thị ảnh --- */}
                 <div className="w-16 h-16 rounded-full bg-[#D8C97B] flex items-center justify-center text-black font-bold text-2xl overflow-hidden border-2 border-[#D8C97B]">
                   {user?.avatarUrl ? (
                     <img
@@ -270,7 +334,6 @@ export default function Header() {
                     <span>{userInitial}</span>
                   )}
                 </div>
-                {/* ------------------------------------------------ */}
                 <span className="font-bold text-[#D8C97B]">
                   {user?.username}
                 </span>
@@ -306,7 +369,7 @@ export default function Header() {
             </li>
             <li>
               <NavLink
-                to="/event"
+                to="/events"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="hover:text-[#D8C97B]"
               >
@@ -329,7 +392,7 @@ export default function Header() {
               {!isAuthenticated ? (
                 <>
                   <Link
-                    to="/lien-he"
+                    to="/#contact"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-lg font-bold cursor-pointer"
                   >
@@ -344,6 +407,27 @@ export default function Header() {
                 </>
               ) : (
                 <>
+                  {user?.role === ROLES.ORGANIZER && (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-lg font-bold"
+                    >
+                      Trang quản lý
+                    </Link>
+                  )}
+                  {user?.role !== ROLES.ORGANIZER && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsOrgModalOpen(true);
+                      }}
+                      className="w-full text-center py-3 border border-yellow-500 text-yellow-500 rounded-lg font-bold"
+                    >
+                      Đăng ký Đối tác
+                    </button>
+                  )}
+
                   <Link
                     to="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -351,6 +435,17 @@ export default function Header() {
                   >
                     Thông tin cá nhân
                   </Link>
+
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsChangePassModalOpen(true);
+                    }}
+                    className="w-full text-center py-3 border border-white/20 text-white rounded-lg font-medium cursor-pointer hover:border-[#D8C97B] hover:text-[#D8C97B]"
+                  >
+                    Đổi mật khẩu
+                  </button>
+
                   <button
                     onClick={handleLogout}
                     className="w-full text-center py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg font-bold cursor-pointer hover:bg-red-500 hover:text-white"
@@ -363,6 +458,21 @@ export default function Header() {
           </ul>
         </div>
       </nav>
+
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-50 p-3 bg-[#D8C97B] text-black rounded-full shadow-[0_0_15px_rgba(216,201,123,0.5)] hover:bg-white hover:scale-110 transition-all duration-300 group"
+            title="Lên đầu trang"
+          >
+            <FaArrowUp className="text-xl group-hover:text-black transition-colors" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <LoginModal
         isOpen={modalType === "LOGIN"}
@@ -381,6 +491,16 @@ export default function Header() {
         isOpen={modalType === "FORGOT"}
         onClose={() => setModalType(null)}
         onSwitchToLogin={() => setModalType("LOGIN")}
+      />
+
+      <RegisterOrganizerModal
+        isOpen={isOrgModalOpen}
+        onClose={() => setIsOrgModalOpen(false)}
+      />
+
+      <ChangePasswordModal
+        isOpen={isChangePassModalOpen}
+        onClose={() => setIsChangePassModalOpen(false)}
       />
     </>
   );

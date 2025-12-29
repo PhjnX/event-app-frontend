@@ -1,5 +1,3 @@
-// src/pages/HomeTemplate/_components/home/AboutUs/data.tsx
-// Lưu ý đuôi file là .tsx vì có chứa JSX (Icon)
 import { FaUsers, FaLightbulb, FaRocket } from "react-icons/fa";
 import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";
 

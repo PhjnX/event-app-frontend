@@ -1,11 +1,10 @@
 import React from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
-import AdminTemplate from "../pages/AdminTemplate"; // Import file index.tsx vừa sửa
+import AdminTemplate from "../pages/AdminTemplate";
 import AdminProtectedRoute from "./admin-protect-route";
 
-// --- IMPORT CÁC PAGE CON (Lazy load) ---
-// Đảm bảo bạn đã tạo file Dashboard/index.tsx thật hoặc dùng tạm file rỗng để test
+// --- Lazy Loading ---
 const DashboardPage = React.lazy(
   () => import("../pages/AdminTemplate/Dashboard")
 );
@@ -15,7 +14,6 @@ const ManageUsersPage = React.lazy(
 const ManagePresentersPage = React.lazy(
   () => import("../pages/AdminTemplate/ManagePresenters")
 );
-// const ManageEventsPage = React.lazy(() => import("../pages/AdminTemplate/ManageEvents"));
 const ManageOrganizersPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageOrganizers")
 );
@@ -24,45 +22,45 @@ const ManageEventsPage = React.lazy(
 );
 const EventDetailPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageEvents/EventDetail")
-); // Import file mới tạo
+);
+const CreateEventPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageEvents/CreateEventPage")
+);
+const EditEventPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageEvents/EditEventPage")
+);
+
+// --- [NEW] IMPORT TRANG QUẢN LÝ NGƯỜI THAM GIA ---
+const ManageRegistrationsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageEvents/ManageRegistrations")
+);
 
 const adminRoutes: RouteObject = {
   path: "admin",
-  element: <AdminProtectedRoute />, // Bảo vệ toàn bộ cụm Admin
+  element: <AdminProtectedRoute />,
   children: [
     {
       path: "",
-      element: <AdminTemplate />, // Layout mới: Sidebar + Topbar + Outlet
+      element: <AdminTemplate />,
       children: [
-        // Redirect mặc định vào dashboard
         { index: true, element: <Navigate to="dashboard" replace /> },
+        { path: "dashboard", element: <DashboardPage /> },
+        { path: "users", element: <ManageUsersPage /> },
+        { path: "presenters", element: <ManagePresentersPage /> },
+        { path: "organizers", element: <ManageOrganizersPage /> },
 
+        // --- EVENTS ROUTES ---
+        { path: "events", element: <ManageEventsPage /> },
+        { path: "events/create", element: <CreateEventPage /> },
+
+        // [NEW] ROUTE QUẢN LÝ NGƯỜI THAM GIA (Đặt trước route :slug để tránh xung đột)
         {
-          path: "dashboard",
-          element: <DashboardPage />,
+          path: "events/:eventId/registrations",
+          element: <ManageRegistrationsPage />,
         },
-        {
-          path: "users",
-          element: <ManageUsersPage />,
-        },
-        {
-          path: "presenters",
-          element: <ManagePresentersPage />,
-        },
-        {
-          path: "organizers",
-          element: <ManageOrganizersPage />,
-        },
-        {
-          path: "events",
-          element: <ManageEventsPage />,
-        },
-        {
-          path: "events/:slug", // Route động
-          element: <EventDetailPage />,
-        },
-        // Thêm các route khác tương ứng với menu
-        // { path: "events", element: <ManageEventsPage /> },
+
+        { path: "events/:slug/edit", element: <EditEventPage /> },
+        { path: "events/:slug", element: <EventDetailPage /> },
       ],
     },
   ],

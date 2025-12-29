@@ -1,5 +1,11 @@
-import React from "react";
-import { motion, type Variants } from "framer-motion";
+import React, { useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useAnimationFrame,
+  useTransform,
+  type Variants,
+} from "framer-motion";
 
 import cultureImage1 from "@/assets/images/culture_1.jpg";
 import cultureImage2 from "@/assets/images/culture_2.jpg";
@@ -15,6 +21,11 @@ const CULTURE_IMAGES = [
   cultureImage6,
 ];
 
+const wrap = (min: number, max: number, v: number) => {
+  const rangeSize = max - min;
+  return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
+};
+
 const revealVariants: Variants = {
   hidden: { opacity: 0, y: 50, filter: "blur(10px)" },
   visible: {
@@ -26,6 +37,28 @@ const revealVariants: Variants = {
 };
 
 const CultureSection: React.FC = () => {
+  const baseX = useMotionValue(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  useAnimationFrame((_t, delta) => {
+    if (!isDragging) {
+      const moveBy = -0.003 * delta;
+      baseX.set(baseX.get() + moveBy);
+    }
+  });
+
+  const handlePan = (_e: any, info: any) => {
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.offsetWidth;
+      const percentMove = (info.delta.x / containerWidth) * 100 * 1.5;
+
+      baseX.set(baseX.get() + percentMove);
+    }
+  };
+
+  const x = useTransform(baseX, (v) => `${wrap(0, -50, v)}%`);
+
   return (
     <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-white/5 overflow-hidden">
       <div className="container mx-auto px-4 mb-16 relative z-10">
@@ -36,7 +69,7 @@ const CultureSection: React.FC = () => {
           viewport={{ once: false, amount: 0.5 }}
           className="text-center"
         >
-          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block hover:text-white transition-colors">
+          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block hover:text-white transition-colors cursor-default">
             Our Culture
           </span>
           <h2 className="text-4xl md:text-5xl font-black uppercase tracking-wide mb-6">
@@ -54,9 +87,12 @@ const CultureSection: React.FC = () => {
         <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
 
         <motion.div
-          className="flex gap-6 w-max"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+          ref={containerRef}
+          className="flex gap-6 w-max cursor-grab active:cursor-grabbing"
+          style={{ x }} 
+          onPanStart={() => setIsDragging(true)}
+          onPan={handlePan}
+          onPanEnd={() => setIsDragging(false)}
         >
           {[
             ...CULTURE_IMAGES,
@@ -66,14 +102,14 @@ const CultureSection: React.FC = () => {
           ].map((src, index) => (
             <div
               key={index}
-              className="relative w-[300px] md:w-[450px] h-[250px] md:h-[350px] rounded-2xl overflow-hidden group cursor-pointer border border-white/10"
+              className="relative w-[300px] md:w-[450px] h-[250px] md:h-[350px] rounded-2xl overflow-hidden group border border-white/10 select-none"
             >
               <img
                 src={src}
                 alt="Culture"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
               />
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
             </div>
           ))}
         </motion.div>

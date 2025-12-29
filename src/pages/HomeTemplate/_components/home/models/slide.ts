@@ -5,5 +5,7 @@ export interface Slide {
   highlight: string;
   subtitle: string;
   btnPrimary: string;
+  pathPrimary: string; 
   btnSecondary: string;
+  pathSecondary: string; 
 }

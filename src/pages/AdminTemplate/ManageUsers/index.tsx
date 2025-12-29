@@ -1,417 +1,626 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaSearch,
-  FaTrashAlt,
+  FaEdit,
+  FaTrash,
   FaEye,
-  FaUserShield,
   FaUser,
-  FaTimes,
   FaCrown,
+  FaShieldAlt,
+  FaUsers,
+  FaCamera,
   FaCopy,
-  FaPhoneAlt,
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+  FaPhone,
   FaEnvelope,
+  FaMars,
+  FaVenus,
+  FaGenderless,
 } from "react-icons/fa";
-import { toast } from "react-toastify"; // Nhớ import toast nếu chưa có
+import { toast } from "react-toastify";
+
 import type { AppDispatch, RootState } from "../../../store";
 import {
   fetchUserList,
   deleteUser,
-  searchUser,
-  fetchUserDetail,
-  clearUserDetail,
+  updateUser,
+  fetchMyAttendees,
 } from "@/store/slices/userSlice";
-import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen";
+import { uploadAvatar } from "../../../store/slices/auth";
 import { ROLES } from "@/constants";
+import type { User } from "../../../models/user";
 
-// Helper: Rút gọn ID
-const truncateId = (id: string) => {
-  if (!id) return "";
-  return id.substring(0, 8) + "...";
-};
-
-// Helper: Copy to clipboard
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-  toast.success("Đã sao chép ID!");
-};
+const ITEMS_PER_PAGE = 8;
 
 export default function ManageUsers() {
   const dispatch = useDispatch<AppDispatch>();
-  const { data, isLoading, userDetail } = useSelector(
+  const { data: users, isLoading } = useSelector(
     (state: RootState) => state.listUser
   );
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const isOrganizer = currentUser?.role === ROLES.ORGANIZER;
+  const isSuperAdmin = currentUser?.role === ROLES.SUPER_ADMIN;
+
+  const [searchText, setSearchText] = useState("");
+  const [filterRole, setFilterRole] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+
+  const [formData, setFormData] = useState<Partial<User>>({});
 
   useEffect(() => {
-    dispatch(fetchUserList());
-  }, [dispatch]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      dispatch(searchUser(searchTerm));
+    if (isOrganizer) {
+      dispatch(fetchMyAttendees());
     } else {
       dispatch(fetchUserList());
     }
+  }, [dispatch, isOrganizer]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText, filterRole]);
+
+  const filteredData = useMemo(() => {
+    let result = users || [];
+    if (!isOrganizer && filterRole !== "ALL") {
+      result = result.filter((u) => u.role === filterRole);
+    }
+    if (searchText.trim()) {
+      const lower = searchText.toLowerCase();
+      result = result.filter(
+        (u) =>
+          (u.username || "").toLowerCase().includes(lower) ||
+          (u.email || "").toLowerCase().includes(lower) ||
+          (String(u.uid) || "").toLowerCase().includes(lower)
+      );
+    }
+    return result;
+  }, [users, searchText, filterRole, isOrganizer]);
+
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const currentData = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredData.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredData, currentPage]);
+
+  const handleViewClick = (user: User) => {
+    setSelectedUser(user);
+    setFormData(user);
+    setIsEditing(false);
+    setPreviewImage(user.avatarUrl || null);
+    setIsDrawerOpen(true);
   };
 
-  const handleViewDetail = async (uid: string) => {
-    await dispatch(fetchUserDetail(uid));
-    setIsDetailModalOpen(true);
+  const handleEditClick = (user: User) => {
+    if (isOrganizer) return;
+    setSelectedUser(user);
+    setFormData(user);
+    setIsEditing(true);
+    setPreviewImage(user.avatarUrl || null);
+    setFileToUpload(null);
+    setIsDrawerOpen(true);
   };
 
-  const closeDetailModal = () => {
-    setIsDetailModalOpen(false);
-    dispatch(clearUserDetail());
-  };
-
-  const confirmDelete = async () => {
-    if (userToDelete) {
-      await dispatch(deleteUser(userToDelete));
-      setUserToDelete(null);
+  const handleDeleteClick = async (uid: string) => {
+    if (
+      window.confirm(
+        "Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác."
+      )
+    ) {
+      await dispatch(deleteUser(uid)).unwrap();
     }
   };
 
-  if (isLoading && data.length === 0) return <LoadingScreen />;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setFileToUpload(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    try {
+      let finalAvatarUrl = selectedUser.avatarUrl;
+      if (fileToUpload) {
+        finalAvatarUrl = await dispatch(uploadAvatar(fileToUpload)).unwrap();
+      }
+
+      const updateData = { ...formData, avatarUrl: finalAvatarUrl };
+      await dispatch(
+        updateUser({ uid: selectedUser.uid, data: updateData })
+      ).unwrap();
+
+      setIsDrawerOpen(false);
+      setFileToUpload(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const RoleBadge = ({ role }: { role: string }) => {
+    let color = "text-gray-400";
+    let Icon = FaUser;
+    let label = "User";
+
+    if (role === ROLES.SUPER_ADMIN) {
+      color = "text-red-500";
+      Icon = FaCrown;
+      label = "Admin";
+    } else if (role === ROLES.ORGANIZER) {
+      color = "text-[#FFD700]";
+      Icon = FaShieldAlt;
+      label = "Organizer";
+    } else {
+      color = "text-blue-400";
+      Icon = FaUsers;
+    }
+
+    return (
+      <div
+        className={`flex items-center gap-1.5 px-2 py-1 rounded bg-black/40 border border-white/5 ${color}`}
+      >
+        <Icon className="text-xs" />
+        <span className="text-[10px] font-bold uppercase tracking-wider">
+          {label}
+        </span>
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-8 font-sans text-white relative">
-      {/* --- HEADER SECTION --- */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/10">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight text-white mb-2">
-            Danh sách <span className="text-[#D8C97B]">Thành viên</span>
-          </h1>
-          <p className="text-gray-400 text-sm font-light max-w-md">
-            Quản lý, phân quyền và theo dõi trạng thái hoạt động của toàn bộ
-            người dùng trong hệ thống.
-          </p>
-        </div>
-
-        {/* Search Box - Modern Style */}
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-2 rounded-lg bg-[#D8C97B]/10 border border-[#D8C97B]/20 text-[#D8C97B] font-bold text-xs uppercase tracking-wider">
-            Total: {data.length}
+    <div className="pb-20 font-sans text-white min-h-screen">
+      <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 pt-4">
+        {isOrganizer ? (
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-1 bg-[#B5A65F] rounded-full"></div>
+            <h2 className="text-2xl font-bold mb-0">Danh sách khách hàng</h2>
           </div>
+        ) : (
+          <div className="w-full xl:w-auto overflow-x-auto custom-scrollbar">
+            <div className="flex gap-1 p-1 bg-[#1a1a1a] border border-white/10 rounded-full w-max">
+              {[
+                { id: "ALL", label: "Tất cả" },
+                { id: ROLES.SUPER_ADMIN, label: "Admin" },
+                { id: ROLES.ORGANIZER, label: "Organizer" },
+                { id: "USER", label: "User" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilterRole(tab.id)}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                    filterRole === tab.id
+                      ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-          <form
-            onSubmit={handleSearch}
-            className="relative w-full md:w-80 group"
-          >
-            <input
-              type="text"
-              placeholder="Tìm user bằng email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] focus:outline-none transition-all placeholder-gray-600"
-            />
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
-          </form>
+        <div className="relative group w-full sm:w-72">
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+          <input
+            type="text"
+            placeholder={
+              isOrganizer ? "Tìm khách hàng..." : "Tìm thành viên..."
+            }
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="w-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] focus:outline-none transition-all placeholder-gray-600 focus:ring-1 focus:ring-[#B5A65F]"
+          />
         </div>
       </div>
 
-      {/* --- TABLE SECTION --- */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-[#121212]/50 backdrop-blur-xl border border-white/5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#D8C97B]/10">
-              <tr>
-                <th className="px-8 py-5 text-xs font-bold text-[#D8C97B] uppercase tracking-widest text-left">
-                  Thông tin User
-                </th>
-                <th className="px-6 py-5 text-xs font-bold text-[#D8C97B] uppercase tracking-widest text-left">
-                  Vai trò (Role)
-                </th>
-                <th className="px-6 py-5 text-xs font-bold text-[#D8C97B] uppercase tracking-widest text-left">
-                  Liên hệ
-                </th>
-                <th className="px-6 py-5 text-xs font-bold text-[#D8C97B] uppercase tracking-widest text-center">
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-72 bg-[#1a1a1a] rounded-2xl animate-pulse border border-white/5"
+            ></div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {filteredData.length === 0 ? (
+            <div className="text-center py-24 flex flex-col items-center">
+              <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                <FaSearch className="text-gray-600 text-3xl" />
+              </div>
+              <p className="text-gray-500">
+                {isOrganizer
+                  ? "Chưa có khách hàng nào."
+                  : "Không tìm thấy kết quả phù hợp."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <AnimatePresence mode="popLayout">
+                {currentData.map((user) => {
+                  const isSelf = currentUser?.uid === user.uid;
+                  // Safe convert ID to string for substring
+                  const displayUid = String(user.uid);
 
-            <tbody className="divide-y divide-white/5">
-              {data.map((user) => (
-                <tr
-                  key={user.uid}
-                  className="group hover:bg-white/2 transition-colors duration-200"
-                >
-                  {/* Cột 1: User Info */}
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      {/* Avatar */}
-                      <div className="relative">
-                        <div className="w-12 h-12 rounded-full p-0.5 bg-linear-to-tr from-[#D8C97B] to-transparent">
-                          <div className="w-full h-full rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
-                            {user.avatarUrl ? (
-                              <img
-                                src={user.avatarUrl}
-                                className="w-full h-full object-cover"
-                                alt="avt"
-                              />
-                            ) : (
-                              <span className="text-[#D8C97B] font-bold text-lg">
-                                {user.username?.charAt(0).toUpperCase()}
+                  return (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      key={user.uid}
+                      className="group relative bg-[#141414] rounded-2xl border border-white/5 hover:border-[#FFD700]/30 transition-all duration-300 flex flex-col overflow-hidden shadow-lg hover:shadow-[#D8C97B]/5"
+                    >
+                      {/* Card Header Background */}
+                      <div className="h-20 bg-linear-to-b from-[#252525] to-[#141414] relative">
+                        <div className="absolute top-3 right-3">
+                          <RoleBadge role={user.role} />
+                        </div>
+                      </div>
+
+                      {/* Avatar & Info */}
+                      <div className="px-5 pb-5 flex flex-col items-center -mt-10 relative z-10">
+                        <div
+                          className={`relative rounded-xl p-1 ${
+                            isSelf
+                              ? "bg-linear-to-b from-[#D8C97B] to-transparent"
+                              : "bg-[#141414]"
+                          }`}
+                        >
+                          <div className="w-[72px] h-[72px] rounded-full bg-[#222] border-4 border-[#141414] overflow-hidden">
+                            <img
+                              src={
+                                user.avatarUrl ||
+                                "https://ui-avatars.com/api/?name=" +
+                                  user.username
+                              }
+                              alt={user.username}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-center mt-3 w-full">
+                          <h3 className="text-white font-bold text-base truncate flex items-center justify-center gap-2">
+                            {user.username}
+                            {isSelf && (
+                              <span className="text-[9px] text-black bg-[#FFD700] px-1.5 rounded font-bold">
+                                ME
                               </span>
+                            )}
+                          </h3>
+                          <div
+                            className="inline-flex items-center gap-1 mt-1 cursor-pointer group/id opacity-60 hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              navigator.clipboard.writeText(displayUid);
+                              toast.info("Đã sao chép ID!");
+                            }}
+                          >
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              #{displayUid.substring(0, 8)}...
+                            </span>
+                            <FaCopy className="text-[10px] text-[#FFD700]" />
+                          </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="w-full mt-6 space-y-3">
+                          <div className="flex items-center text-xs text-gray-400 group/item">
+                            <div className="w-8 flex justify-center">
+                              <FaEnvelope className="text-gray-600 group-hover/item:text-white transition-colors" />
+                            </div>
+                            <span
+                              className="truncate flex-1"
+                              title={user.email}
+                            >
+                              {user.email}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-400 group/item">
+                            <div className="w-8 flex justify-center">
+                              <FaPhone className="text-gray-600 group-hover/item:text-white transition-colors" />
+                            </div>
+                            <span className="truncate flex-1">
+                              {user.phoneNumber || "---"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto border-t border-white/5 py-3 px-4 flex justify-between items-center bg-[#181818]/50 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleViewClick(user)}
+                          className="p-2 text-gray-500 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
+                          title="Chi tiết"
+                        >
+                          <FaEye />
+                        </button>
+
+                        <div className="flex gap-1">
+                          {!isOrganizer && (
+                            <button
+                              onClick={() => handleEditClick(user)}
+                              className="p-2 text-gray-500 hover:text-[#FFD700] transition-colors hover:bg-[#FFD700]/10 rounded-lg"
+                              title="Chỉnh sửa"
+                            >
+                              <FaEdit />
+                            </button>
+                          )}
+
+                          {!isSelf && isSuperAdmin && (
+                            <button
+                              onClick={() =>
+                                handleDeleteClick(String(user.uid))
+                              }
+                              className="p-2 text-gray-500 hover:text-red-500 transition-colors hover:bg-red-500/10 rounded-lg"
+                              title="Xóa"
+                            >
+                              <FaTrash />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )}
+        </>
+      )}
+
+      {!isLoading && filteredData.length > 0 && totalPages > 1 && (
+        <div className="flex justify-center mt-12 gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            <FaChevronLeft size={12} />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                currentPage === page
+                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
+                  : "bg-[#1a1a1a] text-gray-400 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            <FaChevronRight size={12} />
+          </button>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {isDrawerOpen && selectedUser && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDrawerOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-[#141414] border-l border-white/10 z-50 shadow-2xl flex flex-col"
+            >
+              <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-[#1a1a1a]">
+                <div className="flex items-center gap-3">
+                  {isEditing ? (
+                    <FaEdit className="text-[#FFD700]" />
+                  ) : (
+                    <FaEye className="text-[#FFD700]" />
+                  )}
+                  <h3 className="text-lg font-bold text-white mb-0">
+                    {isEditing ? "Chỉnh sửa hồ sơ" : "Thông tin chi tiết"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <form id="userForm" onSubmit={handleSave} className="space-y-6">
+                  <div className="flex flex-col items-center">
+                    <div className="relative group">
+                      <div className="w-24 h-24 rounded-full border-2 border-[#333] shadow-2xl bg-[#1f1f1f] overflow-hidden">
+                        <img
+                          src={
+                            previewImage ||
+                            selectedUser.avatarUrl ||
+                            `https://ui-avatars.com/api/?name=${selectedUser.username}`
+                          }
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {isEditing && !isOrganizer && (
+                        <>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                          />
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                          >
+                            <FaCamera className="text-xl text-white" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h4 className="text-white font-bold text-lg">
+                        {selectedUser.username}
+                      </h4>
+                      <p className="text-gray-500 text-xs mt-1 bg-white/5 px-2 py-0.5 rounded inline-block">
+                        @{selectedUser.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-white/5 my-6"></div>
+
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs uppercase font-bold text-gray-400">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!isEditing || isOrganizer}
+                        value={formData.username || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, username: e.target.value })
+                        }
+                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs uppercase font-bold text-gray-400">
+                        Email
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={formData.email || ""}
+                        className="w-full bg-[#1a1a1a] border border-transparent rounded-lg px-4 py-2.5 text-gray-500 cursor-not-allowed"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs uppercase font-bold text-gray-400">
+                          Phone
+                        </label>
+                        <input
+                          type="text"
+                          disabled={!isEditing || isOrganizer}
+                          value={formData.phoneNumber || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              phoneNumber: e.target.value,
+                            })
+                          }
+                          className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 transition-colors"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs uppercase font-bold text-gray-400">
+                          Gender
+                        </label>
+                        <div className="relative">
+                          <select
+                            disabled={!isEditing || isOrganizer}
+                            value={formData.gender || "OTHER"}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                gender: e.target.value,
+                              })
+                            }
+                            className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 appearance-none transition-colors cursor-pointer"
+                          >
+                            <option value="MALE">Nam</option>
+                            <option value="FEMALE">Nữ</option>
+                            <option value="OTHER">Khác</option>
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            {formData.gender === "MALE" ? (
+                              <FaMars />
+                            ) : formData.gender === "FEMALE" ? (
+                              <FaVenus />
+                            ) : (
+                              <FaGenderless />
                             )}
                           </div>
                         </div>
-                        {/* Status Dot */}
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#121212] rounded-full"></div>
-                      </div>
-
-                      {/* Name & ID */}
-                      <div>
-                        <p className="font-bold text-white text-base group-hover:text-[#D8C97B] transition-colors">
-                          {user.username}
-                        </p>
-                        <div
-                          className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 cursor-pointer transition-colors mt-0.5"
-                          onClick={() => copyToClipboard(user.uid)}
-                          title="Click để copy ID"
-                        >
-                          <span className="font-mono bg-white/5 px-1.5 py-0.5 rounded text-[10px]">
-                            #{truncateId(user.uid)}
-                          </span>
-                          <FaCopy className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px]" />
-                        </div>
                       </div>
                     </div>
-                  </td>
 
-                  {/* Cột 2: Role (Badge phát sáng) */}
-                  <td className="px-6 py-5">
-                    <div
-                      className={`
-                        inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider shadow-lg
-                        ${
-                          user.role === ROLES.SUPER_ADMIN
-                            ? "bg-red-500/10 border-red-500/30 text-red-500 shadow-red-900/20"
-                            : user.role === ROLES.ORGANIZER
-                            ? "bg-[#D8C97B]/10 border-[#D8C97B]/30 text-[#D8C97B] shadow-[#D8C97B]/20"
-                            : "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-blue-900/20"
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs uppercase font-bold text-gray-400">
+                        Address
+                      </label>
+                      <textarea
+                        rows={3}
+                        disabled={!isEditing || isOrganizer}
+                        value={formData.address || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, address: e.target.value })
                         }
-                     `}
-                    >
-                      {user.role === ROLES.SUPER_ADMIN && (
-                        <FaCrown className="text-sm mb-0.5" />
-                      )}
-                      {user.role === ROLES.ORGANIZER && (
-                        <FaUserShield className="text-sm mb-0.5" />
-                      )}
-                      {(!user.role || user.role === "User") && (
-                        <FaUser className="text-sm mb-0.5" />
-                      )}
-                      <span>{user.role || "Member"}</span>
-                    </div>
-                  </td>
-
-                  {/* Cột 3: Contact */}
-                  <td className="px-6 py-5">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <FaEnvelope className="text-gray-600 text-xs" />
-                        <span className="truncate max-w-[150px]">
-                          {user.email}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <FaPhoneAlt className="text-gray-600 text-[10px]" />
-                        <span>{user.phoneNumber || "---"}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Cột 4: Actions */}
-                  <td className="px-6 py-5 text-center">
-                    <div className="flex items-center justify-center gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleViewDetail(user.uid)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 hover:text-white hover:scale-110 transition-all text-gray-400"
-                        title="Xem chi tiết"
-                      >
-                        <FaEye />
-                      </button>
-
-                      <button
-                        onClick={() => setUserToDelete(user.uid)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500/10 hover:bg-red-500 hover:text-white hover:scale-110 transition-all text-red-500 border border-red-500/20"
-                        title="Xóa người dùng"
-                      >
-                        <FaTrashAlt />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-              {/* Empty State */}
-              {data.length === 0 && !isLoading && (
-                <tr>
-                  <td colSpan={4} className="py-20 text-center">
-                    <div className="flex flex-col items-center justify-center opacity-30">
-                      <FaUserShield className="text-6xl mb-4 text-gray-500" />
-                      <p className="text-lg font-bold">
-                        Không tìm thấy kết quả nào
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
-
-      <AnimatePresence>
-        {isDetailModalOpen && userDetail && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeDetailModal}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-[#121212] border border-[#D8C97B]/30 rounded-3xl p-8 shadow-2xl overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D8C97B]/10 rounded-full blur-[50px] pointer-events-none"></div>
-
-              <button
-                onClick={closeDetailModal}
-                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-              >
-                <FaTimes size={20} />
-              </button>
-
-              <div className="flex flex-col items-center mb-8">
-                <div className="w-24 h-24 rounded-full p-[3px] bg-linear-to-br from-[#D8C97B] to-transparent mb-4">
-                  <div className="w-full h-full rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
-                    {userDetail.avatarUrl ? (
-                      <img
-                        src={userDetail.avatarUrl}
-                        className="w-full h-full object-cover"
+                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 resize-none transition-colors"
                       />
-                    ) : (
-                      <span className="text-3xl font-bold text-[#D8C97B]">
-                        {userDetail.username?.charAt(0)}
-                      </span>
-                    )}
+                    </div>
                   </div>
-                </div>
-                <h2 className="text-2xl font-bold text-white">
-                  {userDetail.username}
-                </h2>
-                <span className="text-[#D8C97B] text-xs font-bold uppercase tracking-widest mt-1 px-3 py-1 bg-[#D8C97B]/10 rounded-full border border-[#D8C97B]/20">
-                  {userDetail.role}
-                </span>
-                <p className="text-xs text-gray-500 mt-2 font-mono bg-white/5 px-2 py-1 rounded">
-                  UID: {userDetail.uid}
-                </p>
+                </form>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-white/3 rounded-2xl border border-white/5">
-                  <p className="text-xs text-gray-500 uppercase font-bold mb-1">
-                    Email
-                  </p>
-                  <p
-                    className="text-sm text-gray-200 truncate"
-                    title={userDetail.email}
+              {isEditing && !isOrganizer && (
+                <div className="p-6 border-t border-white/5 bg-[#1a1a1a] flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 hover:text-white transition-all"
                   >
-                    {userDetail.email}
-                  </p>
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    form="userForm"
+                    className="flex-1 py-3 rounded-xl bg-[#FFD700] text-black font-bold hover:bg-[#E6C200] transition-all shadow-lg shadow-[#FFD700]/10"
+                  >
+                    Lưu thay đổi
+                  </button>
                 </div>
-                <div className="p-4 bg-white/3 rounded-2xl border border-white/5">
-                  <p className="text-xs text-gray-500 uppercase font-bold mb-1">
-                    Điện thoại
-                  </p>
-                  <p className="text-sm text-gray-200">
-                    {userDetail.phoneNumber || "N/A"}
-                  </p>
-                </div>
-                <div className="p-4 bg-white/3 rounded-2xl border border-white/5">
-                  <p className="text-xs text-gray-500 uppercase font-bold mb-1">
-                    Giới tính
-                  </p>
-                  <p className="text-sm text-gray-200">
-                    {userDetail.gender || "N/A"}
-                  </p>
-                </div>
-                <div className="p-4 bg-white/3 rounded-2xl border border-white/5">
-                  <p className="text-xs text-gray-500 uppercase font-bold mb-1">
-                    Địa chỉ
-                  </p>
-                  <p className="text-sm text-gray-200 truncate">
-                    {userDetail.address || "N/A"}
-                  </p>
-                </div>
-              </div>
+              )}
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* --- MODAL CONFIRM DELETE --- */}
-      <AnimatePresence>
-        {userToDelete && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setUserToDelete(null)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-[#1a1a1a] border border-red-500/30 rounded-3xl p-8 shadow-[0_0_50px_rgba(220,38,38,0.2)] max-w-sm w-full text-center"
-            >
-              <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-6 border border-red-500/20 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-                <FaTrashAlt size={30} />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
-                Xóa người dùng?
-              </h3>
-              <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                Hành động này{" "}
-                <span className="text-red-400 font-bold">
-                  không thể hoàn tác
-                </span>
-                . Dữ liệu của người dùng sẽ bị xóa vĩnh viễn khỏi hệ thống.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={confirmDelete}
-                  className="w-full py-3.5 rounded-xl bg-linear-to-r from-red-600 to-red-800 text-white font-bold hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all transform hover:scale-[1.02]"
-                >
-                  Xác nhận Xóa
-                </button>
-                <button
-                  onClick={() => setUserToDelete(null)}
-                  className="w-full py-3.5 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors font-bold"
-                >
-                  Hủy bỏ
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          </>
         )}
       </AnimatePresence>
     </div>

@@ -7,9 +7,11 @@ export interface Event {
   endDate: string;
   location: string;
   bannerImageUrl: string;
-  status: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED"; // Giả định trạng thái
+  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "PUBLISHED"; 
   visibility: "PUBLIC" | "PRIVATE";
   registrationDeadline: string;
   organizerId: number;
   organizerName: string;
+
+  reason?: string;
 }

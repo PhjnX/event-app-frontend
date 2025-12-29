@@ -1,4 +1,3 @@
-// src/models/about-slide.ts
 import type { ReactNode } from "react";
 
 export interface AboutSlide {

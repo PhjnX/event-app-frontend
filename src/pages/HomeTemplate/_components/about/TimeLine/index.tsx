@@ -144,12 +144,10 @@ const TimelineSection = () => {
                     </motion.div>
                   </div>
 
-                  {/* CENTER ICON */}
                   <div className="absolute left-6 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-12 h-12 rounded-full border-2 border-[#D8C97B] bg-[#0a0a0a] z-20 shadow-[0_0_20px_rgba(181,166,95,0.5)] group">
                     <div className="text-[#D8C97B] text-lg">{item.icon}</div>
                   </div>
 
-                  {/* Khoảng trống đối xứng */}
                   <div className="flex-1 hidden md:block"></div>
                 </motion.div>
               );

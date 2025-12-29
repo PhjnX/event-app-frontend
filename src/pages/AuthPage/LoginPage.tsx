@@ -4,29 +4,34 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaLock, FaEnvelope } from "react-icons/fa";
 
-// Import Actions & Types
 import { loginUser } from "@/store/slices/auth";
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
 
-import logoImage from "@/assets/images/Logo_EMS.png"; 
-import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen"; 
+import logoImage from "@/assets/images/Logo_EMS.png";
+import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen";
+import ConfirmModal from "@/pages/AdminTemplate/_components/ConfirmModal";
+
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
 
 export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || "/";
-
   const { isLoading, error, isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth
   );
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+
+  const state = location.state as LocationState;
+  const from = state?.from?.pathname || "/";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,30 +44,40 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === ROLES.SUPER_ADMIN || user.role === ROLES.ORGANIZER) {
-        if (!from || from === "/" || from === "/dang-nhap") {
+      const isUserRole = user.role === "USER";
+      const isAdminRole =
+        user.role === ROLES.SUPER_ADMIN || user.role === ROLES.ORGANIZER;
+
+      if (isAdminRole) {
+        if (from === "/" || from === "/auth") {
           navigate("/admin", { replace: true });
-        } else if (from.startsWith("/admin")) {
-          navigate(from, { replace: true });
         } else {
-          navigate("/admin", { replace: true });
+          navigate(from, { replace: true });
         }
-      } else {
-        if (from && from.includes("/admin")) {
-          navigate("/", { replace: true });
+        return;
+      }
+
+      // 2. Nếu là USER thường
+      if (isUserRole) {
+        if (from.includes("/admin")) {
+          setShowPermissionModal(true);
         } else {
-          navigate(from, { replace: true });
+          navigate(from === "/auth" ? "/" : from, { replace: true });
         }
       }
     }
   }, [isAuthenticated, user, navigate, from]);
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  const handleCloseModal = () => {
+    setShowPermissionModal(false);
+    navigate("/", { replace: true });
+  };
+
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#0a0a0a] overflow-hidden font-noto text-white">
+      {/* Background Effect */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-20"
@@ -100,7 +115,6 @@ export default function LoginPage() {
             Đăng nhập để truy cập hệ thống quản trị Webie
           </p>
 
-          {/* Error Message */}
           {error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -156,7 +170,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={isLoading} 
+              disabled={isLoading}
               className="w-full py-3.5 mt-4 bg-linear-to-r from-[#D8C97B] to-[#8E803E] hover:to-[#D8C97B] text-black font-bold rounded-xl shadow-[0_0_20px_-5px_rgba(181,166,95,0.4)] transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider"
             >
               Đăng nhập
@@ -164,6 +178,16 @@ export default function LoginPage() {
           </form>
         </div>
       </motion.div>
+
+      <ConfirmModal
+        isOpen={showPermissionModal}
+        onClose={handleCloseModal}
+        onConfirm={handleCloseModal}
+        type="DELETE"
+        title="Truy cập bị từ chối!"
+        message="Tài khoản của bạn không có quyền truy cập vào trang Quản trị (Admin). Vui lòng quay lại trang chủ."
+        confirmText="Về trang chủ"
+      />
     </div>
   );
 }

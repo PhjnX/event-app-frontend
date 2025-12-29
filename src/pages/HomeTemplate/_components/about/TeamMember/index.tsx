@@ -71,7 +71,6 @@ const TeamSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(0);
 
-  // Auto-play
   useEffect(() => {
     const timer = setInterval(() => {
       handleNext();
@@ -120,7 +119,6 @@ const TeamSection: React.FC = () => {
 
   return (
     <section className="relative py-24 md:py-32 bg-[#0a0a0a] overflow-hidden font-noto text-white border-t border-white/5">
-      {/* 1. BACKGROUND DECOR (Always Animating) */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}

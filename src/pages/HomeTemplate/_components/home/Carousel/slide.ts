@@ -1,36 +1,42 @@
 import type { Slide } from "../models/slide";
+import Banner1 from "@/assets/images/Banner_1.jpg";
+import Banner2 from "@/assets/images/Banner_2.jpg";
+import Banner3 from "@/assets/images/Banner_3.jpg";
 export const SLIDES: Slide[] = [
   {
     id: 1,
-    image:
-      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=2000&auto=format&fit=crop",
-    title: "DISCOVER & JOIN",
-    highlight: "CAMPUS EVENTS.",
+    image: Banner1,
+    title: "ELEVATE YOUR",
+    highlight: "TECH EVENTS.",
     subtitle:
-      "Cập nhật nhanh chóng các hoạt động mới nhất tại trường và đăng ký tham gia chỉ trong vài giây.",
-    btnPrimary: "KHÁM PHÁ NGAY",
-    btnSecondary: "ĐĂNG KÝ",
+      "Nền tảng quản lý sự kiện chuyên nghiệp dành cho Doanh nghiệp và Tổ chức giáo dục. Nâng tầm trải nghiệm từ khâu tổ chức đến check-in.",
+    btnPrimary: "KHÁM PHÁ SỰ KIỆN",
+    pathPrimary: "/events",
+    btnSecondary: "ĐĂNG NHẬP",
+    pathSecondary: "#login",
   },
   {
     id: 2,
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2000&auto=format&fit=crop",
-    title: "STREAMLINE",
-    highlight: "EVENT MANAGEMENT.",
+    image: Banner2,
+    title: "CONNECT &",
+    highlight: "NETWORK.",
     subtitle:
-      "Tự động hóa quy trình từ khâu tạo sự kiện đến check-in. Tạm biệt bảng tính thủ công.",
-    btnPrimary: "TÌM HIỂU THÊM",
-    btnSecondary: "LIÊN HỆ",
+      "Mở rộng mạng lưới quan hệ với các diễn giả hàng đầu và chuyên gia trong ngành. Cơ hội nghề nghiệp ngay trong tầm tay.",
+    btnPrimary: "XEM LỊCH TRÌNH",
+    pathPrimary: "/events",
+    btnSecondary: "VỀ CHÚNG TÔI",
+    pathSecondary: "/about",
   },
   {
     id: 3,
-    image:
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2000&auto=format&fit=crop",
-    title: "ELEVATE STUDENT",
-    highlight: "LIFE EXPERIENCE.",
+    image: Banner3,
+    title: "STREAMLINE",
+    highlight: "MANAGEMENT.",
     subtitle:
-      "Tận hưởng trọn vẹn đời sống sinh viên. Tham gia các câu lạc bộ, hội thảo kỹ năng.",
-    btnPrimary: "XEM HOẠT ĐỘNG",
-    btnSecondary: "VỀ CHÚNG TÔI",
+      "Dành cho Ban Tổ Chức: Tối ưu hóa quy trình duyệt, kiểm soát người tham dự và báo cáo số liệu thời gian thực.",
+    btnPrimary: "LIÊN HỆ HỢP TÁC",
+    pathPrimary: "/#contact",
+    btnSecondary: "TẠO SỰ KIỆN",
+    pathSecondary: "/admin/events/create", 
   },
 ];

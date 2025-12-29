@@ -71,7 +71,6 @@ export default function PartnersSection() {
   return (
     <section className="relative py-24 text-white font-noto overflow-hidden bg-grid-pattern">
       <div className="container mx-auto px-4 relative z-10">
-        {/* HEADER SECTION */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

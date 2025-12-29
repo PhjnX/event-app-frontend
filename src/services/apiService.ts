@@ -16,41 +16,63 @@ const apiService = axios.create({
     Accept: "application/json",
   },
   timeout: 60000,
+  withCredentials: false, // Tắt credentials để tránh lỗi CORS Preflight
 });
 
+// INTERCEPTOR REQUEST
 apiService.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Luôn lấy token mới nhất từ LocalStorage ngay lúc gọi API
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    if (token && config.headers) {
+
+    if (token && config.headers && !config.url?.includes("google.com")) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
+// INTERCEPTOR RESPONSE
 apiService.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
   },
   (error: AxiosError) => {
     if (error.response) {
-      console.error("API Error:", error.response.data);
+      const status = error.response.status;
+      const errorData: any = error.response.data;
 
-      if (error.response.status === 401) {
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      console.error(`API Error [${status}]:`, errorData);
+
+      // Xử lý 401: Token hết hạn hoặc không hợp lệ
+      if (status === 401) {
+        // Chỉ redirect nếu không phải đang ở trang login để tránh lặp
+        if (!window.location.pathname.includes("/auth")) {
+          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+          // Dùng window.location.href để reload sạch sẽ
+          window.location.href = "/auth";
+        }
       }
-    } else {
-      console.error("Network Error:", error.message);
     }
     return Promise.reject(error);
   }
 );
 
-export default apiService as {
-  get: <T = any>(url: string, config?: any) => Promise<T>;
-  post: <T = any>(url: string, data?: any, config?: any) => Promise<T>;
-  put: <T = any>(url: string, data?: any, config?: any) => Promise<T>;
-  delete: <T = any>(url: string, config?: any) => Promise<T>;
-  patch: <T = any>(url: string, data?: any, config?: any) => Promise<T>;
+const apiServiceExport = {
+  get: <T = any>(url: string, config?: any) =>
+    apiService.get<any, T>(url, config),
+  post: <T = any>(url: string, data?: any, config?: any) =>
+    apiService.post<any, T>(url, data, config),
+  put: <T = any>(url: string, data?: any, config?: any) =>
+    apiService.put<any, T>(url, data, config),
+  delete: <T = any>(url: string, config?: any) =>
+    apiService.delete<any, T>(url, config),
+  patch: <T = any>(url: string, data?: any, config?: any) =>
+    apiService.patch<any, T>(url, data, config),
 };
+
+export default apiServiceExport;

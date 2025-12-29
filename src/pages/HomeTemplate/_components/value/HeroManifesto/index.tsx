@@ -14,8 +14,8 @@ const textVariants: Variants = {
 
 const HeroManifesto: React.FC = () => {
   const { scrollY } = useScroll();
-  const yText = useTransform(scrollY, [0, 500], [0, 200]); // Parallax Text
-  const yBg = useTransform(scrollY, [0, 500], [0, 100]); // Parallax Background (chậm hơn text)
+  const yText = useTransform(scrollY, [0, 500], [0, 200]); 
+  const yBg = useTransform(scrollY, [0, 500], [0, 100]); 
 
   return (
     <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-[#0a0a0a] font-noto">
@@ -84,9 +84,9 @@ const HeroManifesto: React.FC = () => {
             animate="visible"
             className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl"
           >
-            KIẾN TẠO <br />
+            YOUR VERSION <br />
             <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
-              TƯƠNG LAI SỐ
+             OUR CREATION
             </span>
           </motion.h1>
 
