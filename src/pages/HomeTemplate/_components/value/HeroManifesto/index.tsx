@@ -14,39 +14,39 @@ const textVariants: Variants = {
 
 const HeroManifesto: React.FC = () => {
   const { scrollY } = useScroll();
-  const yText = useTransform(scrollY, [0, 500], [0, 200]); 
-  const yBg = useTransform(scrollY, [0, 500], [0, 100]); 
+
+  // Hiệu ứng Parallax cho Text và Background
+  const yText = useTransform(scrollY, [0, 500], [0, 200]);
+  const yBg = useTransform(scrollY, [0, 500], [0, 100]);
 
   return (
-    <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-[#0a0a0a] font-noto">
-      <motion.div
-        className="absolute inset-0 z-0"
-        style={{ y: yBg }} 
-      >
+    <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-[#0a0a0a] font-noto selection:bg-[rgba(216,201,123,0.3)]">
+      {/* 1. BACKGROUND IMAGE WITH PARALLAX */}
+      <motion.div className="absolute inset-0 z-0" style={{ y: yBg }}>
         <motion.img
           src={bgValue}
           alt="Abstract Tech"
           className="w-full h-full object-cover"
           animate={{ scale: [1, 1.15] }}
           transition={{
-            duration: 20, 
+            duration: 20,
             repeat: Infinity,
-            repeatType: "reverse", 
+            repeatType: "reverse",
             ease: "linear",
           }}
         />
 
-        <div className="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-[rgba(0,0,0,0.4)] mix-blend-multiply"></div>
 
-        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[#0a0a0a]/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[rgba(10,10,10,0.6)] to-[rgba(10,10,10,0)]"></div>
       </motion.div>
 
       <div
         className="absolute inset-0 z-0 opacity-20 pointer-events-none"
         style={{
-          backgroundImage: `linear-gradient(rgba(181, 166, 95, 0.1) 1px, transparent 1px), 
-          linear-gradient(90deg, rgba(181, 166, 95, 0.1) 1px, transparent 1px)`,
-          backgroundSize: "80px 80px", 
+          backgroundImage: `linear-gradient(rgba(181, 166, 95, 0.1) 1px, rgba(181, 166, 95, 0) 1px), 
+          linear-gradient(90deg, rgba(181, 166, 95, 0.1) 1px, rgba(181, 166, 95, 0) 1px)`,
+          backgroundSize: "80px 80px",
         }}
       ></div>
 
@@ -56,19 +56,19 @@ const HeroManifesto: React.FC = () => {
             key={i}
             className="absolute rounded-full bg-[#D8C97B] blur-[2px]"
             style={{
-              width: Math.random() * 4 + 2 + "px", 
+              width: Math.random() * 4 + 2 + "px",
               height: Math.random() * 4 + 2 + "px",
               top: Math.random() * 100 + "%",
               left: Math.random() * 100 + "%",
               opacity: 0.4,
             }}
             animate={{
-              y: [0, -100, 0], 
-              x: [0, Math.random() * 50 - 25, 0], 
-              opacity: [0.2, 0.6, 0.2], 
+              y: [0, -100, 0],
+              x: [0, Math.random() * 50 - 25, 0],
+              opacity: [0.2, 0.6, 0.2],
             }}
             transition={{
-              duration: Math.random() * 10 + 10, 
+              duration: Math.random() * 10 + 10,
               repeat: Infinity,
               ease: "easeInOut",
             }}
@@ -85,8 +85,8 @@ const HeroManifesto: React.FC = () => {
             className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl"
           >
             YOUR VERSION <br />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
-             OUR CREATION
+            <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
+              OUR CREATION
             </span>
           </motion.h1>
 
@@ -104,12 +104,11 @@ const HeroManifesto: React.FC = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 120, opacity: 1 }}
             transition={{ delay: 1.2, duration: 1.5 }}
-            className="w-px bg-linear-to-b from-[#D8C97B] to-transparent mx-auto mt-12 shadow-[0_0_10px_#D8C97B]"
+            className="w-px bg-linear-to-b from-[#D8C97B] to-[rgba(216,201,123,0)] mx-auto mt-12 shadow-[0_0_10px_#D8C97B]"
           ></motion.div>
         </motion.div>
       </div>
 
-      {/* CSS Animation cho chữ Tương Lai Số óng ánh */}
       <style>{`
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }

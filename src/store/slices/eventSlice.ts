@@ -1,12 +1,36 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import type { Event } from "../../models/event";
+import { logoutUser } from "./auth";
+
+
+const API_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://ems-backend-jkjx.onrender.com/api";
+
+
+const getBackendRootUrl = () => {
+  if (API_URL.endsWith("/api")) {
+    return API_URL.slice(0, -4);
+  }
+  return API_URL;
+};
+
+const processImageUrl = (url: string | null | undefined) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url; 
+
+  const root = getBackendRootUrl();
+  const cleanPath = url.startsWith("/") ? url : `/${url}`;
+  return `${root}${cleanPath}`;
+};
 
 interface EventState {
   data: Event[];
   featuredEvents: Event[];
   selectedEvents: Event[];
   registrations: any[];
+  myRegistrations: any[]; 
   isLoading: boolean;
   error: string | null;
 }
@@ -16,6 +40,7 @@ const initialState: EventState = {
   featuredEvents: [],
   selectedEvents: [],
   registrations: [],
+  myRegistrations: [],
   isLoading: false,
   error: null,
 };
@@ -30,7 +55,6 @@ export const fetchPublicEvents = createAsyncThunk(
     }
   }
 );
-
 export const fetchAllEvents = createAsyncThunk(
   "events/fetchAll",
   async (_, { rejectWithValue }) => {
@@ -41,7 +65,6 @@ export const fetchAllEvents = createAsyncThunk(
     }
   }
 );
-
 export const fetchMyEvents = createAsyncThunk(
   "events/fetchMine",
   async (_, { rejectWithValue }) => {
@@ -52,7 +75,6 @@ export const fetchMyEvents = createAsyncThunk(
     }
   }
 );
-
 export const fetchFeaturedEvents = createAsyncThunk(
   "events/fetchFeatured",
   async (_, { rejectWithValue }) => {
@@ -64,7 +86,6 @@ export const fetchFeaturedEvents = createAsyncThunk(
     }
   }
 );
-
 export const fetchSelectedEvents = createAsyncThunk(
   "events/fetchSelected",
   async (_, { rejectWithValue }) => {
@@ -76,7 +97,6 @@ export const fetchSelectedEvents = createAsyncThunk(
     }
   }
 );
-
 export const updateFeaturedEvents = createAsyncThunk(
   "events/updateFeatured",
   async (ids: number[], { rejectWithValue }) => {
@@ -88,7 +108,6 @@ export const updateFeaturedEvents = createAsyncThunk(
     }
   }
 );
-
 export const updateSelectedEvents = createAsyncThunk(
   "events/updateSelected",
   async (ids: number[], { rejectWithValue }) => {
@@ -100,19 +119,14 @@ export const updateSelectedEvents = createAsyncThunk(
     }
   }
 );
-
 export const uploadEventImage = createAsyncThunk(
   "events/uploadImage",
   async (file: File, { rejectWithValue }) => {
     try {
       const formData = new FormData();
-
-      formData.append("file", file);
-
+      formData.append("image", file);
       const response = await apiService.post("/images/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       return response;
     } catch (err: any) {
@@ -122,7 +136,6 @@ export const uploadEventImage = createAsyncThunk(
     }
   }
 );
-
 export const registerForEvent = createAsyncThunk(
   "events/register",
   async (
@@ -140,6 +153,47 @@ export const registerForEvent = createAsyncThunk(
   }
 );
 
+// ============================================================
+// 2. FETCH MY REGISTRATIONS: XỬ LÝ DỮ LIỆU TẬP TRUNG
+// ============================================================
+export const fetchMyRegistrations = createAsyncThunk(
+  "events/fetchMyRegistrations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get<any[]>("/events/my-registrations");
+
+      const formattedData = Array.isArray(response)
+        ? response.map((item: any) => {
+            const evt = item.event || item;
+
+            const rawImage =
+              evt.bannerImageUrl || evt.bannerUrl || evt.image || "";
+
+            return {
+              registrationId: item.registrationId || item.id,
+              status: item.status,
+              ticketCode: item.ticketCode,
+              eventId: evt.eventId || evt.id,
+
+              eventName: evt.eventName || "Sự kiện",
+              eventSlug: evt.slug || evt.eventId?.toString() || "#",
+
+              eventBanner: processImageUrl(rawImage),
+
+              eventStartDate: evt.startDate,
+              eventEndDate: evt.endDate,
+              location: evt.location || "Online",
+            };
+          })
+        : [];
+
+      return formattedData;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 export const fetchEventRegistrations = createAsyncThunk(
   "events/fetchRegistrations",
   async (eventId: number, { rejectWithValue }) => {
@@ -153,19 +207,17 @@ export const fetchEventRegistrations = createAsyncThunk(
     }
   }
 );
-
 export const approveRegistration = createAsyncThunk(
   "events/approveRegistration",
-  async (registrationId: number, { rejectWithValue }) => {
+  async (regId: number, { rejectWithValue }) => {
     try {
-      await apiService.put(`/events/registrations/${registrationId}/approve`);
-      return registrationId;
+      await apiService.put(`/events/registrations/${regId}/approve`);
+      return regId;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
   }
 );
-
 export const rejectRegistration = createAsyncThunk(
   "events/rejectRegistration",
   async (
@@ -184,7 +236,6 @@ export const rejectRegistration = createAsyncThunk(
     }
   }
 );
-
 export const createEvent = createAsyncThunk(
   "events/create",
   async (data: Partial<Event>, { rejectWithValue }) => {
@@ -195,7 +246,6 @@ export const createEvent = createAsyncThunk(
     }
   }
 );
-
 export const updateEvent = createAsyncThunk(
   "events/update",
   async (
@@ -209,7 +259,17 @@ export const updateEvent = createAsyncThunk(
     }
   }
 );
-
+export const submitEventForApproval = createAsyncThunk(
+  "events/submit",
+  async (slug: string, { rejectWithValue }) => {
+    try {
+      await apiService.put(`/events/${slug}/submit`);
+      return slug;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 export const approveEvent = createAsyncThunk(
   "events/approve",
   async (id: number, { rejectWithValue }) => {
@@ -221,7 +281,6 @@ export const approveEvent = createAsyncThunk(
     }
   }
 );
-
 export const rejectEvent = createAsyncThunk(
   "events/reject",
   async (
@@ -238,7 +297,6 @@ export const rejectEvent = createAsyncThunk(
     }
   }
 );
-
 export const deleteEvent = createAsyncThunk(
   "events/delete",
   async (slug: string, { rejectWithValue }) => {
@@ -257,10 +315,25 @@ const eventSlice = createSlice({
   reducers: {
     clearRegistrations: (state) => {
       state.registrations = [];
+      state.myRegistrations = [];
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchMyRegistrations.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.myRegistrations = action.payload;
+      })
+      .addCase(fetchMyRegistrations.rejected, (state, action) => {
+        state.isLoading = false;
+        state.myRegistrations = [];
+        state.error = action.payload as string;
+      })
+
       .addCase(fetchPublicEvents.fulfilled, (state, action) => {
         state.data = action.payload;
         state.isLoading = false;
@@ -286,6 +359,12 @@ const eventSlice = createSlice({
         );
         if (index !== -1) state.data[index] = action.payload;
       })
+      .addCase(submitEventForApproval.fulfilled, (state, action) => {
+        const event = state.data.find((e) => e.slug === action.payload);
+        if (event) {
+          event.status = "PENDING_APPROVAL";
+        }
+      })
       .addCase(approveEvent.fulfilled, (state, action) => {
         const event = state.data.find((e) => e.eventId === action.payload);
         if (event) event.status = "APPROVED";
@@ -297,10 +376,6 @@ const eventSlice = createSlice({
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.data = state.data.filter((e) => e.slug !== action.payload);
       })
-
-      .addCase(uploadEventImage.pending, (_state) => {})
-      .addCase(uploadEventImage.fulfilled, (_state) => {})
-
       .addCase(fetchEventRegistrations.pending, (state) => {
         state.isLoading = true;
       })
@@ -321,7 +396,8 @@ const eventSlice = createSlice({
         const { registrationId } = action.payload;
         const item = state.registrations.find((r) => r.id === registrationId);
         if (item) item.status = "REJECTED";
-      });
+      })
+      .addCase(logoutUser.fulfilled, () => initialState);
   },
 });
 

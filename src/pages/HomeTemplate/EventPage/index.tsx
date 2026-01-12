@@ -1,7 +1,6 @@
 import React, { Suspense, useState } from "react";
 import FeaturedPresenters from "../_components/events/FeaturedPresenters";
 
-// Import các section (Lazy Load)
 const HeroCarousel = React.lazy(
   () => import("../_components/events/HeroCarousel")
 );
@@ -11,10 +10,11 @@ const CTANewsletter = React.lazy(
   () => import("../_components/events/CTANewsletter")
 );
 
-// Component Loading cho từng section
+
 const SectionLoader = () => (
   <div className="w-full h-40 flex items-center justify-center bg-[#0a0a0a]">
-    <div className="w-8 h-8 border-2 border-[#B5A65F] border-t-transparent rounded-full animate-spin"></div>
+    {/* FIX: Thay border-t-transparent bằng rgba alpha 0 */}
+    <div className="w-8 h-8 border-2 border-[#B5A65F] border-t-primary-gold-transparent rounded-full animate-spin"></div>
   </div>
 );
 
@@ -22,28 +22,28 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen font-noto text-white overflow-x-hidden">
-      {/* 1. Hero Carousel */}
+    <div className="bg-[#0a0a0a] min-h-screen font-noto text-white overflow-x-hidden selection:bg-[rgba(181,166,95,0.3)]">
       <Suspense
-        fallback={<div className="h-[600px] bg-[#121212] animate-pulse" />}
+        fallback={
+          <div className="h-[600px] bg-[#121212] animate-pulse border-b border-[rgba(255,255,255,0.05)]" />
+        }
       >
         <HeroCarousel />
       </Suspense>
 
-      {/* 2. Filter Bar */}
       <Suspense fallback={<SectionLoader />}>
         <FilterBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </Suspense>
 
-      {/* 3. Event Grid (API) */}
-      <Suspense fallback={<SectionLoader />}>
-        <FeaturedPresenters />
-      </Suspense>
+    
       <Suspense fallback={<SectionLoader />}>
         <EventsGrid searchTerm={searchTerm} />
       </Suspense>
 
-      {/* 4. CTA */}
+      <Suspense fallback={<SectionLoader />}>
+        <FeaturedPresenters />
+      </Suspense>
+
       <Suspense fallback={<SectionLoader />}>
         <CTANewsletter />
       </Suspense>

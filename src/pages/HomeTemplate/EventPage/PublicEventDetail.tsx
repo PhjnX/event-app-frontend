@@ -52,7 +52,6 @@ export default function PublicEventDetail() {
   const [presenters, setPresenters] = useState<Presenter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
-
   const [selectedActivityIds, setSelectedActivityIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -66,7 +65,6 @@ export default function PublicEventDetail() {
             `/activities/by-event/${eventRes.eventId}`
           );
           setActivities(actRes);
-
 
           const uniquePresenters = Array.from(
             new Map(
@@ -100,12 +98,10 @@ export default function PublicEventDetail() {
       return;
     }
     if (!event) return;
-
     if (selectedActivityIds.length === 0) {
       toast.warn("Vui lòng chọn ít nhất một hoạt động để tham gia!");
       return;
     }
-
     if (user.role === "SADMIN" || user.role === "ORGANIZER") {
       toast.info("Tài khoản quản trị không cần đăng ký.");
       return;
@@ -117,10 +113,9 @@ export default function PublicEventDetail() {
         eventId: event.eventId,
         activityIds: selectedActivityIds,
       };
-
       await dispatch(registerForEvent(payload)).unwrap();
       toast.success("🎉 Đăng ký thành công! Vé đã được gửi về email của bạn.");
-      setSelectedActivityIds([]); // Reset sau khi đăng ký
+      setSelectedActivityIds([]);
     } catch (error: any) {
       toast.error(error || "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
@@ -137,9 +132,9 @@ export default function PublicEventDetail() {
     );
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen font-noto text-white pb-20">
+    <div className="bg-[#0a0a0a] min-h-screen font-noto text-white pb-20 selection:bg-[rgba(181,166,95,0.3)]">
       <div className="relative h-[50vh] w-full overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-black/50 to-transparent z-10"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] z-10"></div>
         <img
           src={event.bannerImageUrl || "https://via.placeholder.com/1920x600"}
           alt={event.eventName}
@@ -148,14 +143,14 @@ export default function PublicEventDetail() {
 
         <Link
           to="/events"
-          className="absolute top-24 left-4 md:left-10 z-20 flex items-center gap-2 text-white/70 hover:text-[#B5A65F] transition-colors bg-black/30 px-4 py-2 rounded-full backdrop-blur-md"
+          className="absolute top-24 left-4 md:left-10 z-20 flex items-center gap-2 text-[rgba(255,255,255,0.7)] hover:text-[#B5A65F] transition-all bg-[rgba(0,0,0,0.3)] px-5 py-2 rounded-full backdrop-blur-md border border-[rgba(255,255,255,0.1)]"
         >
           <FaArrowLeft /> Quay lại danh sách
         </Link>
 
         <div className="absolute bottom-0 left-0 w-full z-20 p-6 md:p-16">
           <div className="container mx-auto">
-            <span className="px-3 py-1 bg-[#B5A65F] text-black text-xs font-bold uppercase rounded mb-4 inline-block">
+            <span className="px-3 py-1 bg-[#B5A65F] text-black text-xs font-bold uppercase rounded mb-4 inline-block shadow-lg">
               {event.status === "APPROVED" || event.status === "PUBLISHED"
                 ? "Sắp diễn ra"
                 : event.status}
@@ -186,17 +181,17 @@ export default function PublicEventDetail() {
         <div className="lg:col-span-2 space-y-12">
           <section>
             <h3 className="text-2xl font-bold text-[#B5A65F] uppercase mb-6 flex items-center gap-2">
-              <span className="w-1 h-8 bg-[#B5A65F] inline-block mr-2"></span>{" "}
+              <span className="w-1.5 h-8 bg-[#B5A65F] inline-block"></span>
               Giới thiệu sự kiện
             </h3>
-            <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-line">
+            <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-line font-light text-justify">
               {event.description}
             </p>
           </section>
 
           <section>
             <h3 className="text-2xl font-bold text-[#B5A65F] uppercase mb-8 flex items-center gap-2">
-              <span className="w-1 h-8 bg-[#B5A65F] inline-block mr-2"></span>{" "}
+              <span className="w-1.5 h-8 bg-[#B5A65F] inline-block"></span>
               Lịch trình & Đăng ký
             </h3>
             <p className="text-sm text-gray-400 mb-6 italic">
@@ -216,59 +211,59 @@ export default function PublicEventDetail() {
                   <div
                     key={act.activityId}
                     onClick={() => toggleActivity(act.activityId)}
-                    className={`relative group cursor-pointer border rounded-2xl p-5 transition-all duration-300 flex items-start gap-4 ${
+                    className={`relative group cursor-pointer border rounded-2xl p-6 transition-all duration-300 flex items-start gap-5 ${
                       isSelected
-                        ? "bg-[#B5A65F]/10 border-[#B5A65F] shadow-[0_0_20px_rgba(181,166,95,0.1)]"
-                        : "bg-[#1a1a1a] border-white/5 hover:border-[#B5A65F]/30"
+                        ? "bg-primary-gold-low border-[#B5A65F] shadow-[0_0_20px_rgba(181,166,95,0.1)]"
+                        : "bg-[#1a1a1a] border-[rgba(255,255,255,0.05)] hover:border-[rgba(181,166,95,0.3)] hover:bg-[#222]"
                     }`}
                   >
-                    {/* Checkbox Icon */}
                     <div className="mt-1">
                       {isSelected ? (
-                        <FaCheckCircle className="text-[#B5A65F] text-xl" />
+                        <FaCheckCircle className="text-[#B5A65F] text-2xl" />
                       ) : (
-                        <FaRegCircle className="text-gray-600 text-xl group-hover:text-[#B5A65F]" />
+                        <FaRegCircle className="text-gray-600 text-2xl group-hover:text-[#B5A65F]" />
                       )}
                     </div>
 
                     <div className="flex-1">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-3">
                         <h4
-                          className={`text-lg font-bold transition-colors ${
+                          className={`text-xl font-bold transition-colors ${
                             isSelected ? "text-[#B5A65F]" : "text-white"
                           }`}
                         >
                           {act.activityName}
                         </h4>
-                        <span className="text-[#B5A65F] font-mono text-xs bg-black/40 px-2 py-1 rounded border border-[#B5A65F]/20 whitespace-nowrap">
+                        <span className="text-[#B5A65F] font-mono text-xs bg-[rgba(0,0,0,0.4)] px-3 py-1 rounded-full border border-[rgba(181,166,95,0.2)] whitespace-nowrap">
                           {formatDateTime(act.startTime, "time")} -{" "}
                           {formatDateTime(act.endTime, "time")}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-sm mb-3">
+                      <p className="text-gray-400 text-sm leading-relaxed mb-4">
                         {act.description}
                       </p>
 
-                      {/* Presenters */}
                       {(
                         (act as any).presenters ||
                         (act.presenter ? [act.presenter] : [])
                       ).map((p: any) => (
                         <div
                           key={p.presenterId}
-                          className="flex items-center gap-2 text-xs text-gray-500 mt-2 border-t border-white/5 pt-2"
+                          className="flex items-center gap-2 text-xs text-gray-400 mt-2 border-t border-[rgba(255,255,255,0.05)] pt-3"
                         >
                           <img
                             src={
                               p.avatarUrl || "https://via.placeholder.com/30"
                             }
-                            className="w-6 h-6 rounded-full object-cover"
-                            alt=""
+                            className="w-7 h-7 rounded-full object-cover border border-[#B5A65F]/30"
+                            alt={p.fullName}
                           />
-                          <span className="text-white font-bold">
+                          <span className="text-gray-200 font-bold">
                             {p.fullName}
                           </span>
-                          <span className="hidden sm:inline"> - {p.title}</span>
+                          <span className="hidden sm:inline opacity-60">
+                            | {p.title}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -278,30 +273,31 @@ export default function PublicEventDetail() {
             </div>
           </section>
 
-          {/* Presenters Section */}
           {presenters.length > 0 && (
             <section>
               <h3 className="text-2xl font-bold text-[#B5A65F] uppercase mb-8 flex items-center gap-2">
-                <span className="w-1 h-8 bg-[#B5A65F] inline-block mr-2"></span>{" "}
-                Diễn giả
+                <span className="w-1.5 h-8 bg-[#B5A65F] inline-block"></span>
+                Diễn giả tiêu biểu
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {presenters.map((p) => (
                   <div
                     key={p.presenterId}
-                    className="flex items-center gap-4 bg-[#1a1a1a] p-4 rounded-xl border border-white/5 hover:border-[#B5A65F]/30 transition-colors"
+                    className="flex items-center gap-4 bg-[#1a1a1a] p-5 rounded-2xl border border-[rgba(255,255,255,0.05)] hover:border-[rgba(181,166,95,0.3)] transition-all"
                   >
                     <img
                       src={p.avatarUrl || "https://via.placeholder.com/80"}
-                      className="w-16 h-16 rounded-full object-cover border border-[#B5A65F]/30"
-                      alt=""
+                      className="w-16 h-16 rounded-full object-cover border-2 border-[rgba(181,166,95,0.2)]"
+                      alt={p.fullName}
                     />
                     <div>
-                      <h4 className="font-bold text-white">{p.fullName}</h4>
-                      <p className="text-xs text-[#B5A65F] uppercase tracking-wide">
+                      <h4 className="font-bold text-white text-lg">
+                        {p.fullName}
+                      </h4>
+                      <p className="text-xs text-[#B5A65F] uppercase tracking-wide font-bold">
                         {p.title}
                       </p>
-                      <p className="text-xs text-gray-500">{p.company}</p>
+                      <p className="text-xs text-gray-500 mt-1">{p.company}</p>
                     </div>
                   </div>
                 ))}
@@ -312,70 +308,76 @@ export default function PublicEventDetail() {
 
         <div className="lg:col-span-1">
           <div className="sticky top-24 space-y-6">
-            <div className="bg-[#1a1a1a] border border-[#B5A65F] p-6 rounded-3xl shadow-[0_0_30px_rgba(181,166,95,0.1)]">
-              <h3 className="text-xl font-bold text-white mb-2">
+            <div className="bg-[#1a1a1a] border border-[#B5A65F] p-8 rounded-4xl shadow-[0_0_40px_rgba(181,166,95,0.1)] relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-gold-low blur-2xl rounded-full pointer-events-none"></div>
+
+              <h3 className="text-2xl font-bold text-white mb-3">
                 Đăng ký tham gia
               </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                Chọn các hoạt động bạn muốn tham gia ở danh sách bên trái.
+              <p className="text-gray-400 text-sm mb-8 leading-relaxed font-light">
+                Chọn các phiên (session) hoạt động mà bạn mong muốn tham gia ở
+                danh sách bên trái.
               </p>
 
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center text-sm border-b border-white/10 pb-2">
-                  <span className="text-gray-500">Đã chọn</span>
-                  <span className="text-[#B5A65F] font-bold text-lg">
-                    {selectedActivityIds.length} hoạt động
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between items-center text-sm border-b border-[rgba(255,255,255,0.05)] pb-3">
+                  <span className="text-gray-400">Hoạt động đã chọn</span>
+                  <span className="text-[#B5A65F] font-black text-xl">
+                    {selectedActivityIds.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm border-b border-white/10 pb-2">
-                  <span className="text-gray-500">Giá vé</span>
-                  <span className="text-white">Miễn phí</span>
+                <div className="flex justify-between items-center text-sm border-b border-[rgba(255,255,255,0.05)] pb-3">
+                  <span className="text-gray-400">Giá vé dự kiến</span>
+                  <span className="text-emerald-400 font-bold uppercase tracking-widest">
+                    Miễn phí
+                  </span>
                 </div>
               </div>
 
               <button
                 onClick={handleRegister}
                 disabled={isRegistering}
-                className="w-full py-4 bg-[#B5A65F] text-black font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-4 bg-[#B5A65F] text-black font-black uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 {isRegistering ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                    <span className="w-5 h-5 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin"></span>
                     Đang xử lý...
                   </>
                 ) : (
                   <>
-                    <FaTicketAlt /> Xác nhận đăng ký
+                    <FaTicketAlt className="group-hover:rotate-12 transition-transform" />{" "}
+                    Xác nhận đăng ký
                   </>
                 )}
               </button>
 
-              <p className="text-xs text-center text-gray-500 mt-4 italic">
-                * Bạn sẽ nhận được email xác nhận kèm vé điện tử.
+              <p className="text-xs text-center text-gray-500 mt-6 italic">
+                * Bạn sẽ nhận được vé QR qua email sau khi hoàn tất.
               </p>
             </div>
 
-            <div className="bg-[#1a1a1a]/60 border border-white/10 p-6 rounded-3xl">
-              <h4 className="text-sm font-bold text-gray-400 uppercase mb-4">
+            <div className="bg-[rgba(26,26,26,0.6)] border border-[rgba(255,255,255,0.05)] p-6 rounded-2xl backdrop-blur-md">
+              <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">
                 Nhà tổ chức
               </h4>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-full flex items-center justify-center text-2xl shadow-inner">
                   🏢
                 </div>
-                <div>
-                  <p className="font-bold text-white truncate max-w-[200px]">
+                <div className="overflow-hidden">
+                  <p className="font-bold text-white truncate max-w-[180px]">
                     {event.organizerName}
                   </p>
-                  <button className="text-xs text-[#B5A65F] hover:underline">
-                    Xem hồ sơ
+                  <button className="text-xs text-[#B5A65F] hover:text-white transition-colors underline decoration-[rgba(181,166,95,0.3)]">
+                    Xem hồ sơ chi tiết
                   </button>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <button className="flex-1 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-white transition-all flex items-center justify-center gap-2">
+              <button className="flex-1 py-3.5 bg-[#1a1a1a] border border-[rgba(255,255,255,0.05)] rounded-xl text-gray-400 hover:text-white hover:border-[#B5A65F] transition-all flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-wider">
                 <FaShareAlt /> Chia sẻ
               </button>
             </div>

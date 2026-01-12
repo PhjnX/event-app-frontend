@@ -4,7 +4,6 @@ import { Navigate } from "react-router-dom";
 import AdminTemplate from "../pages/AdminTemplate";
 import AdminProtectedRoute from "./admin-protect-route";
 
-// --- Lazy Loading ---
 const DashboardPage = React.lazy(
   () => import("../pages/AdminTemplate/Dashboard")
 );
@@ -30,11 +29,18 @@ const EditEventPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageEvents/EditEventPage")
 );
 
-// --- [NEW] IMPORT TRANG QUẢN LÝ NGƯỜI THAM GIA ---
 const ManageRegistrationsPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageEvents/ManageRegistrations")
 );
-
+const ManageNewsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageNews")
+);
+const CreateNewsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageNews/CreateNews")
+);
+const EditNewsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageNews/EditNews")
+);
 const adminRoutes: RouteObject = {
   path: "admin",
   element: <AdminProtectedRoute />,
@@ -49,11 +55,9 @@ const adminRoutes: RouteObject = {
         { path: "presenters", element: <ManagePresentersPage /> },
         { path: "organizers", element: <ManageOrganizersPage /> },
 
-        // --- EVENTS ROUTES ---
         { path: "events", element: <ManageEventsPage /> },
         { path: "events/create", element: <CreateEventPage /> },
 
-        // [NEW] ROUTE QUẢN LÝ NGƯỜI THAM GIA (Đặt trước route :slug để tránh xung đột)
         {
           path: "events/:eventId/registrations",
           element: <ManageRegistrationsPage />,
@@ -61,6 +65,9 @@ const adminRoutes: RouteObject = {
 
         { path: "events/:slug/edit", element: <EditEventPage /> },
         { path: "events/:slug", element: <EventDetailPage /> },
+        { path: "news", element: <ManageNewsPage /> },
+        { path: "news/create", element: <CreateNewsPage /> },
+        { path: "news/:id/edit", element: <EditNewsPage /> },
       ],
     },
   ],

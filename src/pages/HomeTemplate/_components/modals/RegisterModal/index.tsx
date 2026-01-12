@@ -38,7 +38,6 @@ export default function RegisterModal({
   });
 
   const [verificationCode, setVerificationCode] = useState("");
-
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,7 +74,7 @@ export default function RegisterModal({
     const resultAction = await dispatch(registerUser(formData));
     if (registerUser.fulfilled.match(resultAction)) {
       toast.success("Đăng ký thành công! Mã xác thực đã được gửi về email.");
-      setStep(2); 
+      setStep(2);
       dispatch(clearError());
     }
   };
@@ -95,20 +94,21 @@ export default function RegisterModal({
     const resultAction = await dispatch(verifyUser(verifyData));
     if (verifyUser.fulfilled.match(resultAction)) {
       toast.success("Xác thực thành công! Bạn có thể đăng nhập ngay.");
-      onSwitchToLogin(); 
+      onSwitchToLogin();
     }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans selection:bg-[rgba(216,201,123,0.3)]">
+          {/* Backdrop Overlay - FIX WARNING black/80 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            className="absolute inset-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-sm cursor-pointer"
           />
 
           <motion.div
@@ -116,15 +116,16 @@ export default function RegisterModal({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
+            className="relative w-full max-w-md bg-[#1a1a1a] border border-[rgba(216,201,123,0.3)] rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 cursor-pointer"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 transition-colors"
             >
               <FaTimes size={20} />
             </button>
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#D8C97B] to-transparent"></div>
+
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-[rgba(216,201,123,0)] via-[#D8C97B] to-[rgba(216,201,123,0)]"></div>
 
             <div className="p-8 pt-10">
               <div className="text-center mb-6">
@@ -132,21 +133,22 @@ export default function RegisterModal({
                   <img
                     src={LogoApp}
                     alt="Webie Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(216,201,123,0.4)]"
                   />
-                  <h2 className="text-3xl font-bold text-white">
+                  <h2 className="text-3xl font-bold text-white uppercase tracking-tight">
                     {step === 1 ? "Đăng Ký" : "Xác Thực Email"}
                   </h2>
                 </div>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-400 text-sm font-light">
                   {step === 1
-                    ? "Tham gia cùng chúng tôi ngay hôm nay"
+                    ? "Tham gia cùng Webie EMS ngay hôm nay"
                     : `Vui lòng nhập mã OTP đã gửi tới ${formData.email}`}
                 </p>
               </div>
 
+              {/* Error Block - FIX WARNING red-500/10 */}
               {(error || localError) && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
+                <div className="mb-4 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.5)] rounded-lg text-red-400 text-sm text-center font-medium">
                   {localError || error}
                 </div>
               )}
@@ -154,7 +156,7 @@ export default function RegisterModal({
               {step === 1 && (
                 <form className="space-y-4" onSubmit={handleRegister}>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
                       Họ và Tên
                     </label>
                     <div className="relative group">
@@ -165,13 +167,14 @@ export default function RegisterModal({
                         value={formData.username}
                         onChange={handleChange}
                         placeholder="Nguyễn Văn A"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
                       Email
                     </label>
                     <div className="relative group">
@@ -182,13 +185,14 @@ export default function RegisterModal({
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="name@example.com"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
                       Mật khẩu
                     </label>
                     <div className="relative group">
@@ -199,13 +203,14 @@ export default function RegisterModal({
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
                       Nhập lại mật khẩu
                     </label>
                     <div className="relative group">
@@ -216,18 +221,20 @@ export default function RegisterModal({
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        required
                       />
                     </div>
                   </div>
 
                   <button
+                    type="submit"
                     disabled={isLoading}
-                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
+                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center uppercase text-sm tracking-widest"
                   >
                     {isLoading ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
+                        <span className="inline-block w-4 h-4 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin mr-2"></span>
                         Đang đăng ký...
                       </>
                     ) : (
@@ -240,7 +247,7 @@ export default function RegisterModal({
               {step === 2 && (
                 <form className="space-y-6" onSubmit={handleVerify}>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1">
+                    <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
                       Mã xác thực (OTP)
                     </label>
                     <div className="relative group">
@@ -250,19 +257,21 @@ export default function RegisterModal({
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
                         placeholder="Nhập mã OTP..."
-                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white text-lg tracking-widest focus:border-[#D8C97B] focus:outline-none transition-all"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white text-lg tracking-[0.5em] focus:border-[#D8C97B] focus:outline-none transition-all text-center font-bold"
                         autoFocus
+                        required
                       />
                     </div>
                   </div>
 
                   <button
+                    type="submit"
                     disabled={isLoading}
-                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
+                    className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center uppercase text-sm tracking-widest"
                   >
                     {isLoading ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
+                        <span className="inline-block w-4 h-4 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin mr-2"></span>
                         Đang xác thực...
                       </>
                     ) : (
@@ -274,7 +283,7 @@ export default function RegisterModal({
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="text-gray-500 hover:text-white text-sm underline cursor-pointer"
+                      className="text-gray-500 hover:text-white text-sm underline cursor-pointer transition-colors font-medium"
                     >
                       Quay lại bước trước
                     </button>
@@ -283,9 +292,10 @@ export default function RegisterModal({
               )}
 
               {step === 1 && (
-                <p className="text-center text-gray-500 text-sm mt-6">
+                <p className="text-center text-gray-500 text-sm mt-6 font-light">
                   Đã có tài khoản?{" "}
                   <button
+                    type="button"
                     onClick={onSwitchToLogin}
                     className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
                   >

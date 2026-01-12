@@ -8,38 +8,38 @@ const FeaturesSection = React.lazy(
 const PartnersSection = React.lazy(
   () => import("../_components/home/Partners")
 );
-
 const AboutSection = React.lazy(() => import("../_components/home/AboutUs"));
 const EventsSection = React.lazy(() => import("../_components/home/Event"));
 const NewsSection = React.lazy(() => import("../_components/home/News"));
 const ContactSection = React.lazy(() => import("../_components/home/Contact"));
 
+
 const SectionLoader = () => (
   <div className="w-full h-40 md:h-64 flex items-center justify-center bg-[#0a0a0a]">
-    <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin"></div>
+    <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-[rgba(216,201,123,0)] rounded-full animate-spin"></div>
   </div>
 );
 
 export default function HomePage() {
   const { hash } = useLocation();
 
-  // 👉 LOGIC SCROLL TỚI SECTION
   useEffect(() => {
     if (!hash) return;
 
-    // Delay nhẹ để chờ lazy component render xong
     const timer = setTimeout(() => {
       const el = document.querySelector(hash);
       if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 300);
 
     return () => clearTimeout(timer);
   }, [hash]);
+
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)] selection:text-white">
       <CarouselHero />
+
 
       <Suspense fallback={<SectionLoader />}>
         <FeaturesSection />

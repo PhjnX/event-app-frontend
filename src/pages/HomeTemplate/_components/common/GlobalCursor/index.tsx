@@ -40,12 +40,12 @@ export default function GlobalCursor() {
       window.removeEventListener("mousemove", moveCursor);
       window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, []);
+  }, [mouseX, mouseY]);
 
   return (
     <>
       <motion.div
-        className="hidden lg:block fixed top-0 left-0 border border-[#D8C97B] rounded-full pointer-events-none z-9999"
+        className="hidden lg:block fixed top-0 left-0 border border-[#D8C97B] rounded-full pointer-events-none z-[9999]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -58,8 +58,13 @@ export default function GlobalCursor() {
           opacity: isHovering ? 1 : 0.5,
           borderWidth: isHovering ? 2 : 1.5,
           backgroundColor: isHovering
-            ? "rgba(181, 166, 95, 0.1)"
-            : "transparent",
+            ? "rgba(181, 166, 95, 0.15)"
+            : "rgba(181, 166, 95, 0)",
+        }}
+        transition={{
+          width: { type: "spring", stiffness: 300, damping: 20 },
+          height: { type: "spring", stiffness: 300, damping: 20 },
+          backgroundColor: { duration: 0.2 },
         }}
       />
     </>

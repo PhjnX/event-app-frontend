@@ -1,9 +1,85 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { FaChevronLeft, FaChevronRight, FaArrowRight } from "react-icons/fa";
-import type { Slide } from "../models/slide";
-import { SLIDES } from "./slide";
+import { SLIDES, type Slide } from "./slide";
+
 import LoginModal from "../../modals/LoginModal";
+import OrganizerRegModal from "../../common/OrganizerRegModal"; 
+
+const Device3D = ({ slide }: { slide: Slide }) => {
+  const x = useMotionValue(0.5);
+  const y = useMotionValue(0.5);
+
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
+
+  const rotateX = useTransform(mouseYSpring, [0, 1], ["25deg", "-25deg"]);
+  const rotateY = useTransform(mouseXSpring, [0, 1], ["-25deg", "25deg"]);
+
+  const shadowX = useTransform(mouseXSpring, [0, 1], [20, -20]);
+  const shadowY = useTransform(mouseYSpring, [0, 1], [20, -20]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width);
+    y.set((e.clientY - rect.top) / rect.height);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0.5);
+    y.set(0.5);
+  };
+
+  const deviceWidth = {
+    phone: "w-[200px] sm:w-[240px] md:w-[300px]",
+    tablet: "w-[280px] sm:w-[360px] md:w-[450px]",
+    laptop: "w-[340px] sm:w-[500px] md:w-[700px]",
+  }[slide.deviceType];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 50, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -50, scale: 0.9 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative z-30 flex items-center justify-center w-full h-full"
+      style={{ perspective: 1500 }}
+    >
+      <motion.div
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className={`relative ${deviceWidth} cursor-grab active:cursor-grabbing py-10`}
+      >
+        <motion.div
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <motion.img
+            src={slide.device}
+            alt={slide.title}
+            style={{ translateZ: 100 }}
+            className="w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none z-10"
+          />
+          <motion.div
+            style={{ translateZ: -50, x: shadowX, y: shadowY }}
+            className="absolute inset-10 bg-[rgba(0,0,0,0.4)] blur-2xl` rounded-full -z-10"
+          />
+          <div className="absolute inset-0 pointer-events-none rounded-[3rem] bg-linear-to-tr from-[rgba(255,255,255,0.1)] to-transparent opacity-30 z-20" />
+        </motion.div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[rgba(181,166,95,0.2)] blur-[120px] -z-20 rounded-full scale-110" />
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const SlideBackground = ({
   slide,
@@ -13,106 +89,28 @@ const SlideBackground = ({
   isActive: boolean;
 }) => (
   <div
-    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+    className={`absolute inset-0 transition-opacity duration-1000 ${
       isActive ? "opacity-100 z-10" : "opacity-0 z-0"
     }`}
   >
     <img
       src={slide.image}
       alt={slide.title}
-      className={`w-full h-full object-cover transform transition-transform duration-6000 ease-linear ${
+      className={`w-full h-full object-cover transform transition-transform duration-10000 ${
         isActive ? "scale-110" : "scale-100"
       }`}
     />
-    <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/40 to-black/80" />
+    <div className="absolute inset-0 bg-linear-to-r from-black via-black/60 to-transparent" />
+    <div className="lg:hidden absolute inset-0 bg-black/40" />
   </div>
 );
 
-interface SlideContentProps {
-  slide: Slide;
-  onOpenLogin: () => void;
-}
-
-const SlideContent = ({ slide, onOpenLogin }: SlideContentProps) => {
-  const secondaryBtnClass =
-    "group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-white/5 backdrop-blur-md text-white font-bold text-sm uppercase tracking-wider rounded-full border border-white/20 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:border-[#B5A65F] hover:text-[#B5A65F] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] cursor-pointer";
-
-  const innerBtnContent = (
-    <>
-      <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-12 z-10 animate-shine-infinite" />
-      <span className="relative z-20 flex items-center gap-2">
-        {slide.btnSecondary}
-      </span>
-    </>
-  );
-
-  return (
-    <div className="flex flex-col items-center animate-fade-in-up px-4 relative z-20">
-      <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight drop-shadow-2xl uppercase tracking-tight text-center text-white">
-        {slide.title} <span className="text-[#B5A65F]">{slide.highlight}</span>
-      </h1>
-
-      <p className="text-base md:text-lg mb-10 text-gray-300 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light text-center">
-        {slide.subtitle}
-      </p>
-
-      <div className="flex flex-wrap justify-center gap-5 mt-2">
-        <Link
-          to={slide.pathPrimary}
-          className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-[#B5A65F] text-black font-bold text-sm uppercase tracking-wider rounded-full border border-[#B5A65F] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(181,166,95,0.5)]"
-        >
-          <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
-          <span className="relative z-20 flex items-center gap-2">
-            {slide.btnPrimary} <FaArrowRight />
-          </span>
-        </Link>
-
-        {slide.pathSecondary === "#login" ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              onOpenLogin();
-            }}
-            className={secondaryBtnClass}
-          >
-            {innerBtnContent}
-          </button>
-        ) : (
-          <Link to={slide.pathSecondary} className={secondaryBtnClass}>
-            {innerBtnContent}
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const NavButton = ({
-  direction,
-  onClick,
-}: {
-  direction: "left" | "right";
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`absolute ${
-      direction === "left" ? "left-4 md:left-8" : "right-4 md:right-8"
-    } top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-[#B5A65F] hover:bg-black/60 hover:border-[#B5A65F] transition-all backdrop-blur-sm hidden md:flex items-center justify-center hover:scale-110 group shadow-lg`}
-  >
-    {direction === "left" ? (
-      <FaChevronLeft className="text-xl group-hover:-translate-x-1 transition-transform" />
-    ) : (
-      <FaChevronRight className="text-xl group-hover:translate-x-1 transition-transform" />
-    )}
-  </button>
-);
-
-
 export default function CarouselHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // State quản lý các Modal
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev === SLIDES.length - 1 ? 0 : prev + 1));
@@ -123,22 +121,78 @@ export default function CarouselHero() {
   };
 
   useEffect(() => {
-    const interval = setInterval(nextSlide, 6000);
+    const interval = setInterval(nextSlide, 8000);
     return () => clearInterval(interval);
   }, [nextSlide]);
 
-  const handleSwitchToRegister = () => {
-    console.log("Người dùng muốn chuyển sang trang Đăng ký");
-    setLoginModalOpen(false);
-  };
+  const currentSlide = SLIDES[currentIndex];
 
-  const handleSwitchToForgot = () => {
-    console.log("Người dùng quên mật khẩu");
-    setLoginModalOpen(false);
+  const renderButton = (
+    label: string,
+    path: string,
+    variant: "primary" | "secondary"
+  ) => {
+    const primaryClass =
+      "font-noto group relative inline-flex items-center gap-2 px-7 py-3 bg-[#B5A65F] text-black font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(181,166,95,0.4)]";
+    const secondaryClass =
+      "font-sans px-7 py-3 bg-[rgba(255,255,255,0.05)] backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest rounded-full border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[#B5A65F] transition-all duration-300 hover:-translate-y-1";
+
+    const className = variant === "primary" ? primaryClass : secondaryClass;
+    const content = (
+      <>
+        {label}{" "}
+        {variant === "primary" && (
+          <FaArrowRight
+            size={12}
+            className={variant === "primary" ? "relative z-10" : ""}
+          />
+        )}
+      </>
+    );
+
+    if (path === "#login") {
+      return (
+        <button onClick={() => setLoginModalOpen(true)} className={className}>
+          {variant === "primary" ? (
+            <span className="relative z-10 flex items-center gap-2">
+              {content}
+            </span>
+          ) : (
+            content
+          )}
+        </button>
+      );
+    }
+
+    if (path === "#contact") {
+      return (
+        <button onClick={() => setIsOrgModalOpen(true)} className={className}>
+          {variant === "primary" ? (
+            <span className="relative z-10 flex items-center gap-2">
+              {content}
+            </span>
+          ) : (
+            content
+          )}
+        </button>
+      );
+    }
+
+    return (
+      <Link to={path} className={className}>
+        {variant === "primary" ? (
+          <span className="relative z-10 flex items-center gap-2">
+            {content}
+          </span>
+        ) : (
+          content
+        )}
+      </Link>
+    );
   };
 
   return (
-    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-[#050505] text-white font-noto group">
+    <section className="relative min-h-dvh w-full overflow-hidden bg-[#050505] text-white font-sans selection:bg-[rgba(181,166,95,0.3)] selection:text-black">
       {SLIDES.map((slide, index) => (
         <SlideBackground
           key={slide.id}
@@ -147,38 +201,97 @@ export default function CarouselHero() {
         />
       ))}
 
-      <div className="relative z-20 container mx-auto px-4 text-center max-w-[1200px]">
-        <SlideContent
-          key={SLIDES[currentIndex].id}
-          slide={SLIDES[currentIndex]}
-          onOpenLogin={() => setLoginModalOpen(true)}
-        />
+      <div className="relative z-20 container mx-auto px-6 lg:px-12 h-full flex flex-col justify-center min-h-dvh pt-24 lg:pt-0 pb-12">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
+          <motion.div
+            key={`text-${currentSlide.id}`}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center lg:text-left order-1 mt-4 lg:mt-0"
+          >
+            <h1 className="font-noto text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold mb-5 leading-[1.2] uppercase tracking-tighter drop-shadow-2xl text-white">
+              {currentSlide.title} <br />
+              <span className="text-[#B5A65F]">{currentSlide.highlight}</span>
+            </h1>
+
+            <p className="text-sm md:text-base mb-8 text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light drop-shadow-md font-noto">
+              {currentSlide.subtitle}
+            </p>
+
+            <div className="flex flex-wrap gap-4 font-noto justify-center lg:justify-start">
+              {renderButton(
+                currentSlide.btnPrimary,
+                currentSlide.pathPrimary,
+                "primary"
+              )}
+              {renderButton(
+                currentSlide.btnSecondary,
+                currentSlide.pathSecondary,
+                "secondary"
+              )}
+            </div>
+          </motion.div>
+
+          <div className="flex items-center justify-center w-full h-full order-2 lg:order-2">
+            <div className="w-full min-h-[350px] lg:h-auto mt-8 mb-16 lg:my-0 flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <Device3D key={currentSlide.id} slide={currentSlide} />
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <NavButton direction="left" onClick={prevSlide} />
-      <NavButton direction="right" onClick={nextSlide} />
+      <div className="absolute bottom-6 lg:bottom-10 left-0 w-full lg:w-auto lg:left-12 z-30 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6">
+        <div className="flex gap-2">
+          {SLIDES.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`h-1 rounded-full transition-all duration-500 ${
+                index === currentIndex
+                  ? "w-12 bg-[#B5A65F]"
+                  : "w-4 bg-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.5)]"
+              }`}
+            />
+          ))}
+        </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-3">
-        {SLIDES.map((_, index) => (
+        <div className="gap-3 hidden sm:flex">
           <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`h-1.5 rounded-full transition-all duration-500 shadow-md ${
-              index === currentIndex
-                ? "w-12 bg-[#B5A65F]"
-                : "w-2 bg-white/30 hover:bg-white/80"
-            }`}
-          />
-        ))}
+            onClick={prevSlide}
+            className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
+          >
+            <FaChevronLeft
+              size={14}
+              className="group-hover:-translate-x-0.5 transition-transform"
+            />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
+          >
+            <FaChevronRight
+              size={14}
+              className="group-hover:translate-x-0.5 transition-transform"
+            />
+          </button>
+        </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-linear-to-t from-[#050505] via-[#050505]/70 to-transparent z-20 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-linear-to-t from-[#050505] to-transparent z-20 pointer-events-none" />
 
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setLoginModalOpen(false)}
-        onSwitchToRegister={handleSwitchToRegister}
-        onSwitchToForgot={handleSwitchToForgot}
+        onSwitchToRegister={() => setLoginModalOpen(false)}
+        onSwitchToForgot={() => setLoginModalOpen(false)}
+      />
+
+      <OrganizerRegModal
+        isOpen={isOrgModalOpen}
+        onClose={() => setIsOrgModalOpen(false)}
       />
     </section>
   );

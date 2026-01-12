@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User } from "../../models/user";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
+import { logoutUser } from "./auth"; // <--- IMPORT MỚI
 
 export const fetchUserList = createAsyncThunk(
   "listUser/fetchUserList",
@@ -15,7 +16,6 @@ export const fetchUserList = createAsyncThunk(
   }
 );
 
-
 export const fetchMyAttendees = createAsyncThunk(
   "listUser/fetchMyAttendees",
   async (_, { rejectWithValue }) => {
@@ -26,11 +26,10 @@ export const fetchMyAttendees = createAsyncThunk(
         return [];
       }
 
-      const registrationPromises = myEvents.map(
-        (event) =>
-          apiService
-            .get<any[]>(`/events/${event.eventId}/registrations`)
-            .catch(() => []) 
+      const registrationPromises = myEvents.map((event) =>
+        apiService
+          .get<any[]>(`/events/${event.eventId}/registrations`)
+          .catch(() => [])
       );
 
       const allRegistrationsResults = await Promise.all(registrationPromises);
@@ -38,9 +37,8 @@ export const fetchMyAttendees = createAsyncThunk(
       const uniqueUsersMap = new Map<string, User>();
 
       allRegistrationsResults.flat().forEach((reg: any) => {
-       
         const userData: User = reg.user || {
-          uid: reg.userId, 
+          uid: reg.userId,
           username: reg.fullName || reg.username || "Unknown",
           email: reg.email,
           phoneNumber: reg.phoneNumber,
@@ -163,7 +161,7 @@ const listUserSlice = createSlice({
       })
       .addCase(fetchMyAttendees.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        state.data = action.payload; 
+        state.data = action.payload;
       })
       .addCase(fetchMyAttendees.rejected, (state, action: any) => {
         state.isLoading = false;
@@ -186,6 +184,14 @@ const listUserSlice = createSlice({
         if (index !== -1) state.data[index] = action.payload;
         if (state.userDetail?.uid === action.payload.uid)
           state.userDetail = action.payload;
+      })
+
+      // --- RESET DATA KHI LOGOUT ---
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.data = [];
+        state.userDetail = null;
+        state.isLoading = false;
+        state.error = null;
       });
   },
 });

@@ -15,11 +15,11 @@ interface ShimmerButtonProps
 const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
   (
     {
-      shimmerColor = "#ffffff",
-      shimmerSize = "0.05em",
+      shimmerColor = "#B5A65F",
+      shimmerSize = "0.1em",
       shimmerDuration = "3s",
       borderRadius = "100px",
-      background = "rgba(0, 0, 0, 1)",
+      background = "rgba(5, 5, 5, 1)",
       className,
       children,
       ...props
@@ -30,7 +30,6 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
       <button
         style={
           {
-            "--ring-copy": shimmerColor,
             "--shimmer-color": shimmerColor,
             "--radius": borderRadius,
             "--speed": shimmerDuration,
@@ -39,21 +38,29 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
           } as CSSProperties
         }
         className={cn(
-          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap border border-white/10 px-6 py-3 text-white [background:var(--bg)] [border-radius:var(--radius)] dark:text-black",
-          "transform-gpu transition-transform duration-300 active:scale-95",
+          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap border border-white/10 px-8 py-3 text-white transition-all duration-300 active:scale-95",
+          "[background:var(--bg)] [border-radius:var(--radius)]",
           className
         )}
         ref={ref}
         {...props}
       >
-        {/* Shimmer Effect */}
         <div
           className={cn(
-            "-z-10 [background:var(--bg)] [border-radius:var(--radius)] [inset:var(--cut)]"
+            "absolute inset-0 -z-30 animate-shimmer",
+            "[background:conic-gradient(from_calc(270deg-(var(--speed)*0.5)),rgba(0,0,0,0),var(--shimmer-color),rgba(0,0,0,0))] -inset-full"
           )}
-        ></div>
-        <div className="absolute inset-0 -z-30 animate-shimmer [background:conic-gradient(from_calc(270deg-(var(--speed)*0.5)),transparent,var(--shimmer-color),transparent)] [inset:-100%]"></div>
-        {children}
+        />
+
+        <div
+          className={cn(
+            "absolute -z-10 [background:var(--bg)] [border-radius:var(--radius)] inset-(--cut)"
+          )}
+        />
+
+        <span className="relative z-10 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
+          {children}
+        </span>
       </button>
     );
   }

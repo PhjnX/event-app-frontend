@@ -74,13 +74,14 @@ export default function LoginModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans selection:bg-[rgba(216,201,123,0.3)]">
+          {/* Overlay Background - FIX Warning black/80 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            className="absolute inset-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-sm cursor-pointer"
           />
 
           <motion.div
@@ -88,16 +89,16 @@ export default function LoginModal({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
+            className="relative w-full max-w-md bg-[#1a1a1a] border border-[rgba(216,201,123,0.3)] rounded-2xl shadow-[0_0_50px_-12px_rgba(181,166,95,0.25)] overflow-hidden z-10"
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 cursor-pointer"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 cursor-pointer transition-colors"
             >
               <FaTimes size={20} />
             </button>
 
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#D8C97B] to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-[rgba(216,201,123,0)] via-[#D8C97B] to-[rgba(216,201,123,0)]"></div>
 
             <div className="p-8 pt-10">
               <div className="text-center mb-6">
@@ -105,17 +106,20 @@ export default function LoginModal({
                   <img
                     src={LogoApp}
                     alt="Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(216,201,123,0.4)]"
                   />
-                  <h2 className="text-3xl font-bold text-white">Đăng Nhập</h2>
+                  <h2 className="text-3xl font-bold text-white uppercase tracking-tight">
+                    Đăng Nhập
+                  </h2>
                 </div>
-                <p className="text-gray-400 text-sm">
-                  Chào mừng bạn quay trở lại!
+                <p className="text-gray-400 text-sm font-light">
+                  Chào mừng bạn quay trở lại với Webie EMS!
                 </p>
               </div>
 
+              {/* Error Block - FIX Warning red-500/10 */}
               {error && !error.includes("Bad credentials") && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
+                <div className="mb-4 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.5)] rounded-lg text-red-400 text-sm text-center font-medium">
                   {error}
                 </div>
               )}
@@ -132,7 +136,7 @@ export default function LoginModal({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none transition-all"
+                      className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                       required
                     />
                   </div>
@@ -146,7 +150,7 @@ export default function LoginModal({
                     <button
                       type="button"
                       onClick={onSwitchToForgot}
-                      className="text-xs text-gray-500 hover:text-white transition-colors hover:underline cursor-pointer"
+                      className="text-xs text-gray-500 hover:text-[#D8C97B] transition-colors hover:underline cursor-pointer font-medium"
                     >
                       Quên mật khẩu?
                     </button>
@@ -158,32 +162,36 @@ export default function LoginModal({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#D8C97B] focus:outline-none transition-all"
+                      className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                       required
                     />
                   </div>
                 </div>
 
                 <button
+                  type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg cursor-pointer flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed uppercase text-sm tracking-widest"
                 >
                   {isLoading ? (
-                    <span className="inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></span>
+                    <span className="inline-block w-5 h-5 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin mr-2"></span>
                   ) : null}
                   {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
                 </button>
               </form>
 
+              {/* Divider - FIX Warning white/10 */}
               <div className="flex items-center gap-4 my-6">
-                <div className="h-px bg-white/10 flex-1"></div>
-                <span className="text-gray-500 text-xs uppercase">Hoặc</span>
-                <div className="h-px bg-white/10 flex-1"></div>
+                <div className="h-px bg-[rgba(255,255,255,0.1)] flex-1"></div>
+                <span className="text-gray-500 text-xs uppercase font-bold tracking-tighter">
+                  Hoặc
+                </span>
+                <div className="h-px bg-[rgba(255,255,255,0.1)] flex-1"></div>
               </div>
 
               <a
                 href={GOOGLE_LOGIN_URL}
-                className="w-full bg-white text-black font-semibold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer no-underline"
+                className="w-full bg-white text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all hover:-translate-y-1 cursor-pointer no-underline shadow-md text-sm uppercase tracking-wide"
               >
                 <img
                   src={GoogleLogo}
@@ -193,7 +201,7 @@ export default function LoginModal({
                 <span>Đăng nhập với Google</span>
               </a>
 
-              <p className="text-center text-gray-500 text-sm mt-8">
+              <p className="text-center text-gray-500 text-sm mt-8 font-light">
                 Chưa có tài khoản?{" "}
                 <button
                   onClick={onSwitchToRegister}

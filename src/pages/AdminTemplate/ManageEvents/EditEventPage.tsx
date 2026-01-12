@@ -12,7 +12,7 @@ import {
   FaSync,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
 import apiService from "../../../services/apiService";
 import {
   updateEvent,
@@ -22,24 +22,16 @@ import type { AppDispatch } from "../../../store";
 import type { Event } from "../../../models/event";
 import LoadingScreen from "../../HomeTemplate/_components/common/LoadingSrceen";
 
-const ensureUTC = (isoString: string) =>
-  isoString && !isoString.endsWith("Z") ? `${isoString}Z` : isoString;
-
 const parseDateTimeToInput = (isoString: string) => {
   if (!isoString) return { date: "", time: "" };
-  const d = new Date(ensureUTC(isoString));
-  const date = d.toLocaleDateString("sv-SE");
-  const time = d.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return { date, time };
+  const [datePart, timeFull] = isoString.split("T");
+  const timePart = timeFull ? timeFull.substring(0, 5) : "";
+  return { date: datePart, time: timePart };
 };
 
 const combineToISO = (dateVal: string, timeVal: string) => {
   if (!dateVal || !timeVal) return "";
-  const d = new Date(`${dateVal}T${timeVal}`);
-  return d.toISOString();
+  return `${dateVal}T${timeVal}:00.000Z`;
 };
 
 export default function EditEventPage() {
@@ -103,6 +95,7 @@ export default function EditEventPage() {
 
   const handleChange = (e: any) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
   const handleFileChange = (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -113,6 +106,7 @@ export default function EditEventPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const startDateISO = combineToISO(
       formData.startDateDate,
       formData.startDateTime
@@ -127,7 +121,7 @@ export default function EditEventPage() {
 
     setLoading(true);
     try {
-      let finalBannerUrl = (formData as any).bannerImageUrl;
+      let finalBannerUrl = formData.bannerImageUrl;
       if (bannerFile) {
         const uploadResult = await dispatch(
           uploadEventImage(bannerFile)
@@ -146,19 +140,17 @@ export default function EditEventPage() {
         startDate: startDateISO,
         endDate: endDateISO,
         registrationDeadline: regDateISO,
-        visibility: formData.visibility as "PUBLIC" | "PRIVATE",
-        status: formData.status as any,
+        visibility: formData.visibility,
+        status: formData.status, // Giữ nguyên status (thường là Draft hoặc Rejected khi sửa)
       };
 
       if (slug) {
-        await dispatch(updateEvent({ slug, data: payload })).unwrap();
-
+        await dispatch(updateEvent({ slug, data: payload as any })).unwrap();
         toast.success("Cập nhật sự kiện thành công!");
-
         navigate(`/admin/events/${slug}`);
       }
     } catch (error: any) {
-      toast.error(error.message || error || "Lỗi cập nhật!");
+      toast.error(error.message || "Lỗi cập nhật!");
     } finally {
       setLoading(false);
     }
@@ -166,31 +158,31 @@ export default function EditEventPage() {
 
   if (fetchingData) return <LoadingScreen />;
 
-  const inputStyle =
-    "w-full bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-600";
-  const groupStyle =
-    "bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3 text-white focus-within:border-[#B5A65F] flex gap-3 items-center transition-all";
-  const labelStyle =
-    "text-[11px] text-[#B5A65F] uppercase font-bold tracking-wider mb-2 block flex items-center gap-2";
+  const inputClass =
+    "w-full bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:border-[#B5A65F] outline-none transition-all text-sm";
+  const groupInputClass =
+    "bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all text-sm";
+  const labelClass =
+    "text-[11px] text-[#B5A65F] uppercase font-bold tracking-wider mb-2 flex items-center gap-2";
+  const sectionClass =
+    "bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden transition-colors hover:border-[rgba(181,166,95,0.3)]";
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 font-sans">
-      <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
-        <div className="flex items-center gap-4">
-          <Link
-            to={`/admin/events/${slug}`}
-            className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white"
-          >
-            <FaArrowLeft />
-          </Link>
-          <div>
-            <h1 className="text-3xl font-black uppercase text-[#B5A65F] tracking-wide">
-              Cập Nhật Sự Kiện
-            </h1>
-            <p className="text-gray-500 text-sm">
-              Chỉnh sửa thông tin <b>{formData.eventName}</b>.
-            </p>
-          </div>
+    <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-200 selection:bg-[rgba(181,166,95,0.3)]">
+      <div className="sticky top-0 z-40 bg-[rgba(5,5,5,0.8)] backdrop-blur-md py-4 border-b border-white/10 flex items-center gap-4 mb-8">
+        <Link
+          to={`/admin/events/${slug}`}
+          className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
+        >
+          <FaArrowLeft />
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black uppercase text-white tracking-wide">
+            Cập Nhật <span className="text-[#B5A65F]">Sự Kiện</span>
+          </h1>
+          <p className="text-gray-500 text-xs mt-1">
+            Chỉnh sửa thông tin cho <b>{formData.eventName}</b>.
+          </p>
         </div>
       </div>
 
@@ -199,15 +191,15 @@ export default function EditEventPage() {
         className="grid grid-cols-1 lg:grid-cols-12 gap-8"
       >
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-[#121212] border border-[#B5A65F]/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+          <div className={sectionClass}>
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
-            <label className={labelStyle}>
+            <label className={labelClass}>
               <FaImage /> Ảnh Bìa
             </label>
-            <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-black/50 border-2 border-dashed border-white/20 group hover:border-[#B5A65F] cursor-pointer">
+            <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-[#1a1a1a] border-2 border-dashed border-white/20 group/img hover:border-[#B5A65F] cursor-pointer transition-all">
               <img
                 src={previewUrl}
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all"
+                className="w-full h-full object-cover opacity-80 group-hover/img:opacity-100 group-hover/img:scale-105 transition-all duration-500"
                 alt="preview"
               />
               <input
@@ -216,8 +208,8 @@ export default function EditEventPage() {
                 onChange={handleFileChange}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-                <span className="text-[#B5A65F] text-xs font-bold uppercase border border-[#B5A65F] px-3 py-1 rounded-full bg-black/80 flex items-center gap-2">
+              <div className="absolute inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-all pointer-events-none">
+                <span className="text-[#B5A65F] text-xs font-bold uppercase border border-[#B5A65F] px-4 py-2 rounded-full bg-[rgba(0,0,0,0.8)] flex items-center gap-2">
                   <FaSync /> Thay ảnh
                 </span>
               </div>
@@ -225,13 +217,13 @@ export default function EditEventPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-8">
-          <div className="bg-[#121212] border border-[#B5A65F]/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="lg:col-span-8 space-y-6">
+          <div className={sectionClass}>
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
-            <div className="space-y-8">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className={labelStyle}>
+                  <label className={labelClass}>
                     <FaCalendarAlt /> Tên sự kiện
                   </label>
                   <input
@@ -240,11 +232,11 @@ export default function EditEventPage() {
                     name="eventName"
                     value={formData.eventName}
                     onChange={handleChange}
-                    className={inputStyle}
+                    className={inputClass}
                   />
                 </div>
                 <div>
-                  <label className={labelStyle}>
+                  <label className={labelClass}>
                     <FaMapMarkerAlt /> Địa điểm
                   </label>
                   <input
@@ -253,20 +245,21 @@ export default function EditEventPage() {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className={inputStyle}
+                    className={inputClass}
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-white/5 pt-4">
                 <div>
-                  <label className={labelStyle}>
+                  <label className={labelClass}>
                     <FaClock /> Bắt đầu
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="date"
                       required
-                      className={`${groupStyle} flex-1`}
+                      className={`${groupInputClass} flex-1`}
                       style={{ colorScheme: "dark" }}
                       name="startDateDate"
                       value={formData.startDateDate}
@@ -275,7 +268,7 @@ export default function EditEventPage() {
                     <input
                       type="time"
                       required
-                      className={`${groupStyle} w-32`}
+                      className={`${groupInputClass} w-28`}
                       style={{ colorScheme: "dark" }}
                       name="startDateTime"
                       value={formData.startDateTime}
@@ -284,14 +277,14 @@ export default function EditEventPage() {
                   </div>
                 </div>
                 <div>
-                  <label className={labelStyle}>
+                  <label className={labelClass}>
                     <FaClock /> Kết thúc
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="date"
                       required
-                      className={`${groupStyle} flex-1`}
+                      className={`${groupInputClass} flex-1`}
                       style={{ colorScheme: "dark" }}
                       name="endDateDate"
                       value={formData.endDateDate}
@@ -300,7 +293,7 @@ export default function EditEventPage() {
                     <input
                       type="time"
                       required
-                      className={`${groupStyle} w-32`}
+                      className={`${groupInputClass} w-28`}
                       style={{ colorScheme: "dark" }}
                       name="endDateTime"
                       value={formData.endDateTime}
@@ -309,16 +302,17 @@ export default function EditEventPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-[11px] text-red-400 uppercase font-bold tracking-wider mb-2 block flex items-center gap-2">
+                  <label className={`${labelClass} text-red-400`}>
                     <FaClock /> Hạn đăng ký
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="date"
                       required
-                      className={`${groupStyle} flex-1 border-red-900/50`}
+                      className={`${groupInputClass} flex-1 border-red-900/40 bg-[rgba(127,29,29,0.05)]`}
                       style={{ colorScheme: "dark" }}
                       name="regDateDate"
                       value={formData.regDateDate}
@@ -327,7 +321,7 @@ export default function EditEventPage() {
                     <input
                       type="time"
                       required
-                      className={`${groupStyle} w-32 border-red-900/50`}
+                      className={`${groupInputClass} w-28 border-red-900/40 bg-[rgba(127,29,29,0.05)]`}
                       style={{ colorScheme: "dark" }}
                       name="regDateTime"
                       value={formData.regDateTime}
@@ -336,22 +330,23 @@ export default function EditEventPage() {
                   </div>
                 </div>
                 <div>
-                  <label className={labelStyle}>
+                  <label className={labelClass}>
                     <FaGlobe /> Quyền riêng tư
                   </label>
                   <select
                     name="visibility"
                     value={formData.visibility}
                     onChange={handleChange}
-                    className={inputStyle}
+                    className={inputClass}
                   >
                     <option value="PUBLIC">Công khai</option>
                     <option value="PRIVATE">Riêng tư</option>
                   </select>
                 </div>
               </div>
+
               <div>
-                <label className={labelStyle}>
+                <label className={labelClass}>
                   <FaAlignLeft /> Mô tả chi tiết
                 </label>
                 <textarea
@@ -360,31 +355,32 @@ export default function EditEventPage() {
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  className={`${inputStyle} h-32 resize-none`}
+                  className={`${inputClass} h-32 resize-none leading-relaxed`}
                 ></textarea>
               </div>
             </div>
-            <div className="flex justify-end gap-4 pt-8 mt-4 border-t border-white/5">
-              <Link
-                to={`/admin/events/${slug}`}
-                className="px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold"
-              >
-                Hủy bỏ
-              </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold hover:bg-[#d4c376] shadow-lg shadow-[#B5A65F]/20"
-              >
-                {loading ? (
-                  "Đang lưu..."
-                ) : (
-                  <>
-                    <FaSave className="mr-2" /> Lưu Thay Đổi
-                  </>
-                )}
-              </button>
-            </div>
+          </div>
+
+          <div className="flex justify-end gap-4 pt-4 border-t border-white/5">
+            <Link
+              to={`/admin/events/${slug}`}
+              className="px-6 py-3.5 rounded-xl bg-[#1e1e1e] hover:bg-[#252525] text-gray-300 font-bold border border-white/10 transition-all"
+            >
+              Hủy bỏ
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold hover:bg-[#d4c376] shadow-[0_0_20px_rgba(181,166,95,0.3)] transition-all flex items-center gap-2 transform active:scale-95 disabled:opacity-50"
+            >
+              {loading ? (
+                "Đang lưu..."
+              ) : (
+                <>
+                  <FaSave /> Lưu Thay Đổi
+                </>
+              )}
+            </button>
           </div>
         </div>
       </form>

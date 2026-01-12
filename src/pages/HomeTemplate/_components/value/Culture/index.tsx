@@ -41,6 +41,7 @@ const CultureSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Logic tự động chạy Marquee
   useAnimationFrame((_t, delta) => {
     if (!isDragging) {
       const moveBy = -0.003 * delta;
@@ -48,11 +49,11 @@ const CultureSection: React.FC = () => {
     }
   });
 
+  // Logic xử lý khi người dùng kéo (Pan)
   const handlePan = (_e: any, info: any) => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.offsetWidth;
       const percentMove = (info.delta.x / containerWidth) * 100 * 1.5;
-
       baseX.set(baseX.get() + percentMove);
     }
   };
@@ -60,7 +61,8 @@ const CultureSection: React.FC = () => {
   const x = useTransform(baseX, (v) => `${wrap(0, -50, v)}%`);
 
   return (
-    <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-white/5 overflow-hidden">
+    <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-[rgba(255,255,255,0.05)] overflow-hidden selection:bg-[rgba(216,201,123,0.3)]">
+      {/* 1. HEADER SECTION */}
       <div className="container mx-auto px-4 mb-16 relative z-10">
         <motion.div
           variants={revealVariants}
@@ -69,27 +71,24 @@ const CultureSection: React.FC = () => {
           viewport={{ once: false, amount: 0.5 }}
           className="text-center"
         >
-          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block hover:text-white transition-colors cursor-default">
-            Our Culture
-          </span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-wide mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6">
             WEBIE <span className="text-[#D8C97B]">DNA</span>
           </h2>
-          <p className="text-gray-400 italic text-lg max-w-2xl mx-auto hover:text-white transition-colors duration-300">
-            "Chúng tôi không chỉ viết code, chúng tôi xây dựng cộng đồng những
-            người đam mê sáng tạo."
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto hover:text-white transition-colors duration-300 font-light">
+            Chúng tôi không chỉ viết code, chúng tôi xây dựng cộng đồng những
+            người đam mê sáng tạo
           </p>
         </motion.div>
       </div>
 
       <div className="relative w-full overflow-hidden mt-10">
-        <div className="absolute inset-y-0 left-0 w-24 bg-linear-to-r from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
-        <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
+        <div className="absolute inset-y-0 left-0 w-24 bg-linear-to-r from-[#0a0a0a] to-[rgba(10,10,10,0)] z-20 pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-[rgba(10,10,10,0)] z-20 pointer-events-none"></div>
 
         <motion.div
           ref={containerRef}
           className="flex gap-6 w-max cursor-grab active:cursor-grabbing"
-          style={{ x }} 
+          style={{ x }}
           onPanStart={() => setIsDragging(true)}
           onPan={handlePan}
           onPanEnd={() => setIsDragging(false)}
@@ -102,14 +101,17 @@ const CultureSection: React.FC = () => {
           ].map((src, index) => (
             <div
               key={index}
-              className="relative w-[300px] md:w-[450px] h-[250px] md:h-[350px] rounded-2xl overflow-hidden group border border-white/10 select-none"
+              className="relative w-[300px] md:w-[450px] h-[250px] md:h-[350px] rounded-2xl overflow-hidden group border border-[rgba(255,255,255,0.1)] select-none shadow-xl"
             >
               <img
                 src={src}
                 alt="Culture"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
               />
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
+
+              <div className="absolute inset-0 bg-[rgba(0,0,0,0.25)] group-hover:bg-[rgba(0,0,0,0)] transition-colors duration-500 pointer-events-none"></div>
+
+              <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-[rgba(216,201,123,0.5)] opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0"></div>
             </div>
           ))}
         </motion.div>

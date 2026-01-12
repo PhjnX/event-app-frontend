@@ -6,7 +6,6 @@ import {
   FaEdit,
   FaTrash,
   FaEye,
-  FaUser,
   FaCrown,
   FaShieldAlt,
   FaUsers,
@@ -17,11 +16,10 @@ import {
   FaChevronRight,
   FaPhone,
   FaEnvelope,
-  FaMars,
-  FaVenus,
-  FaGenderless,
+  FaFileExcel,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import * as XLSX from "xlsx";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -95,6 +93,44 @@ export default function ManageUsers() {
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
 
+  // --- LOGIC: XUẤT EXCEL ---
+  const handleExportExcel = () => {
+    if (filteredData.length === 0) {
+      toast.warn("Không có dữ liệu để xuất!");
+      return;
+    }
+
+    const dataToExport = filteredData.map((u) => ({
+      ID: u.uid,
+      "Họ và tên": u.username,
+      Email: u.email,
+      "Số điện thoại": u.phoneNumber || "---",
+      "Vai trò": u.role,
+      "Giới tính":
+        u.gender === "MALE" ? "Nam" : u.gender === "FEMALE" ? "Nữ" : "Khác",
+      "Địa chỉ": u.address || "---",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const wscols = [
+      { wch: 10 },
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 30 },
+    ];
+    worksheet["!cols"] = wscols;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách người dùng");
+
+    const fileName = `User_List_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    toast.success("Xuất file Excel thành công!");
+  };
+
   const handleViewClick = (user: User) => {
     setSelectedUser(user);
     setFormData(user);
@@ -114,12 +150,9 @@ export default function ManageUsers() {
   };
 
   const handleDeleteClick = async (uid: string) => {
-    if (
-      window.confirm(
-        "Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác."
-      )
-    ) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
       await dispatch(deleteUser(uid)).unwrap();
+      toast.success("Đã xóa người dùng.");
     }
   };
 
@@ -146,6 +179,7 @@ export default function ManageUsers() {
         updateUser({ uid: selectedUser.uid, data: updateData })
       ).unwrap();
 
+      toast.success("Cập nhật thành công!");
       setIsDrawerOpen(false);
       setFileToUpload(null);
     } catch (error) {
@@ -154,45 +188,44 @@ export default function ManageUsers() {
   };
 
   const RoleBadge = ({ role }: { role: string }) => {
-    let color = "text-gray-400";
-    let Icon = FaUser;
-    let label = "User";
-
-    if (role === ROLES.SUPER_ADMIN) {
-      color = "text-red-500";
-      Icon = FaCrown;
-      label = "Admin";
-    } else if (role === ROLES.ORGANIZER) {
-      color = "text-[#FFD700]";
-      Icon = FaShieldAlt;
-      label = "Organizer";
-    } else {
-      color = "text-blue-400";
-      Icon = FaUsers;
-    }
+    const configs: any = {
+      [ROLES.SUPER_ADMIN]: {
+        color: "text-red-500",
+        Icon: FaCrown,
+        label: "Admin",
+      },
+      [ROLES.ORGANIZER]: {
+        color: "text-[#FFD700]",
+        Icon: FaShieldAlt,
+        label: "Organizer",
+      },
+      DEFAULT: { color: "text-blue-400", Icon: FaUsers, label: "User" },
+    };
+    const config = configs[role] || configs.DEFAULT;
 
     return (
       <div
-        className={`flex items-center gap-1.5 px-2 py-1 rounded bg-black/40 border border-white/5 ${color}`}
+        className={`flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.05)] ${config.color}`}
       >
-        <Icon className="text-xs" />
+        <config.Icon className="text-xs" />
         <span className="text-[10px] font-bold uppercase tracking-wider">
-          {label}
+          {config.label}
         </span>
       </div>
     );
   };
 
   return (
-    <div className="pb-20 font-sans text-white min-h-screen">
+    <div className="pb-20 font-sans text-white min-h-screen selection:bg-[rgba(181,166,95,0.3)]">
+      {/* --- TOP BAR CONTROLS --- */}
       <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 pt-4">
         {isOrganizer ? (
           <div className="flex items-center gap-3">
-            <div className="h-8 w-1 bg-[#B5A65F] rounded-full"></div>
-            <h2 className="text-2xl font-bold mb-0">Danh sách khách hàng</h2>
+            <div className="h-8 w-1 bg-[#B5A65F] rounded-full shadow-[0_0_10px_#B5A65F]"></div>
+            <h2 className="text-2xl font-bold">Danh sách khách hàng</h2>
           </div>
         ) : (
-          <div className="w-full xl:w-auto overflow-x-auto custom-scrollbar">
+          <div className="w-full xl:w-auto overflow-x-auto">
             <div className="flex gap-1 p-1 bg-[#1a1a1a] border border-white/10 rounded-full w-max">
               {[
                 { id: "ALL", label: "Tất cả" },
@@ -203,10 +236,10 @@ export default function ManageUsers() {
                 <button
                   key={tab.id}
                   onClick={() => setFilterRole(tab.id)}
-                  className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
                     filterRole === tab.id
-                      ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "bg-[#B5A65F] text-black shadow-lg shadow-[rgba(181,166,95,0.2)]"
+                      : "text-gray-400 hover:text-white hover:bg-[rgba(255,255,255,0.05)]"
                   }`}
                 >
                   {tab.label}
@@ -216,223 +249,191 @@ export default function ManageUsers() {
           </div>
         )}
 
-        <div className="relative group w-full sm:w-72">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
-          <input
-            type="text"
-            placeholder={
-              isOrganizer ? "Tìm khách hàng..." : "Tìm thành viên..."
-            }
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] focus:outline-none transition-all placeholder-gray-600 focus:ring-1 focus:ring-[#B5A65F]"
-          />
+        <div className="flex items-center gap-3 w-full xl:w-auto">
+          <button
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 px-5 py-3 rounded-full bg-[rgba(22,163,74,0.15)] text-green-500 border border-[rgba(22,163,74,0.3)] hover:bg-green-600 hover:text-white transition-all font-bold text-sm shadow-lg"
+          >
+            <FaFileExcel /> Xuất Excel
+          </button>
+          <div className="relative group w-full sm:w-72">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F]" />
+            <input
+              type="text"
+              placeholder={
+                isOrganizer ? "Tìm khách hàng..." : "Tìm thành viên..."
+              }
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none shadow-sm transition-all focus:ring-1 focus:ring-[#B5A65F]"
+            />
+          </div>
         </div>
       </div>
 
+      {/* --- USER GRID --- */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className="h-72 bg-[#1a1a1a] rounded-2xl animate-pulse border border-white/5"
-            ></div>
+            />
           ))}
         </div>
       ) : (
-        <>
-          {filteredData.length === 0 ? (
-            <div className="text-center py-24 flex flex-col items-center">
-              <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <FaSearch className="text-gray-600 text-3xl" />
-              </div>
-              <p className="text-gray-500">
-                {isOrganizer
-                  ? "Chưa có khách hàng nào."
-                  : "Không tìm thấy kết quả phù hợp."}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <AnimatePresence mode="popLayout">
-                {currentData.map((user) => {
-                  const isSelf = currentUser?.uid === user.uid;
-                  // Safe convert ID to string for substring
-                  const displayUid = String(user.uid);
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AnimatePresence mode="popLayout">
+            {currentData.map((user) => {
+              const isSelf = currentUser?.uid === user.uid;
+              return (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  key={user.uid}
+                  className="group relative bg-[#141414] rounded-2xl border border-white/5 hover:border-[rgba(255,215,0,0.3)] transition-all duration-300 flex flex-col overflow-hidden shadow-lg"
+                >
+                  <div className="h-20 bg-linear-to-b from-[#252525] to-[#141414] relative">
+                    <div className="absolute top-3 right-3">
+                      <RoleBadge role={user.role} />
+                    </div>
+                  </div>
 
-                  return (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      key={user.uid}
-                      className="group relative bg-[#141414] rounded-2xl border border-white/5 hover:border-[#FFD700]/30 transition-all duration-300 flex flex-col overflow-hidden shadow-lg hover:shadow-[#D8C97B]/5"
+                  <div className="px-5 pb-5 flex flex-col items-center -mt-10 relative z-10">
+                    <div
+                      className={`relative rounded-xl p-1 ${
+                        isSelf
+                          ? "bg-linear-to-b from-[#D8C97B] to-[rgba(216,201,123,0)]"
+                          : "bg-[#141414]"
+                      }`}
                     >
-                      {/* Card Header Background */}
-                      <div className="h-20 bg-linear-to-b from-[#252525] to-[#141414] relative">
-                        <div className="absolute top-3 right-3">
-                          <RoleBadge role={user.role} />
-                        </div>
+                      <div className="w-[72px] h-[72px] rounded-full bg-[#222] border-4 border-[#141414] overflow-hidden">
+                        <img
+                          src={
+                            user.avatarUrl ||
+                            `https://ui-avatars.com/api/?name=${user.username}`
+                          }
+                          alt={user.username}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-
-                      {/* Avatar & Info */}
-                      <div className="px-5 pb-5 flex flex-col items-center -mt-10 relative z-10">
-                        <div
-                          className={`relative rounded-xl p-1 ${
-                            isSelf
-                              ? "bg-linear-to-b from-[#D8C97B] to-transparent"
-                              : "bg-[#141414]"
-                          }`}
-                        >
-                          <div className="w-[72px] h-[72px] rounded-full bg-[#222] border-4 border-[#141414] overflow-hidden">
-                            <img
-                              src={
-                                user.avatarUrl ||
-                                "https://ui-avatars.com/api/?name=" +
-                                  user.username
-                              }
-                              alt={user.username}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="text-center mt-3 w-full">
-                          <h3 className="text-white font-bold text-base truncate flex items-center justify-center gap-2">
-                            {user.username}
-                            {isSelf && (
-                              <span className="text-[9px] text-black bg-[#FFD700] px-1.5 rounded font-bold">
-                                ME
-                              </span>
-                            )}
-                          </h3>
-                          <div
-                            className="inline-flex items-center gap-1 mt-1 cursor-pointer group/id opacity-60 hover:opacity-100 transition-opacity"
-                            onClick={() => {
-                              navigator.clipboard.writeText(displayUid);
-                              toast.info("Đã sao chép ID!");
-                            }}
-                          >
-                            <span className="text-[10px] text-gray-400 font-mono">
-                              #{displayUid.substring(0, 8)}...
-                            </span>
-                            <FaCopy className="text-[10px] text-[#FFD700]" />
-                          </div>
-                        </div>
-
-                        {/* Contact Info */}
-                        <div className="w-full mt-6 space-y-3">
-                          <div className="flex items-center text-xs text-gray-400 group/item">
-                            <div className="w-8 flex justify-center">
-                              <FaEnvelope className="text-gray-600 group-hover/item:text-white transition-colors" />
-                            </div>
-                            <span
-                              className="truncate flex-1"
-                              title={user.email}
-                            >
-                              {user.email}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-xs text-gray-400 group/item">
-                            <div className="w-8 flex justify-center">
-                              <FaPhone className="text-gray-600 group-hover/item:text-white transition-colors" />
-                            </div>
-                            <span className="truncate flex-1">
-                              {user.phoneNumber || "---"}
-                            </span>
-                          </div>
-                        </div>
+                    </div>
+                    <div className="text-center mt-3 w-full">
+                      <h3 className="text-white font-bold text-base truncate flex items-center justify-center gap-2">
+                        {user.username}{" "}
+                        {isSelf && (
+                          <span className="text-[9px] text-black bg-[#FFD700] px-1.5 rounded font-bold">
+                            ME
+                          </span>
+                        )}
+                      </h3>
+                      <div
+                        className="inline-flex items-center gap-1 mt-1 cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          navigator.clipboard.writeText(String(user.uid));
+                          toast.info("Đã sao chép ID!");
+                        }}
+                      >
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          #{String(user.uid).substring(0, 8)}...
+                        </span>
+                        <FaCopy className="text-[10px] text-[#FFD700]" />
                       </div>
+                    </div>
+                    <div className="w-full mt-6 space-y-3 text-xs text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <FaEnvelope className="text-gray-600" />
+                        <span className="truncate flex-1">{user.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FaPhone className="text-gray-600" />
+                        <span className="truncate flex-1">
+                          {user.phoneNumber || "---"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                      <div className="mt-auto border-t border-white/5 py-3 px-4 flex justify-between items-center bg-[#181818]/50 opacity-60 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-auto border-t border-white/5 py-3 px-4 flex justify-between items-center bg-[rgba(24,24,24,0.5)] opacity-60 group-hover:opacity-100 transition-all">
+                    <button
+                      onClick={() => handleViewClick(user)}
+                      className="p-2 text-gray-500 hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-all"
+                    >
+                      <FaEye />
+                    </button>
+                    <div className="flex gap-1">
+                      {!isOrganizer && (
                         <button
-                          onClick={() => handleViewClick(user)}
-                          className="p-2 text-gray-500 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
-                          title="Chi tiết"
+                          onClick={() => handleEditClick(user)}
+                          className="p-2 text-gray-500 hover:text-[#FFD700] hover:bg-[rgba(255,215,0,0.1)] rounded-lg transition-all"
                         >
-                          <FaEye />
+                          <FaEdit />
                         </button>
-
-                        <div className="flex gap-1">
-                          {!isOrganizer && (
-                            <button
-                              onClick={() => handleEditClick(user)}
-                              className="p-2 text-gray-500 hover:text-[#FFD700] transition-colors hover:bg-[#FFD700]/10 rounded-lg"
-                              title="Chỉnh sửa"
-                            >
-                              <FaEdit />
-                            </button>
-                          )}
-
-                          {!isSelf && isSuperAdmin && (
-                            <button
-                              onClick={() =>
-                                handleDeleteClick(String(user.uid))
-                              }
-                              className="p-2 text-gray-500 hover:text-red-500 transition-colors hover:bg-red-500/10 rounded-lg"
-                              title="Xóa"
-                            >
-                              <FaTrash />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          )}
-        </>
+                      )}
+                      {!isSelf && isSuperAdmin && (
+                        <button
+                          onClick={() => handleDeleteClick(String(user.uid))}
+                          className="p-2 text-gray-500 hover:text-red-500 hover:bg-[rgba(239,68,68,0.1)] rounded-lg transition-all"
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
       )}
 
+      {/* --- PAGINATION --- */}
       {!isLoading && filteredData.length > 0 && totalPages > 1 && (
         <div className="flex justify-center mt-12 gap-2">
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all"
           >
             <FaChevronLeft size={12} />
           </button>
-
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
                 currentPage === page
-                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                  : "bg-[#1a1a1a] text-gray-400 hover:text-white hover:bg-white/10"
+                  ? "bg-[#B5A65F] text-black shadow-lg"
+                  : "bg-[#1a1a1a] text-gray-400 hover:text-white"
               }`}
             >
               {page}
             </button>
           ))}
-
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all"
           >
             <FaChevronRight size={12} />
           </button>
         </div>
       )}
 
+      {/* --- DRAWER VIEW/EDIT --- */}
       <AnimatePresence>
         {isDrawerOpen && selectedUser && (
           <>
+            {/* FIX WARNING: bg-black/80 -> rgba alpha 0.8 */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-sm z-40"
             />
-
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -453,7 +454,7 @@ export default function ManageUsers() {
                 </div>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white transition-colors"
                 >
                   <FaTimes />
                 </button>
@@ -475,39 +476,27 @@ export default function ManageUsers() {
                         />
                       </div>
                       {isEditing && !isOrganizer && (
-                        <>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                          />
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-                          >
-                            <FaCamera className="text-xl text-white" />
-                          </div>
-                        </>
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute inset-0 bg-[rgba(0,0,0,0.6)] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                        >
+                          <FaCamera className="text-xl text-white" />
+                        </div>
                       )}
                     </div>
-                    <div className="mt-3 text-center">
-                      <h4 className="text-white font-bold text-lg">
-                        {selectedUser.username}
-                      </h4>
-                      <p className="text-gray-500 text-xs mt-1 bg-white/5 px-2 py-0.5 rounded inline-block">
-                        @{selectedUser.role}
-                      </p>
-                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
                   </div>
-
-                  <div className="w-full h-px bg-white/5 my-6"></div>
-
+                  <div className="w-full h-px bg-[rgba(255,255,255,0.05)] my-6" />
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs uppercase font-bold text-gray-400">
-                        Username
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-tighter">
+                        Họ và Tên
                       </label>
                       <input
                         type="text"
@@ -516,26 +505,24 @@ export default function ManageUsers() {
                         onChange={(e) =>
                           setFormData({ ...formData, username: e.target.value })
                         }
-                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] outline-none disabled:opacity-50 transition-all"
                       />
                     </div>
-
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs uppercase font-bold text-gray-400">
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-tighter">
                         Email
                       </label>
                       <input
                         type="text"
                         disabled
                         value={formData.email || ""}
-                        className="w-full bg-[#1a1a1a] border border-transparent rounded-lg px-4 py-2.5 text-gray-500 cursor-not-allowed"
+                        className="w-full bg-[rgba(26,26,26,1)] border border-transparent rounded-lg px-4 py-2.5 text-gray-500"
                       />
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs uppercase font-bold text-gray-400">
-                          Phone
+                        <label className="text-xs uppercase font-bold text-gray-400 tracking-tighter">
+                          Số điện thoại
                         </label>
                         <input
                           type="text"
@@ -547,45 +534,30 @@ export default function ManageUsers() {
                               phoneNumber: e.target.value,
                             })
                           }
-                          className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 transition-colors"
+                          className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] outline-none transition-all"
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs uppercase font-bold text-gray-400">
-                          Gender
+                        <label className="text-xs uppercase font-bold text-gray-400 tracking-tighter">
+                          Giới tính
                         </label>
-                        <div className="relative">
-                          <select
-                            disabled={!isEditing || isOrganizer}
-                            value={formData.gender || "OTHER"}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                gender: e.target.value,
-                              })
-                            }
-                            className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 appearance-none transition-colors cursor-pointer"
-                          >
-                            <option value="MALE">Nam</option>
-                            <option value="FEMALE">Nữ</option>
-                            <option value="OTHER">Khác</option>
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                            {formData.gender === "MALE" ? (
-                              <FaMars />
-                            ) : formData.gender === "FEMALE" ? (
-                              <FaVenus />
-                            ) : (
-                              <FaGenderless />
-                            )}
-                          </div>
-                        </div>
+                        <select
+                          disabled={!isEditing || isOrganizer}
+                          value={formData.gender || "OTHER"}
+                          onChange={(e) =>
+                            setFormData({ ...formData, gender: e.target.value })
+                          }
+                          className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] outline-none appearance-none cursor-pointer"
+                        >
+                          <option value="MALE">Nam</option>
+                          <option value="FEMALE">Nữ</option>
+                          <option value="OTHER">Khác</option>
+                        </select>
                       </div>
                     </div>
-
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs uppercase font-bold text-gray-400">
-                        Address
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-tighter">
+                        Địa chỉ
                       </label>
                       <textarea
                         rows={3}
@@ -594,7 +566,7 @@ export default function ManageUsers() {
                         onChange={(e) =>
                           setFormData({ ...formData, address: e.target.value })
                         }
-                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] focus:outline-none focus:ring-1 focus:ring-[#FFD700] disabled:opacity-50 resize-none transition-colors"
+                        className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2.5 text-white focus:border-[#FFD700] outline-none resize-none transition-all"
                       />
                     </div>
                   </div>
@@ -602,20 +574,20 @@ export default function ManageUsers() {
               </div>
 
               {isEditing && !isOrganizer && (
-                <div className="p-6 border-t border-white/5 bg-[#1a1a1a] flex gap-3">
+                <div className="p-6 border-t border-white/5 bg-[#1a1a1a] flex gap-3 shadow-2xl shrink-0">
                   <button
                     type="button"
                     onClick={() => setIsDrawerOpen(false)}
-                    className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 hover:text-white transition-all"
+                    className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-[rgba(255,255,255,0.05)] transition-all"
                   >
-                    Hủy bỏ
+                    Hủy
                   </button>
                   <button
                     type="submit"
                     form="userForm"
-                    className="flex-1 py-3 rounded-xl bg-[#FFD700] text-black font-bold hover:bg-[#E6C200] transition-all shadow-lg shadow-[#FFD700]/10"
+                    className="flex-1 py-3 rounded-xl bg-[#B5A65F] text-black font-bold shadow-lg shadow-[rgba(181,166,95,0.2)]"
                   >
-                    Lưu thay đổi
+                    Lưu
                   </button>
                 </div>
               )}

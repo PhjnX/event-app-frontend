@@ -1,20 +1,23 @@
 import { configureStore } from "@reduxjs/toolkit";
 import listUserReducer from "./slices/userSlice";
-import authReducer from "./slices/auth"; 
+import authReducer from "./slices/auth";
 import presenterReducer from "./slices/presenterSlice";
 import organizerReducer from "./slices/organizerSlice";
 import eventReducer from "./slices/eventSlice";
 import activityReducer from "./slices/activitySlice";
+import newsReducer from "./slices/newsSlice";
+
 const env = import.meta.env.NODE_ENV;
 
 const store = configureStore({
   reducer: {
     listUser: listUserReducer,
-    auth: authReducer, 
+    auth: authReducer,
     presenters: presenterReducer,
     organizers: organizerReducer,
     events: eventReducer,
     activities: activityReducer,
+    news: newsReducer,
   },
   devTools: env !== "production",
 });

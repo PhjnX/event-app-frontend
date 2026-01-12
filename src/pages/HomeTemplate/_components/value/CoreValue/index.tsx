@@ -7,7 +7,6 @@ import {
   FaRocket,
 } from "react-icons/fa";
 
-// Import ảnh (Giữ nguyên)
 import valueImage1 from "@/assets/images/value_1.jpg";
 import valueImage2 from "@/assets/images/value_2.jpg";
 import valueImage3 from "@/assets/images/value_3.jpg";
@@ -78,11 +77,13 @@ const cardVariants: Variants = {
 
 const CoreValues: React.FC = () => {
   return (
-    <section className="py-24 bg-[#0a0a0a] relative font-noto text-white overflow-hidden border-t border-white/5">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D8C97B]/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <section className="py-24 bg-[#0a0a0a] relative font-noto text-white overflow-hidden border-t border-[rgba(255,255,255,0.05)] selection:bg-[rgba(216,201,123,0.3)]">
+      {/* 1. BACKGROUND DECORATION - FIX WARNING TRANSPARENT */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[rgba(30,58,138,0.1)] rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10">
+        {/* SECTION HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -90,21 +91,19 @@ const CoreValues: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-20"
         >
-          <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block">
-            Core Values
-          </span>
-          <h2 className="text-4xl md:text-6xl font-black uppercase text-white tracking-wide mb-6">
-            GIÁ TRỊ{" "}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white tracking-wide mb-6">
+            GIÁ TRỊ {/* FIX: Thay text-transparent bằng rgba alpha 0 */}
+            <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
               CỐT LÕI
             </span>
           </h2>
-          <p className="text-gray-400 italic text-lg font-light max-w-2xl mx-auto">
-            "Kim chỉ nam dẫn lối cho mọi hành động và quyết định tại Webie
-            Vietnam"
+          <p className="text-gray-400  text-lg font-light max-w-2xl mx-auto">
+            Kim chỉ nam dẫn lối cho mọi hành động và quyết định tại Webie
+            Vietnam
           </p>
         </motion.div>
 
+        {/* 2. VALUES GRID */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -116,25 +115,27 @@ const CoreValues: React.FC = () => {
             <motion.div
               key={item.id}
               variants={cardVariants}
-              className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer"
+              whileHover={{ y: -10 }}
+              className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer shadow-xl transition-all duration-300"
             >
+              {/* Card Image & Overlay */}
               <div className="absolute inset-0">
                 <img
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter grayscale group-hover:grayscale-0"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.7)] to-[rgba(0,0,0,0)] opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
               </div>
 
-              <div className="absolute inset-0 border border-white/10 rounded-3xl transition-colors duration-300 group-hover:border-[#D8C97B]/50"></div>
+              <div className="absolute inset-0 border border-[rgba(255,255,255,0.1)] rounded-3xl transition-colors duration-300 group-hover:border-[rgba(216,201,123,0.5)]"></div>
 
               <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
                 <div className="flex justify-between items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-[#D8C97B] text-2xl group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl bg-[rgba(255,255,255,0.05)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-[#D8C97B] text-2xl group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300 shadow-lg">
                     <item.icon />
                   </div>
-                  <span className="text-6xl font-black text-white/5 group-hover:text-[#D8C97B]/10 transition-colors duration-300 select-none">
+                  <span className="text-6xl font-black text-[rgba(255,255,255,0.05)] group-hover:text-[rgba(216,201,123,0.1)] transition-colors duration-300 select-none">
                     0{item.id}
                   </span>
                 </div>
@@ -151,7 +152,7 @@ const CoreValues: React.FC = () => {
                     {item.title}
                   </h3>
 
-                  <p className="text-gray-400 text-sm leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-3">
+                  <p className="text-gray-400 text-sm leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-3 font-light text-justify">
                     {item.desc}
                   </p>
                 </div>

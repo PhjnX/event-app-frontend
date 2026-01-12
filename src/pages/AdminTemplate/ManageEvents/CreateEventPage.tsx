@@ -16,7 +16,11 @@ import { toast } from "react-toastify";
 import { createEvent } from "../../../store/slices/eventSlice";
 import { uploadEventImage } from "../../../store/slices/eventSlice";
 import type { AppDispatch } from "../../../store";
-import type { Event } from "../../../models/event";
+
+const formatToBackendISO = (dateTimeLocal: string) => {
+  if (!dateTimeLocal) return "";
+  return `${dateTimeLocal}:00.000Z`;
+};
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
@@ -68,13 +72,6 @@ export default function CreateEventPage() {
       return;
     }
 
-    if (
-      formData.registrationDeadline &&
-      new Date(formData.registrationDeadline) > new Date(formData.endDate)
-    ) {
-      toast.warn("Hạn chót đăng ký nên trước khi sự kiện kết thúc.");
-    }
-
     setLoading(true);
     try {
       const uploadResult = await dispatch(
@@ -89,29 +86,23 @@ export default function CreateEventPage() {
 
       if (!bannerImageUrl) throw new Error("Lỗi upload ảnh");
 
-    
       const payload = {
         eventName: formData.eventName,
         description: formData.description,
         location: formData.location,
         bannerImageUrl: bannerImageUrl,
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
-        registrationDeadline: new Date(
-          formData.registrationDeadline
-        ).toISOString(),
-        status: "DRAFT" as "DRAFT",
-        visibility: formData.visibility as "PUBLIC" | "PRIVATE",
+        startDate: formatToBackendISO(formData.startDate),
+        endDate: formatToBackendISO(formData.endDate),
+        registrationDeadline: formatToBackendISO(formData.registrationDeadline),
+        status: "DRAFT", 
+        visibility: formData.visibility,
       };
 
-      await dispatch(
-        createEvent(payload as unknown as Partial<Event>)
-      ).unwrap();
+      await dispatch(createEvent(payload as any)).unwrap();
 
-      toast.success("Tạo sự kiện thành công! Hãy thêm các hoạt động chi tiết.");
+      toast.success("Tạo sự kiện thành công! (Bản nháp)");
       navigate("/admin/events");
     } catch (error: any) {
-      console.error(error);
       toast.error(error.message || "Có lỗi xảy ra khi tạo sự kiện");
     } finally {
       setLoading(false);
@@ -119,13 +110,15 @@ export default function CreateEventPage() {
   };
 
   const inputClass =
-    "w-full bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-600";
+    "w-full bg-[#1e1e1e] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:border-[#B5A65F] outline-none transition-all text-sm";
   const labelClass =
-    "text-xs text-[#B5A65F] uppercase font-bold tracking-wider mb-2 block flex items-center gap-2";
+    "text-[11px] text-[#B5A65F] uppercase font-bold tracking-wider mb-2 flex items-center gap-2";
+  const sectionClass =
+    "bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden hover:border-[#B5A65F]/30 transition-colors";
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 font-sans">
-      <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
+    <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-200">
+      <div className="flex items-center justify-between mb-8 py-4 border-b border-white/10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Link
             to="/admin/events"
@@ -133,15 +126,9 @@ export default function CreateEventPage() {
           >
             <FaArrowLeft />
           </Link>
-          <div>
-            <h1 className="text-3xl font-black uppercase text-[#B5A65F] tracking-wide">
-              Tạo Sự Kiện Mới
-            </h1>
-            <p className="text-gray-500 text-sm">
-              Đây là thông tin chung của sự kiện. Bạn sẽ thêm các{" "}
-              <strong>hoạt động chi tiết (Lịch trình)</strong> sau khi tạo xong.
-            </p>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-black uppercase text-white tracking-wide">
+            Tạo Sự Kiện <span className="text-[#B5A65F]">Mới</span>
+          </h1>
         </div>
       </div>
 
@@ -150,25 +137,21 @@ export default function CreateEventPage() {
         className="grid grid-cols-1 lg:grid-cols-12 gap-8"
       >
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-[#121212] border border-[#B5A65F]/30 rounded-3xl p-6 shadow-2xl top-6 overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
-
+          <div className={sectionClass}>
             <label className={labelClass}>
-              <FaImage /> Ảnh Bìa (Cover)
+              <FaImage /> Ảnh Bìa
             </label>
-            <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-black/50 border-2 border-dashed border-white/20 group hover:border-[#B5A65F] transition-all cursor-pointer">
+            <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-[#1a1a1a] border-2 border-dashed border-white/20 hover:border-[#B5A65F] transition-all cursor-pointer">
               {previewUrl ? (
                 <img
                   src={previewUrl}
-                  alt="Preview"
                   className="w-full h-full object-cover"
+                  alt="Preview"
                 />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 group-hover:text-[#B5A65F]">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
                   <FaImage className="text-5xl mb-3 opacity-50" />
-                  <span className="text-xs font-bold uppercase tracking-widest">
-                    Chọn ảnh
-                  </span>
+                  <span className="text-xs font-bold uppercase">Chọn ảnh</span>
                 </div>
               )}
               <input
@@ -178,21 +161,29 @@ export default function CreateEventPage() {
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-4 text-center leading-relaxed">
-              Khuyến nghị kích thước 1920x1080.
-              <br />
-              Hỗ trợ JPG, PNG, WEBP.
-            </p>
+          </div>
+
+          <div className={sectionClass}>
+            <label className={labelClass}>
+              <FaGlobe /> Quyền riêng tư
+            </label>
+            <select
+              name="visibility"
+              value={formData.visibility}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="PUBLIC">Công khai (Public)</option>
+              <option value="PRIVATE">Riêng tư (Private)</option>
+            </select>
           </div>
         </div>
 
-        <div className="lg:col-span-8">
-          <div className="bg-[#121212] border border-[#B5A65F]/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#B5A65F] to-transparent"></div>
-
-            <div className="space-y-8">
+        <div className="lg:col-span-8 space-y-6">
+          <div className={sectionClass}>
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div className="md:col-span-2">
                   <label className={labelClass}>
                     <FaCalendarAlt /> Tên sự kiện
                   </label>
@@ -202,13 +193,12 @@ export default function CreateEventPage() {
                     name="eventName"
                     value={formData.eventName}
                     onChange={handleChange}
-                    className={inputClass}
-                    placeholder="Vd: Tuần lễ công nghệ 2025"
+                    className={`${inputClass} text-lg font-bold`}
                   />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label className={labelClass}>
-                    <FaMapMarkerAlt /> Địa điểm tổ chức
+                    <FaMapMarkerAlt /> Địa điểm
                   </label>
                   <input
                     required
@@ -217,15 +207,14 @@ export default function CreateEventPage() {
                     value={formData.location}
                     onChange={handleChange}
                     className={inputClass}
-                    placeholder="Vd: Trung tâm hội nghị Quốc gia..."
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
                 <div>
                   <label className={labelClass}>
-                    <FaClock /> Thời gian bắt đầu
+                    <FaClock /> Bắt đầu
                   </label>
                   <input
                     required
@@ -233,12 +222,12 @@ export default function CreateEventPage() {
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleChange}
-                    className={`${inputClass} scheme-dark cursor-pointer`}
+                    className={`${inputClass} scheme-dark`}
                   />
                 </div>
                 <div>
                   <label className={labelClass}>
-                    <FaClock /> Thời gian kết thúc
+                    <FaClock /> Kết thúc
                   </label>
                   <input
                     required
@@ -246,15 +235,12 @@ export default function CreateEventPage() {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleChange}
-                    className={`${inputClass} scheme-dark cursor-pointer`}
+                    className={`${inputClass} scheme-dark`}
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-xs text-red-400 uppercase font-bold tracking-wider mb-2 flex items-center gap-2">
-                    <FaClock /> Hạn chót đăng ký (Tổng)
+                <div className="md:col-span-2">
+                  <label className={`${labelClass} text-red-400`}>
+                    <FaClock /> Hạn chót đăng ký
                   </label>
                   <input
                     required
@@ -262,32 +248,14 @@ export default function CreateEventPage() {
                     name="registrationDeadline"
                     value={formData.registrationDeadline}
                     onChange={handleChange}
-                    className={`${inputClass} scheme-dark cursor-pointer border-red-900/50 focus:border-red-500`}
+                    className={`${inputClass} scheme-dark bg-red-500/5`}
                   />
-                  <p className="text-[10px] text-gray-500 mt-1 italic">
-                    *Đây là hạn chót chung. Các hoạt động con có thể có hạn đăng
-                    ký riêng nếu cần.
-                  </p>
-                </div>
-                <div>
-                  <label className={labelClass}>
-                    <FaGlobe /> Quyền riêng tư
-                  </label>
-                  <select
-                    name="visibility"
-                    value={formData.visibility}
-                    onChange={handleChange}
-                    className={`${inputClass} cursor-pointer appearance-none`}
-                  >
-                    <option value="PUBLIC">Công khai (PUBLIC)</option>
-                    <option value="PRIVATE">Riêng tư (PRIVATE)</option>
-                  </select>
                 </div>
               </div>
 
               <div>
                 <label className={labelClass}>
-                  <FaAlignLeft /> Mô tả chi tiết
+                  <FaAlignLeft /> Mô tả
                 </label>
                 <textarea
                   required
@@ -296,32 +264,31 @@ export default function CreateEventPage() {
                   value={formData.description}
                   onChange={handleChange}
                   className={`${inputClass} h-32 resize-none`}
-                  placeholder="Nhập nội dung tổng quan về sự kiện..."
-                ></textarea>
+                />
               </div>
             </div>
+          </div>
 
-            <div className="flex justify-end gap-4 pt-8 mt-4 border-t border-white/5">
-              <Link
-                to="/admin/events"
-                className="px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold transition-colors"
-              >
-                Hủy bỏ
-              </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold hover:bg-[#d4c376] shadow-[0_0_20px_rgba(181,166,95,0.3)] transition-all flex items-center gap-2 transform active:scale-95 disabled:opacity-50"
-              >
-                {loading ? (
-                  "Đang xử lý..."
-                ) : (
-                  <>
-                    <FaSave /> Tạo & Tiếp tục
-                  </>
-                )}
-              </button>
-            </div>
+          <div className="flex justify-end gap-4">
+            <Link
+              to="/admin/events"
+              className="px-6 py-3.5 rounded-xl bg-[#1e1e1e] text-gray-300 font-bold border border-white/10"
+            >
+              Hủy
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold shadow-lg flex items-center gap-2"
+            >
+              {loading ? (
+                "Đang xử lý..."
+              ) : (
+                <>
+                  <FaSave /> Lưu Nháp
+                </>
+              )}
+            </button>
           </div>
         </div>
       </form>

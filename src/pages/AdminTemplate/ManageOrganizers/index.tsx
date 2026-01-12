@@ -14,18 +14,24 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaBuilding,
+  FaFileExcel,
+  FaBan,
 } from "react-icons/fa";
+import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
   fetchOrganizers,
   approveOrganizer,
   deleteOrganizer,
+  rejectOrganizer,
 } from "../../../store/slices/organizerSlice";
 import { fetchUserList } from "../../../store/slices/userSlice";
 import type { Organizer } from "../../../models/organizer";
 
 import ConfirmModal from "./../_components/ConfirmModal";
+import LoadingOverlay from "@/pages/HomeTemplate/_components/common/LoadingOverlay";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -44,11 +50,20 @@ export default function ManageOrganizers() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedOrg, setSelectedOrg] = useState<Organizer | null>(null);
+
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     type: "ACTIVATE" | "DEACTIVATE" | null;
     data: Organizer | null;
   }>({ isOpen: false, type: null, data: null });
+
+  const [rejectModal, setRejectModal] = useState<{
+    isOpen: boolean;
+    org: Organizer | null;
+  }>({ isOpen: false, org: null });
+  const [rejectReason, setRejectReason] = useState("");
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     dispatch(fetchOrganizers());
@@ -69,7 +84,7 @@ export default function ManageOrganizers() {
     }
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       org.name
-    )}&background=random`;
+    )}&background=random&color=fff`;
   };
 
   const filteredData = useMemo(() => {
@@ -94,19 +109,71 @@ export default function ManageOrganizers() {
     return filteredData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
 
+  const handleExportExcel = () => {
+    if (filteredData.length === 0) {
+      toast.warn("Không có dữ liệu để xuất!");
+      return;
+    }
+    try {
+      const exportData = filteredData.map((org) => ({
+        ID: org.organizerId,
+        "Tên Tổ Chức": org.name,
+        "Người đại diện": org.username,
+        "Email liên hệ": org.contactEmail,
+        "Trạng thái": org.approved ? "Hoạt động" : "Chờ duyệt/Vô hiệu",
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách BTC");
+      XLSX.writeFile(workbook, `Organizers_List.xlsx`);
+      toast.success("Xuất file Excel thành công!");
+    } catch (error) {
+      toast.error("Có lỗi khi xuất file.");
+    }
+  };
+
   const handleConfirmAction = async () => {
     const { type, data } = confirmState;
     if (!data) return;
 
-    if (type === "ACTIVATE") {
-      await dispatch(approveOrganizer(data.organizerId));
-    } else if (type === "DEACTIVATE") {
-      await dispatch(deleteOrganizer(data.slug));
+    setIsProcessing(true);
+    try {
+      if (type === "ACTIVATE") {
+        await dispatch(approveOrganizer(data.organizerId)).unwrap();
+      } else if (type === "DEACTIVATE") {
+        await dispatch(deleteOrganizer(data.slug)).unwrap();
+      }
+      setConfirmState({ isOpen: false, type: null, data: null });
+      if (selectedOrg?.organizerId === data.organizerId) setSelectedOrg(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!rejectModal.org || !rejectReason.trim()) {
+      toast.warn("Vui lòng nhập lý do từ chối!");
+      return;
     }
 
-    setConfirmState({ isOpen: false, type: null, data: null });
-    if (selectedOrg?.organizerId === data.organizerId) {
+    setIsProcessing(true);
+    try {
+      await dispatch(
+        rejectOrganizer({
+          organizerId: rejectModal.org.organizerId,
+          reason: rejectReason,
+        })
+      ).unwrap();
+
+      setRejectModal({ isOpen: false, org: null });
+      setRejectReason("");
       setSelectedOrg(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -119,11 +186,11 @@ export default function ManageOrganizers() {
 
   const StatusBadge = ({ approved }: { approved: boolean }) => (
     <span
-      className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5
+      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5 tracking-wider
         ${
           approved
-            ? "bg-[#B5A65F]/20 text-[#B5A65F] border-[#B5A65F]/30 shadow-[#B5A65F]/10"
-            : "bg-red-500/10 text-red-400 border-red-500/30 shadow-red-500/10"
+            ? "bg-[rgba(181,166,95,0.2)] text-[#B5A65F] border-[rgba(181,166,95,0.3)] shadow-primary-gold-low"
+            : "bg-[rgba(239,68,68,0.1)] text-red-400 border-[rgba(239,68,68,0.3)] shadow-[rgba(239,68,68,0.1)]"
         }
       `}
     >
@@ -131,68 +198,53 @@ export default function ManageOrganizers() {
         className={`w-1.5 h-1.5 rounded-full ${
           approved ? "bg-[#B5A65F]" : "bg-red-400 animate-pulse"
         }`}
-      ></span>
+      />
       {approved ? "Active" : "Inactive"}
     </span>
   );
 
-  const GridSkeleton = () => (
-    <>
-      {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-[#1a1a1a] rounded-3xl border border-white/5 p-6 animate-pulse flex flex-col items-center gap-4"
-        >
-          <div className="w-20 h-20 rounded-full bg-white/10" />
-          <div className="h-4 w-3/4 bg-white/10 rounded" />
-          <div className="h-3 w-1/2 bg-white/10 rounded" />
-          <div className="w-full mt-4 flex justify-between gap-2">
-            <div className="h-8 w-1/3 bg-white/10 rounded" />
-            <div className="h-8 w-1/3 bg-white/10 rounded" />
-          </div>
-        </div>
-      ))}
-    </>
-  );
-
   return (
-    <div className="min-h-screen pb-20 font-sans text-white">
-      
+    <div className="min-h-screen pb-20 font-sans text-white relative selection:bg-[rgba(181,166,95,0.3)]">
+      <AnimatePresence>
+        {isProcessing && (
+          <LoadingOverlay
+            message="Đang xử lý yêu cầu..."
+            className="z-9999"
+          />
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-col lg:flex-row justify-between items-end lg:items-center gap-4 mb-8 pt-4">
-  
-        <div className="p-1.5 bg-[#1a1a1a] border border-white/10 rounded-2xl flex gap-1 w-full lg:w-auto overflow-x-auto custom-scrollbar">
-          {[
-            { id: "ALL", label: "Tất cả" },
-            { id: "ACTIVE", label: "Hoạt động" },
-            { id: "INACTIVE", label: "Vô hiệu" },
-          ].map((tab) => {
-            const isActive = filterStatus === tab.id;
+        <div className="p-1 bg-[#1a1a1a] border border-white/10 rounded-full flex gap-1 w-full lg:w-auto overflow-x-auto">
+          {["ALL", "ACTIVE", "INACTIVE"].map((tabId) => {
+            const labels: any = {
+              ALL: "Tất cả",
+              ACTIVE: "Hoạt động",
+              INACTIVE: "Chờ duyệt",
+            };
+            const isActive = filterStatus === tabId;
             const count = organizers.filter((o) => {
-              if (tab.id === "ALL") return true;
-              if (tab.id === "ACTIVE") return o.approved;
-              if (tab.id === "INACTIVE") return !o.approved;
-              return false;
+              if (tabId === "ALL") return true;
+              if (tabId === "ACTIVE") return o.approved;
+              return !o.approved;
             }).length;
 
             return (
               <button
-                key={tab.id}
-                onClick={() => setFilterStatus(tab.id as any)}
-                className={`
-                   px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2
-                   ${
-                     isActive
-                       ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                       : "text-gray-400 hover:text-white hover:bg-white/5"
-                   }
-                 `}
+                key={tabId}
+                onClick={() => setFilterStatus(tabId as any)}
+                className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                  isActive
+                    ? "bg-[#B5A65F] text-black shadow-lg shadow-[rgba(181,166,95,0.2)]"
+                    : "text-gray-400 hover:text-white hover:bg-[rgba(255,255,255,0.05)]"
+                }`}
               >
-                {tab.label}
+                {labels[tabId]}
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[9px] ${
+                  className={`px-1.5 py-0.5 rounded-full text-[9px] min-w-5 text-center ${
                     isActive
-                      ? "bg-black/20 text-black"
-                      : "bg-white/10 text-gray-500"
+                      ? "bg-[rgba(0,0,0,0.2)] text-black"
+                      : "bg-[rgba(255,255,255,0.1)] text-gray-500"
                   }`}
                 >
                   {count}
@@ -202,150 +254,156 @@ export default function ManageOrganizers() {
           })}
         </div>
 
-        <div className="relative group w-full lg:w-72">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
-          <input
-            type="text"
-            placeholder="Tìm tên tổ chức, slug..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] focus:ring-1 focus:ring-[#B5A65F] outline-none transition-all shadow-sm"
-          />
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <button
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 px-5 py-3 rounded-full bg-[rgba(22,163,74,0.2)] text-green-500 border border-[rgba(22,163,74,0.3)] hover:bg-green-600 hover:text-white transition-all font-bold text-sm shadow-lg"
+          >
+            <FaFileExcel /> Xuất Excel
+          </button>
+
+          <div className="relative group w-full sm:w-72">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+            <input
+              type="text"
+              placeholder="Tìm tên tổ chức..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none shadow-sm transition-all"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-[400px]">
         {isLoadingOrg ? (
-          <GridSkeleton />
+          <div className="col-span-full py-20 text-center text-gray-500 italic">
+            Đang tải dữ liệu BTC...
+          </div>
         ) : paginatedData.length === 0 ? (
-          <div className="col-span-full py-32 flex flex-col items-center justify-center text-gray-500 border border-white/5 border-dashed rounded-3xl bg-[#1a1a1a]/30">
-            <FaBuilding className="text-6xl opacity-20 mb-4" />
+          <div className="col-span-full flex flex-col items-center justify-center text-gray-500 border border-white/5 border-dashed rounded-3xl bg-[rgba(26,26,26,0.3)] h-96">
+            <FaBuilding className="text-4xl opacity-20 mb-4" />
             <p className="text-lg font-medium">Không tìm thấy tổ chức nào.</p>
           </div>
         ) : (
-          paginatedData.map((org) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={org.organizerId}
-              className={`group relative bg-[#1a1a1a] rounded-3xl border overflow-hidden transition-all duration-300 flex flex-col
-                ${
+          <AnimatePresence mode="popLayout">
+            {paginatedData.map((org) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                key={org.organizerId}
+                className={`group relative bg-[#1a1a1a] rounded-3xl border transition-all duration-300 flex flex-col ${
                   org.approved
-                    ? "border-white/5 hover:border-[#B5A65F]/30 hover:shadow-[0_10px_40px_-10px_rgba(181,166,95,0.15)]"
-                    : "border-red-500/10 hover:border-red-500/30 opacity-80 hover:opacity-100"
-                }
-              `}
-            >
-              {/* Background Glow */}
-              <div
-                className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-all
-                  ${
-                    org.approved
-                      ? "bg-[#B5A65F]/5 group-hover:bg-[#B5A65F]/15"
-                      : "bg-red-500/5 group-hover:bg-red-500/10"
-                  }
-              `}
-              />
-
-              {/* Header: Status & Logo */}
-              <div className="relative pt-6 px-6 pb-2 flex flex-col items-center z-10">
-                <div className="w-full flex justify-end -mb-5 relative z-20">
-                  <StatusBadge approved={org.approved} />
-                </div>
-
+                    ? "border-white/5 hover:border-[rgba(181,166,95,0.3)] hover:shadow-2xl"
+                    : "border-red-500/10 opacity-80"
+                }`}
+              >
                 <div
-                  className={`w-24 h-24 rounded-2xl p-1 border shadow-lg group-hover:scale-105 transition-transform duration-300 bg-[#121212]
-                    ${
-                      org.approved
-                        ? "border-white/10"
-                        : "border-red-500/20 grayscale-[0.5]"
-                    }
-                `}
-                >
-                  <img
-                    src={getSmartLogo(org)}
-                    alt="Logo"
-                    className="w-full h-full object-cover rounded-xl"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://via.placeholder.com/100";
-                    }}
-                  />
-                </div>
+                  className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none transition-all ${
+                    org.approved
+                      ? "bg-[rgba(181,166,95,0.05)] group-hover:bg-[rgba(181,166,95,0.15)]"
+                      : "bg-[rgba(239,68,68,0.05)]"
+                  }`}
+                />
 
-                <h3
-                  className={`mt-4 text-lg font-bold text-center line-clamp-1 transition-colors 
-                    ${
+                <div className="relative pt-6 px-6 pb-2 flex flex-col items-center z-10">
+                  <div className="w-full flex justify-end -mb-4">
+                    <StatusBadge approved={org.approved} />
+                  </div>
+                  <div
+                    className={`w-28 h-28 rounded-2xl p-1 border-2 bg-[#121212] overflow-hidden transition-all ${
+                      org.approved
+                        ? "border-[rgba(255,255,255,0.1)] group-hover:border-[#B5A65F]"
+                        : "border-red-900/20 grayscale"
+                    }`}
+                  >
+                    <img
+                      src={getSmartLogo(org)}
+                      alt="Logo"
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  </div>
+                  <h3
+                    className={`mt-5 text-xl font-bold text-center line-clamp-1 ${
                       org.approved
                         ? "text-white group-hover:text-[#B5A65F]"
-                        : "text-gray-300"
-                    }
-                `}
-                >
-                  {org.name}
-                </h3>
-                <p className="text-xs text-gray-500 font-mono">@{org.slug}</p>
-              </div>
-
-              <div className="px-6 py-4 flex-1 space-y-3 z-10">
-                <div className="flex items-center gap-3 text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                  <FaUserTie
-                    className={
-                      org.approved ? "text-[#B5A65F]" : "text-gray-600"
-                    }
-                  />
-                  <span className="truncate">{org.username}</span>
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {org.name}
+                  </h3>
+                  <p className="text-[10px] text-gray-500 font-mono mt-1 px-2 py-0.5 bg-[rgba(255,255,255,0.05)] rounded border border-white/5">
+                    @{org.slug}
+                  </p>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                  <FaPhone
-                    className={
-                      org.approved ? "text-[#B5A65F]" : "text-gray-600"
-                    }
-                  />
-                  <span className="truncate">
-                    {org.contactPhoneNumber || "N/A"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                  <FaEnvelope
-                    className={
-                      org.approved ? "text-[#B5A65F]" : "text-gray-600"
-                    }
-                  />
-                  <span className="truncate">{org.contactEmail}</span>
-                </div>
-              </div>
 
-              <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex justify-between items-center z-10">
-                <button
-                  onClick={() => setSelectedOrg(org)}
-                  className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
-                >
-                  <FaEye /> Chi tiết
-                </button>
-
-                <div>
-                  {org.approved ? (
-                    <button
-                      onClick={() => openConfirmModal("DEACTIVATE", org)}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                      title="Vô hiệu hóa"
+                <div className="px-6 py-5 flex-1 space-y-3 z-10">
+                  {[
+                    { icon: FaUserTie, val: org.username },
+                    { icon: FaPhone, val: org.contactPhoneNumber || "---" },
+                    { icon: FaEnvelope, val: org.contactEmail },
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 text-xs text-gray-400"
                     >
-                      <FaPowerOff />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => openConfirmModal("ACTIVATE", org)}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/10"
-                      title="Kích hoạt"
-                    >
-                      <FaUnlock />
-                    </button>
-                  )}
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center bg-[rgba(255,255,255,0.05)] ${
+                          org.approved ? "text-[#B5A65F]" : "text-gray-600"
+                        }`}
+                      >
+                        <item.icon />
+                      </div>
+                      <span className="truncate flex-1">{item.val}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </motion.div>
-          ))
+
+                <div className="px-6 py-4 border-t border-white/5 bg-[rgba(10,10,10,1)] flex justify-between items-center z-10">
+                  <button
+                    onClick={() => setSelectedOrg(org)}
+                    className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white transition-colors group/btn"
+                  >
+                    <FaEye className="group-hover/btn:text-[#B5A65F]" /> Chi
+                    tiết
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {!org.approved && (
+                      <>
+                        <button
+                          onClick={() => openConfirmModal("ACTIVATE", org)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all border border-green-500/20"
+                          title="Phê duyệt"
+                        >
+                          <FaUnlock size={12} />
+                        </button>
+                        <button
+                          onClick={() => setRejectModal({ isOpen: true, org })}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                          title="Từ chối"
+                        >
+                          <FaBan size={12} />
+                        </button>
+                      </>
+                    )}
+
+                    {org.approved && (
+                      <button
+                        onClick={() => openConfirmModal("DEACTIVATE", org)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-500/10 text-gray-400 hover:bg-gray-500 hover:text-white transition-all border border-white/5"
+                        title="Vô hiệu hóa"
+                      >
+                        <FaPowerOff size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
 
@@ -354,55 +412,165 @@ export default function ManageOrganizers() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all border
-              ${
-                currentPage === 1
-                  ? "bg-white/5 text-gray-600 border-white/5 cursor-not-allowed"
-                  : "bg-[#1a1a1a] text-white border-white/10 hover:border-[#B5A65F] hover:text-[#B5A65F]"
-              }
-            `}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
           >
-            <FaChevronLeft size={12} />
+            <FaChevronLeft size={10} />
           </button>
-
-          <div className="flex gap-2">
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNum = i + 1;
-              const isActive = currentPage === pageNum;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all border
-                    ${
-                      isActive
-                        ? "bg-[#B5A65F] text-black border-[#B5A65F] shadow-[0_0_15px_rgba(181,166,95,0.3)]"
-                        : "bg-[#1a1a1a] text-gray-400 border-white/10 hover:border-white/30 hover:text-white"
-                    }
-                  `}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-          </div>
-
+          <span className="text-sm font-bold text-gray-500 px-2">
+            Trang <span className="text-white">{currentPage}</span> /{" "}
+            {totalPages}
+          </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all border
-              ${
-                currentPage === totalPages
-                  ? "bg-white/5 text-gray-600 border-white/5 cursor-not-allowed"
-                  : "bg-[#1a1a1a] text-white border-white/10 hover:border-[#B5A65F] hover:text-[#B5A65F]"
-              }
-            `}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
           >
-            <FaChevronRight size={12} />
+            <FaChevronRight size={10} />
           </button>
         </div>
       )}
 
+      <AnimatePresence>
+        {selectedOrg && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedOrg(null)}
+              className="absolute inset-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg bg-[#181818] border border-[rgba(181,166,95,0.3)] rounded-3xl overflow-hidden shadow-2xl flex flex-col z-10"
+            >
+              <div className="h-32 bg-linear-to-r from-[rgba(181,166,95,0.2)] to-primary-gold-transparent relative">
+                <button
+                  onClick={() => setSelectedOrg(null)}
+                  className="absolute top-4 right-4 p-2 bg-[rgba(0,0,0,0.2)] rounded-full text-white/70 hover:text-white hover:bg-black transition-all"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="px-8 pb-8 -mt-16 relative flex flex-col items-center">
+                <img
+                  src={getSmartLogo(selectedOrg)}
+                  alt="Logo"
+                  className="w-32 h-32 rounded-3xl object-cover border-4 border-[#181818] bg-black shadow-xl"
+                />
+                <div className="text-center mb-6 mt-4">
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                    {selectedOrg.name}
+                  </h2>
+                  <div className="flex justify-center items-center gap-2 mt-2">
+                    <StatusBadge approved={selectedOrg.approved} />
+                  </div>
+                </div>
+                <div className="space-y-4 w-full">
+                  <div className="bg-[rgba(255,255,255,0.05)] p-5 rounded-2xl border border-white/5">
+                    <h4 className="flex items-center gap-2 text-[#B5A65F] text-xs font-bold uppercase mb-3">
+                      <FaIdBadge /> Giới thiệu
+                    </h4>
+                    <p className="text-gray-300 text-sm leading-relaxed max-h-40 overflow-y-auto whitespace-pre-line">
+                      {selectedOrg.description ||
+                        "Chưa cập nhật thông tin giới thiệu."}
+                    </p>
+                  </div>
+
+                  {selectedOrg.approved ? (
+                    <button
+                      onClick={() => {
+                        openConfirmModal("DEACTIVATE", selectedOrg);
+                      }}
+                      className="w-full py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-[rgba(255,255,255,0.05)] text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white"
+                    >
+                      <FaPowerOff className="inline mr-2" /> Vô hiệu hóa tài
+                      khoản
+                    </button>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => {
+                          setRejectModal({ isOpen: true, org: selectedOrg });
+                        }}
+                        className="py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white"
+                      >
+                        <FaBan className="inline mr-2" /> Từ chối
+                      </button>
+                      <button
+                        onClick={() => {
+                          openConfirmModal("ACTIVATE", selectedOrg);
+                        }}
+                        className="py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-linear-to-r from-[#B5A65F] to-[#C5B358] text-black shadow-lg shadow-[rgba(181,166,95,0.4)]"
+                      >
+                        <FaUnlock className="inline mr-2" /> Phê duyệt
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {rejectModal.isOpen && (
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRejectModal({ isOpen: false, org: null })}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-[#181818] border border-red-500/30 rounded-2xl p-6 shadow-2xl z-10"
+            >
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <FaBan className="text-red-500" /> Từ chối hồ sơ
+              </h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Bạn đang từ chối tổ chức{" "}
+                <span className="text-white font-bold">
+                  {rejectModal.org?.name}
+                </span>
+                . Vui lòng nhập lý do để gửi email thông báo.
+              </p>
+
+              <textarea
+                className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-red-500 outline-none resize-none min-h-[100px]"
+                placeholder="Nhập lý do từ chối (VD: Thông tin chưa rõ ràng, Logo mờ...)"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+
+              <div className="flex gap-3 mt-6 justify-end">
+                <button
+                  onClick={() => setRejectModal({ isOpen: false, org: null })}
+                  className="px-4 py-2 rounded-lg text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={handleRejectSubmit}
+                  disabled={!rejectReason.trim()}
+                  className="px-6 py-2 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-red-900/20"
+                >
+                  Xác nhận Từ chối
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* --- CONFIRM MODAL (DUYỆT/XÓA) --- */}
       {confirmState.data && (
         <ConfirmModal
           isOpen={confirmState.isOpen}
@@ -414,98 +582,12 @@ export default function ManageOrganizers() {
           }
           message={
             confirmState.type === "DEACTIVATE"
-              ? `Bạn có chắc muốn vô hiệu hóa tổ chức "${confirmState.data.name}"?`
-              : `Kích hoạt tổ chức "${confirmState.data.name}" hoạt động trở lại?`
+              ? `Vô hiệu hóa tổ chức "${confirmState.data.name}"?`
+              : `Kích hoạt tổ chức "${confirmState.data.name}"?`
           }
-          confirmText={
-            confirmState.type === "DEACTIVATE" ? "Vô hiệu hóa" : "Kích hoạt"
-          }
+          confirmText="Xác nhận"
         />
       )}
-
-      <AnimatePresence>
-        {selectedOrg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedOrg(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-[#181818] border border-[#B5A65F]/30 rounded-3xl overflow-hidden shadow-2xl"
-            >
-              <div className="h-32 bg-linear-to-r from-[#B5A65F]/20 to-transparent relative">
-                <button
-                  onClick={() => setSelectedOrg(null)}
-                  className="absolute top-4 right-4 p-2 bg-black/20 rounded-full text-white/50 hover:text-white hover:bg-black/50 transition-all"
-                >
-                  <FaTimes />
-                </button>
-              </div>
-
-              <div className="px-8 pb-8 -mt-16 relative">
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={getSmartLogo(selectedOrg)}
-                    alt="Logo"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-[#181818] bg-black shadow-xl"
-                  />
-                </div>
-
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {selectedOrg.name}
-                  </h2>
-                  <div className="flex justify-center items-center gap-2 mt-2">
-                    <StatusBadge approved={selectedOrg.approved} />
-                    <span className="text-gray-500 text-xs px-2 py-1 bg-white/5 rounded">
-                      ID: {selectedOrg.organizerId}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/3 p-4 rounded-xl border border-white/5">
-                    <h4 className="flex items-center gap-2 text-[#B5A65F] text-xs font-bold uppercase mb-2">
-                      <FaIdBadge /> Thông tin mô tả
-                    </h4>
-                    <p className="text-gray-300 text-sm leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
-                      {selectedOrg.description || "Chưa có mô tả."}
-                    </p>
-                  </div>
-
-                  {!selectedOrg.approved ? (
-                    <button
-                      onClick={() => {
-                        setSelectedOrg(null);
-                        openConfirmModal("ACTIVATE", selectedOrg);
-                      }}
-                      className="w-full py-3 mt-4 bg-linear-to-r from-[#B5A65F] to-[#C5B358] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(181,166,95,0.4)] transition-all flex items-center justify-center gap-2"
-                    >
-                      <FaUnlock /> Kích hoạt ngay
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setSelectedOrg(null);
-                        openConfirmModal("DEACTIVATE", selectedOrg);
-                      }}
-                      className="w-full py-3 mt-4 bg-white/5 text-red-400 border border-red-500/30 font-bold rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                    >
-                      <FaPowerOff /> Vô hiệu hóa
-                    </button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

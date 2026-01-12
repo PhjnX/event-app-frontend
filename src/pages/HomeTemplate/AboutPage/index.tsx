@@ -13,13 +13,13 @@ const CustomerSection = React.lazy(
 
 const SectionLoader = () => (
   <div className="w-full h-40 flex items-center justify-center bg-[#0a0a0a]">
-    <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin"></div>
+    <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-[rgba(0,0,0,0)] rounded-full animate-spin"></div>
   </div>
 );
 
 export default function AboutPage() {
   return (
-    <div className="w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)]">
       <AboutHero />
 
       <Suspense fallback={<SectionLoader />}>

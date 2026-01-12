@@ -40,13 +40,13 @@ const revealVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 40,
-    filter: "blur(10px)", 
+    filter: "blur(10px)",
     scale: 0.95,
   },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)", 
+    filter: "blur(0px)",
     scale: 1,
     transition: {
       duration: 0.8,
@@ -66,29 +66,32 @@ const sloganVariants: Variants = {
 
 export default function CustomerSection() {
   return (
-    <section className="relative py-28 bg-[#0a0a0a] overflow-hidden font-noto text-white">
+    <section className="relative py-28 bg-[#0a0a0a] overflow-hidden font-noto text-white selection:bg-[rgba(216,201,123,0.3)]">
+      {/* 1. BACKGROUND GRID */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `linear-gradient(rgba(181, 166, 95, 0.05) 1px, transparent 1px), 
-            linear-gradient(90deg, rgba(181, 166, 95, 0.05) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(181, 166, 95, 0.05) 1px, rgba(181, 166, 95, 0) 1px), 
+            linear-gradient(90deg, rgba(181, 166, 95, 0.05) 1px, rgba(181, 166, 95, 0) 1px)`,
             backgroundSize: "60px 60px",
           }}
         ></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[#D8C97B]/5 blur-[120px] rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[rgba(216,201,123,0.05)] blur-[120px] rounded-full"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+        {/* 2. PARTNERS GRID */}
         <motion.div
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.3 }} 
-          className="mb-24"
+          viewport={{ once: false, amount: 0.3 }}
+          // FIX: Thêm relative
+          className="relative mb-24"
         >
           <motion.div variants={revealVariants} className="text-center mb-12">
-            <span className="text-xs font-bold tracking-[0.3em] text-gray-500 uppercase border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+            <span className="text-xs font-bold tracking-[0.3em] text-gray-500 uppercase border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-full backdrop-blur-md">
               Được tin tưởng bởi
             </span>
           </motion.div>
@@ -100,7 +103,6 @@ export default function CustomerSection() {
                 variants={revealVariants}
                 className="group w-full flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-500 opacity-60 hover:opacity-100 cursor-pointer"
               >
-            
                 <img
                   src={partner.logo}
                   alt={partner.name}
@@ -123,14 +125,15 @@ export default function CustomerSection() {
           </div>
         </motion.div>
 
+        {/* 3. SLOGAN SECTION */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: false, amount: 0.5 }}
-          className="relative text-center border-t border-white/10 pt-20"
+          className="relative text-center border-t border-[rgba(255,255,255,0.1)] pt-20"
         >
-          <div className="absolute top-0 left-0 w-px h-20 bg-linear-to-b from-transparent via-[#D8C97B] to-transparent opacity-50"></div>
-          <div className="absolute top-0 right-0 w-px h-20 bg-linear-to-b from-transparent via-[#D8C97B] to-transparent opacity-50"></div>
+          <div className="absolute top-0 left-0 w-px h-20 bg-linear-to-b from-[rgba(216,201,123,0)] via-[#D8C97B] to-[rgba(216,201,123,0)] opacity-50"></div>
+          <div className="absolute top-0 right-0 w-px h-20 bg-linear-to-b from-[rgba(216,201,123,0)] via-[#D8C97B] to-[rgba(216,201,123,0)] opacity-50"></div>
 
           <motion.h2
             variants={sloganVariants}

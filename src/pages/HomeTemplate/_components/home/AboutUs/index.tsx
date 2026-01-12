@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import { SLIDE_DATA } from "./data"; 
+import { SLIDE_DATA } from "./data";
 import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";
 
 const ImageSlider = ({
@@ -20,25 +20,25 @@ const ImageSlider = ({
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="relative"
     >
-      <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group h-[500px] w-full bg-[#1a1a1a]">
-        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent z-10 pointer-events-none"></div>
+      <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[rgba(255,255,255,0.1)] group h-[500px] w-full bg-[#1a1a1a]">
+        <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,0.6)] via-[rgba(0,0,0,0)] to-[rgba(0,0,0,0)] z-10 pointer-events-none"></div>
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           <motion.img
             key={currentSlide.id}
             src={currentSlide.image}
             alt={currentSlide.label}
             initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1, zIndex: 1 }}
-            exit={{ opacity: 0, zIndex: 0 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full object-cover"
           />
         </AnimatePresence>
       </div>
 
       <div className="absolute -bottom-10 -right-4 md:-right-12 z-20 w-72">
-        <div className="relative bg-[#0f0f0f]/95 backdrop-blur-xl p-6 rounded-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+        <div className="relative bg-[rgba(15,15,15,0.95)] backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.1)] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
           <motion.div
             animate={{ backgroundColor: currentSlide.color }}
             className="absolute left-0 top-0 bottom-0 w-1"
@@ -53,7 +53,7 @@ const ImageSlider = ({
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
-                  className="p-2 rounded-lg bg-white/5 text-lg"
+                  className="p-2 rounded-lg bg-[rgba(255,255,255,0.05)] text-lg"
                   style={{ color: currentSlide.color }}
                 >
                   {currentSlide.icon}
@@ -65,12 +65,12 @@ const ImageSlider = ({
               <h3 className="text-white text-xl font-bold leading-tight mb-1">
                 {currentSlide.title}
               </h3>
-              <p className="text-gray-500 text-sm line-clamp-2">
+              <p className="text-gray-500 text-sm line-clamp-2 font-light">
                 {currentSlide.desc}
               </p>
             </motion.div>
           </AnimatePresence>
-          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-white/10">
+          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[rgba(255,255,255,0.1)]">
             <motion.div
               key={currentIndex}
               initial={{ width: "0%" }}
@@ -95,7 +95,7 @@ const ContentSection = () => {
         viewport={{ once: false, amount: 0.3 }}
         transition={{ duration: 0.8 }}
       >
-        <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed text-justify">
+        <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed text-justify font-light">
           <span className="text-5xl font-bold text-[#D8C97B] float-left mr-3 leading-[0.8] mt-2 font-noto">
             W
           </span>
@@ -112,7 +112,7 @@ const ContentSection = () => {
           đẳng cấp nhất.
         </p>
 
-        <div className="flex gap-8 mb-10 border-t border-white/10 pt-6">
+        <div className="flex gap-8 mb-10 border-t border-[rgba(255,255,255,0.1)] pt-6">
           {[
             { value: "50+", label: "Dự án" },
             { value: "100%", label: "Hài lòng" },
@@ -136,9 +136,9 @@ const ContentSection = () => {
         >
           <Link
             to="/about"
-            className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-transparent text-[#D8C97B] font-bold text-sm uppercase tracking-wider rounded-full border border-[#D8C97B] overflow-hidden transition-all duration-300 hover:bg-[#D8C97B] hover:text-black hover:shadow-[0_0_30px_rgba(181,166,95,0.4)]"
+            className="group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-[rgba(0,0,0,0)] text-[#D8C97B] font-bold text-sm uppercase tracking-wider rounded-full border border-[#D8C97B] overflow-hidden transition-all duration-300 hover:bg-[#D8C97B] hover:text-black hover:shadow-[0_0_30px_rgba(181,166,95,0.4)]"
           >
-            <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-transparent via-white/50 to-transparent -skew-x-12 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
+            <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-[rgba(255,255,255,0)] via-[rgba(255,255,255,0.5)] to-[rgba(255,255,255,0)] -skew-x-12 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
             <span className="relative z-20 flex items-center gap-2">
               TÌM HIỂU THÊM{" "}
               <FaArrowRight className="group-hover/btn:translate-x-1 transition-transform duration-300" />
@@ -163,18 +163,18 @@ const AboutSection = () => {
   const currentSlide = SLIDE_DATA[currentIndex];
 
   return (
-    <section className="relative py-24 bg-[#0a0a0a] overflow-hidden text-white font-noto group-section">
+    <section className="relative py-24 bg-[#0a0a0a] overflow-hidden text-white font-noto group-section selection:bg-[rgba(216,201,123,0.3)]">
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
           backgroundColor: "#0a0a0a",
           backgroundImage:
-            "radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)",
+            "radial-gradient(rgba(255, 255, 255, 0.15) 1px, rgba(0, 0, 0, 0) 1px)",
           backgroundSize: "30px 30px",
           maskImage:
-            "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+            "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
           WebkitMaskImage:
-            "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
+            "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
         }}
       ></div>
 
@@ -189,7 +189,7 @@ const AboutSection = () => {
             </span>
           </h2>
 
-          <p className="text-base md:text-xl text-gray-300 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light">
+          <p className="text-base md:text-xl text-gray-400 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light">
             Đối tác chiến lược trong việc chuyển đổi số các hoạt động giáo dục
             và sự kiện.
           </p>
@@ -205,18 +205,15 @@ const AboutSection = () => {
       </div>
 
       <style>{`
-        /* Import Font Noto Serif */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
         .font-noto { font-family: 'Noto Serif', serif !important; }
 
-        /* Animation Fade In Up */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
 
-        /* Animation Shine cho Button */
         @keyframes shine {
             0% { left: -100%; }
             100% { left: 125%; }

@@ -12,148 +12,140 @@ interface TimelineItem {
 const TIMELINE_DATA: TimelineItem[] = [
   {
     year: "2022",
-    title: "NGỌN LỬA KHỞI NGUỒN",
-    desc: "Webie Vietnam ra đời trong bối cảnh thị trường marketing bão hòa. Nhận thấy sự thiếu vắng những giải pháp chuyển đổi số thực sự tối ưu.",
+    title: "KHỞI NGUỒN",
+    desc: "Webie Vietnam ra đời, mang đến giải pháp chuyển đổi số thực chiến.",
     icon: <FaFire />,
   },
   {
     year: "2024",
-    title: "THÀNH LẬP CHÍNH THỨC",
-    desc: "Bước ra ánh sáng với tư cách một agency chuyên nghiệp. Chuyển mình từ ý tưởng khởi điểm thành một tổ chức vận hành bài bản.",
+    title: "THÀNH LẬP",
+    desc: "Chuyển mình thành Agency chuyên nghiệp với quy trình vận hành bài bản.",
     icon: <FaCheckCircle />,
   },
   {
     year: "2025",
-    title: "VĂN PHÒNG ĐẦU TIÊN",
-    desc: "Khai trương trụ sở chính - Trung tâm kết nối giữa nhân hiệu, năng lực công nghệ và niềm tin của khách hàng.",
+    title: "TRỤ SỞ CHÍNH",
+    desc: "Khai trương văn phòng - Trung tâm kết nối nhân hiệu và công nghệ.",
     icon: <FaBuilding />,
   },
   {
     year: "FUTURE",
-    title: "VƯƠN TẦM QUỐC TẾ",
-    desc: "Mở rộng quy mô, đưa giải pháp EdTech Event của Việt Nam ghi dấu ấn trên bản đồ công nghệ khu vực.",
+    title: "VƯƠN TẦM",
+    desc: "Mở rộng quy mô, ghi dấu ấn EdTech Event trên bản đồ khu vực.",
     icon: <FaGlobeAsia />,
   },
 ];
 
 const TimelineSection = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.3 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
   return (
-    <section className="relative py-32 bg-[#0a0a0a] overflow-hidden font-noto text-white">
+    <section className="relative py-20 lg:py-28 bg-[#0a0a0a] overflow-hidden font-sans text-white selection:bg-[#D8C97B] selection:text-black">
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[800px] bg-[#D8C97B]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[400px] bg-[rgba(216,201,123,0.08)] rounded-full blur-[100px]"></div>
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: "radial-gradient(#fff 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.8) 1px, rgba(0,0,0,0) 1px)",
+            backgroundSize: "30px 30px",
           }}
         ></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+      <div className="container mx-auto px-4 relative z-10 max-w-7xl">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.5 }}
-          className="text-center mb-24"
+          viewport={{ once: true }}
+          className="relative text-center mb-10 lg:mb-16"
         >
-          <span className="text-[#D8C97B] text-sm tracking-[0.3em] uppercase font-bold border-b border-[#D8C97B] pb-1">
-            Lịch Sử Hình Thành
-          </span>
-          <h2 className="text-4xl md:text-5xl font-black uppercase text-white mt-6 mb-4 tracking-wide drop-shadow-lg">
+          <h2 className="text-3xl lg:text-6xl font-black uppercase text-white mt-4 mb-4 tracking-wide drop-shadow-lg font-noto">
             HÀNH TRÌNH <span className="text-[#D8C97B]">VƯƠN XA</span>
           </h2>
-          <p className="text-gray-400 italic text-lg font-light">
-            "Mỗi cột mốc là một bước trưởng thành vững chắc."
+          <p className="text-gray-400 text-lg font-noto mx-auto max-w-2xl">
+            Vươn mình trong hành trình chuyển đổi số sự kiện cùng Webie Vietnam.
           </p>
         </motion.div>
 
-        <div className="relative">
-          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-white/10 -translate-x-1/2 md:block hidden"></div>
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-white/10 md:hidden block"></div>
-
-          <motion.div
-            initial={{ height: 0 }}
-            whileInView={{ height: "100%" }}
-            viewport={{ once: false }}
-            transition={{ duration: 2.5, ease: "linear" }}
-            className="absolute left-6 md:left-1/2 top-0 w-0.5 bg-linear-to-b from-[#D8C97B] via-[#F4D03F] to-[#D8C97B] -translate-x-1/2 origin-top shadow-[0_0_10px_#D8C97B]"
-          ></motion.div>
-
-          <div className="space-y-12 md:space-y-24">
-            {TIMELINE_DATA.map((item, index) => {
-              const isEven = index % 2 === 0;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: false, amount: 0.3 }}
-                  transition={{ duration: 0.7, delay: index * 0.1 }}
-                  className={`relative flex flex-col md:flex-row items-center ${
-                    isEven ? "md:flex-row-reverse" : ""
-                  }`}
-                >
-                  <div
-                    className={`flex-1 w-full pl-20 md:pl-0 
-                      ${isEven ? "md:pl-24" : "md:pr-24"}
-                    `}
-                  >
-                    <motion.div
-                      whileHover={{ y: -5, borderColor: "#D8C97B" }}
-                      className={`relative p-6 md:p-8 rounded-2xl bg-[#1a1a1a]/80 backdrop-blur-md border border-white/10 shadow-2xl transition-all duration-300 group
-                            ${
-                              isEven ? "md:text-left" : "md:text-right"
-                            } text-left
-                        `}
-                    >
-                      <span
-                        className={`absolute -bottom-10 md:-bottom-6 text-4xl md:text-5xl font-black text-white/10 z-0 select-none tracking-widest pointer-events-none ${
-                          isEven ? "right-4" : "left-4"
-                        }`}
-                      >
-                        {item.year}
-                      </span>
-
-                      <div
-                        className={`relative z-10 flex flex-col mb-4 ${
-                          isEven ? "md:items-start" : "md:items-end"
-                        }`}
-                      >
-                        <span className="text-[#D8C97B] font-bold text-3xl mb-1 drop-shadow-md font-noto">
-                          {item.year}
-                        </span>
-                        <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-wide group-hover:text-[#D8C97B] transition-colors">
-                          {item.title}
-                        </h3>
-                      </div>
-
-                      <p className="relative z-10 text-gray-400 text-sm md:text-base leading-relaxed">
-                        {item.desc}
-                      </p>
-
-                      <div
-                        className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-[#1a1a1a] border-t border-r border-white/10 rotate-45 transition-colors group-hover:border-[#D8C97B]
-                            ${
-                              isEven
-                                ? "-left-[9px] border-r-0 border-t-0 border-b border-l"
-                                : "-right-[9px]"
-                            }
-                        `}
-                      ></div>
-                    </motion.div>
-                  </div>
-
-                  <div className="absolute left-6 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-12 h-12 rounded-full border-2 border-[#D8C97B] bg-[#0a0a0a] z-20 shadow-[0_0_20px_rgba(181,166,95,0.5)] group">
-                    <div className="text-[#D8C97B] text-lg">{item.icon}</div>
-                  </div>
-
-                  <div className="flex-1 hidden md:block"></div>
-                </motion.div>
-              );
-            })}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.2 }}
+          className="relative"
+        >
+          {/* LINES */}
+          <div className="hidden lg:block absolute top-6 left-0 right-0 h-0.5 bg-[rgba(255,255,255,0.1)]">
+            <motion.div
+              initial={{ width: "0%" }}
+              whileInView={{ width: "100%" }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="h-full bg-linear-to-r from-[#D8C97B] via-[#F4D03F] to-[#D8C97B] shadow-[0_0_15px_#D8C97B]"
+            ></motion.div>
           </div>
-        </div>
+
+          <div className="block lg:hidden absolute left-[19px] top-0 bottom-0 w-0.5 bg-[rgba(255,255,255,0.1)]">
+            <motion.div
+              initial={{ height: "0%" }}
+              whileInView={{ height: "100%" }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="w-full bg-linear-to-b from-[#D8C97B] via-[#F4D03F] to-[#D8C97B] shadow-[0_0_15px_#D8C97B]"
+            ></motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-4">
+            {TIMELINE_DATA.map((item, index) => (
+              <motion.div
+                key={index}
+                variants={itemVariants}
+                className="relative flex lg:flex-col lg:items-center pl-16 lg:pl-0 group"
+              >
+                {/* ICON */}
+                <div className="absolute lg:relative left-0 lg:left-auto top-0 lg:top-auto z-20">
+                  <div className="flex items-center justify-center w-10 h-10 lg:w-[50px] lg:h-[50px] rounded-full border-2 border-[#D8C97B] bg-[#0a0a0a] shadow-[0_0_15px_rgba(216,201,123,0.4)] group-hover:scale-110 group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300">
+                    <div className="text-[#D8C97B] lg:text-xl text-lg group-hover:text-black transition-colors">
+                      {item.icon}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:mt-5 lg:text-center w-full">
+                  <motion.div
+                    initial={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                    whileHover={{ y: -5, borderColor: "#D8C97B" }}
+                    className="p-5 lg:p-6 rounded-xl bg-[rgba(30,30,30,0.6)] backdrop-blur-sm border border-[rgba(255,255,255,0.08)] transition-all duration-300 shadow-lg"
+                  >
+                    <div className="inline-block px-3 py-1 mb-3 rounded-full bg-[rgba(216,201,123,0.1)] border border-[rgba(216,201,123,0.2)] text-[#D8C97B] text-xs font-bold tracking-wider">
+                      {item.year}
+                    </div>
+
+                    <h3 className="text-lg lg:text-xl font-bold text-white uppercase mb-2 group-hover:text-[#D8C97B] transition-colors">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </motion.div>
+
+                  <div className="hidden lg:block absolute top-5 left-1/2 -translate-x-1/2 w-0.5 h-5 bg-linear-to-b from-[#D8C97B] to-transparent opacity-50"></div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );

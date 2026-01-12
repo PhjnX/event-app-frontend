@@ -23,14 +23,14 @@ const NumberCounter = ({
   suffix: string;
 }) => {
   const ref = React.useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: false, amount: 0.5 }); 
+  const isInView = useInView(ref, { once: false, amount: 0.5 });
   const springValue = useSpring(0, { bounce: 0, duration: 2000 });
 
   React.useEffect(() => {
     if (isInView) {
       springValue.set(value);
     } else {
-      springValue.set(0); 
+      springValue.set(0);
     }
   }, [isInView, value, springValue]);
 
@@ -65,10 +65,12 @@ const ImpactNumbers: React.FC = () => {
           viewport={{ once: false }}
           className="text-center mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold uppercase mb-4">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold uppercase mb-4">
             DẤU ẤN <span className="text-[#D8C97B]">THỰC TẾ</span>
           </h2>
-          <p className="text-gray-400 italic">"Con số không biết nói dối"</p>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Con số không biết nói dối
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">

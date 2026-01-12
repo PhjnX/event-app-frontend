@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion"; 
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import {
   FaArrowLeft,
@@ -26,7 +26,6 @@ import {
 } from "../../../store/slices/eventSlice";
 
 const ITEMS_PER_PAGE = 10;
-
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -72,7 +71,7 @@ export default function ManageRegistrations() {
   const [reason, setReason] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterStatus, setFilterStatus] = useState("ALL"); 
+  const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -83,7 +82,6 @@ export default function ManageRegistrations() {
       dispatch(clearRegistrations());
     };
   }, [eventId, dispatch]);
-
 
   const filteredData = useMemo(() => {
     return registrations.filter((item: any) => {
@@ -111,7 +109,6 @@ export default function ManageRegistrations() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus, searchTerm]);
-
 
   const handleApprove = async (regId: number) => {
     try {
@@ -211,13 +208,13 @@ export default function ManageRegistrations() {
         </div>
 
         <div className="relative w-full md:w-72">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
           <input
             type="text"
             placeholder="Tìm tên, email, mã vé..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-[#B5A65F] focus:outline-none transition-colors placeholder-gray-600"
+            className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-[#B5A65F] focus:outline-none transition-colors placeholder-gray-600 focus:ring-1 focus:ring-[#B5A65F]"
           />
         </div>
       </div>
@@ -284,7 +281,7 @@ export default function ManageRegistrations() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       key={item.id}
-                      className="group hover:bg-white/2 transition-colors"
+                      className="group hover:bg-white/5 transition-colors"
                     >
                       {/* Column: User */}
                       <td className="px-6 py-4">
@@ -371,10 +368,9 @@ export default function ManageRegistrations() {
                         <StatusBadge status={item.status} />
                       </td>
 
-                      
                       <td className="px-6 py-4 text-right">
                         {item.status === "PENDING" ? (
-                          <div className="flex justify-end gap-2 opacity-100 group-hover:opacity-100 transition-opacity">
+                          <div className="flex justify-end gap-2 opacity-100 transition-opacity">
                             <button
                               onClick={() => handleApprove(item.id)}
                               className="w-8 h-8 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white border border-green-500/30 flex items-center justify-center transition-all shadow-lg hover:shadow-green-500/20"
@@ -404,7 +400,6 @@ export default function ManageRegistrations() {
           </table>
         </div>
 
-        
         {!isLoading && filteredData.length > 0 && (
           <div className="px-6 py-4 border-t border-white/5 bg-[#1a1a1a] flex justify-between items-center">
             <span className="text-xs text-gray-500">
@@ -448,11 +443,9 @@ export default function ManageRegistrations() {
         )}
       </div>
 
-     
       <AnimatePresence>
         {isRejectModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -460,13 +453,11 @@ export default function ManageRegistrations() {
               onClick={() => setIsRejectModalOpen(false)}
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
-
-          
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
+              className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-white">Từ chối vé</h3>

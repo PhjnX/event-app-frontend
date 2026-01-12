@@ -17,11 +17,14 @@ import {
   FaStar,
   FaBolt,
   FaExclamationCircle,
-  FaUsers, 
+  FaUsers,
+  FaFileExcel,
+  FaSpinner,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton, Tooltip } from "antd";
+import * as XLSX from "xlsx";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -30,7 +33,7 @@ import {
   deleteEvent,
   approveEvent,
   rejectEvent,
-  updateEvent,
+  submitEventForApproval, // <--- IMPORT MỚI
   fetchFeaturedEvents,
   fetchSelectedEvents,
   updateFeaturedEvents,
@@ -38,6 +41,7 @@ import {
 } from "../../../store/slices/eventSlice";
 import { ROLES } from "@/constants";
 import ConfirmModal from "./../_components/ConfirmModal";
+import apiService from "../../../services/apiService";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -53,6 +57,8 @@ export default function ManageEvents() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: "DELETE" | "APPROVE" | "REJECT" | "SEND" | null;
@@ -81,6 +87,7 @@ export default function ManageEvents() {
 
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
+      // SADMIN không thấy DRAFT
       if (isSAdmin && event.status === "DRAFT") return false;
 
       if (activeTab === "ALL") return true;
@@ -118,6 +125,110 @@ export default function ManageEvents() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedData, currentPage]);
+
+  const handleExportExcel = async () => {
+    if (filteredAndSortedData.length === 0) {
+      toast.warn("Không có dữ liệu để xuất!");
+      return;
+    }
+
+    setIsExporting(true);
+    toast.info("Đang lấy dữ liệu hoạt động, vui lòng chờ...");
+
+    try {
+      const exportData: any[] = [];
+      const promises = filteredAndSortedData.map(async (event) => {
+        try {
+          const activities = await apiService.get<any[]>(
+            `/activities/by-event/${event.eventId}`
+          );
+          return {
+            ...event,
+            fetchedActivities: Array.isArray(activities) ? activities : [],
+          };
+        } catch (error) {
+          console.error(`Lỗi lấy activity cho event ${event.eventId}`, error);
+          return { ...event, fetchedActivities: [] };
+        }
+      });
+
+      const eventsWithActivities = await Promise.all(promises);
+
+      eventsWithActivities.forEach((event: any) => {
+        const basicInfo = {
+          "ID Sự kiện": event.eventId,
+          "Tên sự kiện": event.eventName,
+          "Tổ chức bởi": event.organizerName || "N/A",
+          "Địa điểm": event.location,
+          "Bắt đầu": new Date(event.startDate).toLocaleString("vi-VN"),
+          "Kết thúc": new Date(event.endDate).toLocaleString("vi-VN"),
+          "Trạng thái": event.status,
+          "Quyền riêng tư": event.visibility,
+          "Đã xóa?": event.isDeleted ? "Có" : "Không",
+        };
+
+        const activities = event.fetchedActivities;
+
+        if (activities && activities.length > 0) {
+          activities.forEach((act: any) => {
+            exportData.push({
+              ...basicInfo,
+              "---": "---",
+              "Tên Hoạt động": act.activityName,
+              "HĐ Bắt đầu": new Date(act.startTime).toLocaleTimeString("vi-VN"),
+              "HĐ Kết thúc": new Date(act.endTime).toLocaleTimeString("vi-VN"),
+              "Địa điểm HĐ": act.roomOrVenue || "Như sự kiện",
+              "Danh mục HĐ": act.category?.categoryName || "Chung",
+            });
+          });
+        } else {
+          exportData.push({
+            ...basicInfo,
+            "---": "",
+            "Tên Hoạt động": "(Không có hoạt động)",
+            "HĐ Bắt đầu": "",
+            "HĐ Kết thúc": "",
+            "Địa điểm HĐ": "",
+            "Danh mục HĐ": "",
+          });
+        }
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách Chi tiết");
+
+      const wscols = [
+        { wch: 10 },
+        { wch: 30 },
+        { wch: 20 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 5 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+      ];
+      worksheet["!cols"] = wscols;
+
+      XLSX.writeFile(
+        workbook,
+        `Events_Activities_List_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+      toast.success("Xuất file thành công!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi khi xuất dữ liệu.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleToggleHero = async (event: any) => {
     if (!isSAdmin) return;
@@ -172,13 +283,10 @@ export default function ManageEvents() {
         toast.success("Đã từ chối!");
         setRejectionReason("");
       } else if (type === "SEND") {
-        await dispatch(
-          updateEvent({
-            slug: data.slug,
-            data: { ...data, status: "PENDING_APPROVAL" },
-          })
-        ).unwrap();
-        toast.success("Đã gửi yêu cầu!");
+        // ===> FIX: GỌI API SUBMIT THAY VÌ UPDATE
+        // data.slug được dùng để gọi api
+        await dispatch(submitEventForApproval(data.slug)).unwrap();
+        toast.success("Đã gửi yêu cầu duyệt sự kiện!");
       }
     } catch (error: any) {
       toast.error(error || "Lỗi");
@@ -263,6 +371,23 @@ export default function ManageEvents() {
         </div>
 
         <div className="flex items-center gap-3 w-full xl:w-auto">
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all font-bold text-sm whitespace-nowrap shadow-lg ${
+              isExporting
+                ? "bg-gray-700 text-gray-400 border-gray-600 cursor-not-allowed"
+                : "bg-green-600/20 text-green-500 border-green-600/30 hover:bg-green-600 hover:text-white shadow-green-900/20 hover:shadow-green-500/30"
+            }`}
+          >
+            {isExporting ? (
+              <FaSpinner className="animate-spin" />
+            ) : (
+              <FaFileExcel />
+            )}
+            {isExporting ? "Đang lấy dữ liệu..." : "Xuất Excel"}
+          </button>
+
           <div className="relative group w-full sm:w-72">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
             <input
@@ -338,7 +463,6 @@ export default function ManageEvents() {
                       : "border-white/5 hover:border-[#B5A65F]/30"
                   }`}
                 >
-              
                   <div className="relative h-64 w-full bg-black">
                     <img
                       src={event.bannerImageUrl}
@@ -382,7 +506,6 @@ export default function ManageEvents() {
                     )}
                   </div>
 
-            
                   <div className="flex-1 px-8 pt-2 pb-6 flex flex-col gap-3 relative z-10 -mt-16">
                     <h3
                       className={`text-2xl font-bold line-clamp-2 min-h-16 ${
@@ -418,7 +541,6 @@ export default function ManageEvents() {
                     )}
                   </div>
 
-                  {/* Buttons */}
                   <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex items-center justify-between gap-2">
                     <Link
                       to={`/admin/events/${event.slug}`}
@@ -447,7 +569,6 @@ export default function ManageEvents() {
                         )}
                       {!isSAdmin && !isExpired && (
                         <>
-                     
                           {(event.status === "PUBLISHED" ||
                             event.status === "APPROVED") && (
                             <Tooltip title="Quản lý người tham gia">
@@ -469,9 +590,11 @@ export default function ManageEvents() {
                               >
                                 <FaEdit />
                               </Link>
+                              {/* NÚT GỬI DUYỆT */}
                               <button
                                 onClick={() => openModal("SEND", event)}
                                 className="w-9 h-9 rounded-xl bg-[#B5A65F]/10 text-[#B5A65F] hover:bg-[#B5A65F] hover:text-black flex items-center justify-center"
+                                title="Gửi duyệt"
                               >
                                 <FaPaperPlane />
                               </button>
@@ -497,7 +620,6 @@ export default function ManageEvents() {
         )}
       </div>
 
-   
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
           <button
@@ -569,7 +691,7 @@ export default function ManageEvents() {
             confirmModal.type === "APPROVE"
               ? `Duyệt sự kiện này?`
               : confirmModal.type === "SEND"
-              ? "Gửi yêu cầu duyệt?"
+              ? "Bạn có chắc chắn muốn gửi yêu cầu duyệt sự kiện này?"
               : "Xóa sự kiện này?"
           }
           confirmText="Đồng ý"

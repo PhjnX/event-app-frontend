@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* --- Keyframes cũ của bạn --- */
+  --color-primary-gold: #b5a65f;
+  --color-primary-gold-low: rgba(181, 166, 95, 0.1);
+  --color-primary-gold-transparent: rgba(181, 166, 95, 0);
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -12,41 +15,39 @@
       transform: translateY(0);
     }
   }
+
   @keyframes shine {
     100% {
       left: 125%;
     }
   }
 
-  /* --- Keyframes mới cho Magic UI --- */
   @keyframes border-beam {
     100% {
       offset-distance: 100%;
     }
   }
+
   @keyframes shimmer {
     0%,
     90%,
     100% {
-      box-shadow: 0 0 0 transparent;
+      box-shadow: 0 0 0 rgba(181, 166, 95, 0);
     }
     50% {
       box-shadow: 0 0 20px var(--shimmer-color);
     }
   }
 
-  /* --- Animation Utilities --- */
   --animate-fade-in-up: fadeInUp 0.8s ease-out forwards;
   --animate-shine-infinite: shine 5s infinite linear;
   --animate-shine-fast: shine 0.7s forwards ease-in-out;
 
-  /* Magic UI Animations */
   --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
   --animate-shimmer: shimmer 2s linear infinite;
 }
 
 @layer utilities {
-  /* Các patterns xịn xò của bạn */
   .bg-stars-pattern {
     background-color: #0a0a0a;
     background-image: radial-gradient(
@@ -63,29 +64,32 @@
     background-color: #0a0a0a;
     background-image: radial-gradient(
       rgba(255, 255, 255, 0.15) 1px,
-      transparent 1px
+      rgba(0, 0, 0, 0) 1px
     );
     background-size: 30px 30px;
     mask-image: linear-gradient(
       to bottom,
-      transparent,
+      rgba(0, 0, 0, 0),
       black 15%,
       black 85%,
-      transparent
+      rgba(0, 0, 0, 0)
     );
   }
   .bg-grid-pattern {
     background-color: #09090b;
     background-image: linear-gradient(
         rgba(255, 255, 255, 0.03) 1px,
-        transparent 1px
+        rgba(0, 0, 0, 0) 1px
       ),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.03) 1px,
+        rgba(0, 0, 0, 0) 1px
+      );
     background-size: 50px 50px;
   }
 }
 
-/* Tối ưu mobile và Scrollbar (Giữ nguyên code của bạn) */
 @media (max-width: 768px) {
   .backdrop-blur-xl,
   .backdrop-blur-lg,
@@ -120,6 +124,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #b5a65f;
 }
+/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: #333 transparent;

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
 import type { Organizer } from "../../models/organizer";
+import { logoutUser } from "./auth";
 
 interface OrganizerState {
   data: Organizer[];
@@ -22,8 +23,10 @@ export const registerOrganizer = createAsyncThunk(
       const response = await apiService.post("/organizers", data);
       return response;
     } catch (error: any) {
-      toast.error(error.message || "Đăng ký thất bại");
-      return rejectWithValue(error.message);
+      const message =
+        error.response?.data?.message || error.message || "Đăng ký thất bại";
+      toast.error(message);
+      return rejectWithValue(message);
     }
   }
 );
@@ -54,12 +57,31 @@ export const approveOrganizer = createAsyncThunk(
   }
 );
 
+export const rejectOrganizer = createAsyncThunk(
+  "organizers/reject",
+  async (
+    { organizerId, reason }: { organizerId: number; reason: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      await apiService.put(`/organizers/${organizerId}/reject`, null, {
+        params: { reason },
+      });
+      toast.success("Đã từ chối và gửi email lý do cho người dùng!");
+      return organizerId;
+    } catch (error: any) {
+      toast.error("Lỗi khi từ chối hồ sơ");
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const deleteOrganizer = createAsyncThunk(
   "organizers/delete",
   async (slug: string, { rejectWithValue }) => {
     try {
       await apiService.delete(`/organizers/${slug}`);
-      toast.success("Đã xóa tổ chức");
+      toast.success("Đã xóa/vô hiệu hóa tổ chức");
       return slug;
     } catch (error: any) {
       toast.error("Không thể xóa tổ chức này");
@@ -98,8 +120,18 @@ const organizerSlice = createSlice({
         if (org) org.approved = true;
       })
 
+      .addCase(rejectOrganizer.fulfilled, (state, action: any) => {
+        state.data = state.data.filter((o) => o.organizerId !== action.payload);
+      })
+
       .addCase(deleteOrganizer.fulfilled, (state, action: any) => {
         state.data = state.data.filter((o) => o.slug !== action.payload);
+      })
+
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.data = [];
+        state.isLoading = false;
+        state.error = null;
       });
   },
 });

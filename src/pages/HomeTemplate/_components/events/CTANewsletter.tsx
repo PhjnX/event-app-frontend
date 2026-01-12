@@ -4,7 +4,6 @@ export default function CTANewsletter() {
   return (
     <div className="container mx-auto px-4 mb-20">
       <section className="relative rounded-[2.5rem] overflow-hidden p-10 md:p-20 text-center border border-[#B5A65F]/20 shadow-[0_0_80px_-20px_rgba(181,166,95,0.15)] group">
-        {/* Animated Background */}
         <div className="absolute inset-0 bg-linear-to-br from-[#1a1a1a] via-[#0f0f0f] to-[#050505] z-0"></div>
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#B5A65F] opacity-10 rounded-full blur-[100px] group-hover:opacity-20 transition-opacity duration-700"></div>
         <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-500 opacity-5 rounded-full blur-[100px]"></div>

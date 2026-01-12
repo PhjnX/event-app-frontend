@@ -6,10 +6,11 @@ import {
   FaUser,
   FaSignOutAlt,
   FaChevronDown,
-  FaArrowUp, 
-  FaTachometerAlt, 
-  FaBuilding, 
-  FaLock, 
+  FaTachometerAlt,
+  FaBuilding,
+  FaLock,
+  FaTicketAlt,
+  FaPaperPlane,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "../../../../../assets/images/Logo_EMS.png";
@@ -23,18 +24,17 @@ import { ROLES } from "@/constants";
 import LoginModal from "../../modals/LoginModal";
 import RegisterModal from "../../modals/RegisterModal";
 import ForgotPasswordModal from "../../modals/ForgotPasswordModal";
-import RegisterOrganizerModal from "../../modals/RegisterOrganizerModal";
-import ChangePasswordModal from "../../modals/ChangePasswordModal"; 
+import ChangePasswordModal from "../../modals/ChangePasswordModal";
+
+import OrganizerRegModal from "../OrganizerRegModal";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
-  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false); 
+  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +57,6 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      setShowBackToTop(window.scrollY > 400);
     };
     window.addEventListener("scroll", handleScroll);
 
@@ -76,10 +75,6 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const openLogin = () => {
     setModalType("LOGIN");
@@ -114,9 +109,9 @@ export default function Header() {
   return (
     <>
       <nav
-        className={`font-noto fixed w-full z-50 top-0 start-0 transition-all duration-500 ${
+        className={`font-noto fixed w-full z-50 top-0 start-0 transition-all duration-500 selection:bg-[rgba(216,201,123,0.3)] ${
           isScrolled
-            ? "bg-black/none shadow-md py-3 backdrop-blur-md"
+            ? "bg-[#0a0a0a]/90 shadow-md py-3 backdrop-blur-md"
             : "bg-transparent py-5"
         }`}
       >
@@ -179,19 +174,24 @@ export default function Header() {
             </ul>
           </div>
 
-          <div className="hidden lg:flex items-center gap-4 lg:order-2">
+          <div className="hidden lg:flex items-center gap-5 lg:order-2">
             {!isAuthenticated ? (
               <>
-                <Link
-                  to="/#contact"
-                  className="px-5 py-2.5 rounded-full border border-[#D8C97B] text-[#D8C97B] font-bold text-sm transition-all duration-300 hover:bg-[#D8C97B] hover:text-black cursor-pointer"
+                <button
+                  onClick={() => setIsOrgModalOpen(true)}
+                  className="group relative px-7 py-2.5 rounded-full overflow-hidden bg-linear-to-r from-[#D8C97B] to-[#F0E6A1] text-black font-extrabold text-sm shadow-[0_0_20px_rgba(216,201,123,0.4)] transition-all duration-300 hover:shadow-[0_0_35px_rgba(216,201,123,0.7)] hover:scale-105 active:scale-95"
                 >
-                  Liên hệ
-                </Link>
+                  <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-linear-to-r from-transparent to-white opacity-40 group-hover:animate-shine" />
+
+                  <div className="relative flex items-center gap-2 z-10">
+                    <FaPaperPlane className="text-sm transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-1" />
+                    <span className="tracking-wide">Liên hệ</span>
+                  </div>
+                </button>
 
                 <button
                   onClick={openLogin}
-                  className="px-6 py-2.5 rounded-full bg-[#D8C97B] text-black font-bold text-sm shadow-[0_0_15px_-3px_rgba(181,166,95,0.4)] transition-all duration-300 hover:bg-[#dac873] hover:shadow-[0_0_20px_-3px_rgba(181,166,95,0.6)] hover:-translate-y-0.5 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full border border-[#D8C97B] text-[#D8C97B] font-bold text-sm transition-all duration-300 hover:bg-[#D8C97B]/10 hover:text-white cursor-pointer"
                 >
                   Đăng nhập
                 </button>
@@ -221,18 +221,18 @@ export default function Header() {
                     )}
                   </div>
 
-                  <div className="hidden xl:flex flex-col items-start">
-                    <span className="text-white text-xs font-medium max-w-[100px] truncate">
+                  <div className="hidden xl:flex flex-col items-start text-left">
+                    <span className="text-white text-xs font-medium max-w-[100px] truncate group-hover:text-[#D8C97B] transition-colors">
                       {user?.username || "User"}
                     </span>
-                    <span className="text-[10px] text-[#D8C97B]">
+                    <span className="text-[10px] text-[#D8C97B]/80">
                       {user?.role === ROLES.ORGANIZER
                         ? "Nhà Tổ Chức"
                         : "Thành viên"}
                     </span>
                   </div>
                   <FaChevronDown
-                    className={`text-white text-xs transition-transform duration-300 ${
+                    className={`text-white text-xs transition-transform duration-300 group-hover:text-[#D8C97B] ${
                       isUserMenuOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -245,9 +245,9 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-3 w-64 bg-[#1a1a1a] border border-[#D8C97B]/30 rounded-xl shadow-xl overflow-hidden z-50"
+                      className="absolute right-0 mt-4 w-64 bg-[#1a1a1a] border border-[rgba(216,201,123,0.3)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden z-50"
                     >
-                      <div className="px-4 py-3 border-b border-white/10">
+                      <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] bg-white/2">
                         <p className="text-sm text-white font-bold truncate">
                           {user?.username}
                         </p>
@@ -261,45 +261,49 @@ export default function Header() {
                           <Link
                             to="/admin/dashboard"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[#D8C97B]/10 font-bold transition-colors border-b border-white/5"
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] font-bold transition-colors border-b border-[rgba(255,255,255,0.05)]"
                           >
                             <FaTachometerAlt /> Trang quản lý
                           </Link>
                         )}
-
                         {user?.role !== ROLES.ORGANIZER && (
                           <button
                             onClick={() => {
                               setIsUserMenuOpen(false);
                               setIsOrgModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-400/10 transition-colors text-left border-b border-white/5"
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] transition-colors text-left border-b border-[rgba(255,255,255,0.05)] font-bold"
                           >
-                            <FaBuilding /> Đăng ký làm Nhà tổ chức
+                            <FaBuilding /> Đăng ký Đối tác
                           </button>
                         )}
-
+                        <Link
+                          to="/my-tickets"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
+                        >
+                          <FaTicketAlt /> Vé của tôi
+                        </Link>
                         <Link
                           to="/profile"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#D8C97B]/10 hover:text-[#D8C97B] transition-colors"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
                         >
                           <FaUser /> Thông tin cá nhân
                         </Link>
-
                         <button
                           onClick={() => {
                             setIsUserMenuOpen(false);
                             setIsChangePassModalOpen(true);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#D8C97B]/10 hover:text-[#D8C97B] transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors text-left"
                         >
                           <FaLock /> Đổi mật khẩu
                         </button>
-
+                        <div className="my-1 border-t border-white/5 mx-2"></div>
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-[rgba(239,68,68,0.1)] hover:text-red-500 transition-colors text-left"
                         >
                           <FaSignOutAlt /> Đăng xuất
                         </button>
@@ -312,18 +316,17 @@ export default function Header() {
           </div>
         </div>
 
-        {/* MOBILE MENU */}
         <div
-          className={`lg:hidden bg-black/95 backdrop-blur-xl absolute top-full left-0 w-full overflow-hidden transition-all duration-300 ease-in-out border-t border-white/10 ${
+          className={`lg:hidden bg-[#0a0a0a]/95 backdrop-blur-xl absolute top-full left-0 w-full overflow-hidden transition-all duration-300 ease-in-out border-t border-[rgba(255,255,255,0.1)] ${
             isMobileMenuOpen
-              ? "max-h-screen py-6 opacity-100"
+              ? "max-h-screen py-8 opacity-100 shadow-2xl"
               : "max-h-0 opacity-0"
           }`}
         >
           <ul className="flex flex-col items-center gap-6 text-white text-lg">
             {isAuthenticated && (
-              <div className="flex flex-col items-center gap-2 mb-2">
-                <div className="w-16 h-16 rounded-full bg-[#D8C97B] flex items-center justify-center text-black font-bold text-2xl overflow-hidden border-2 border-[#D8C97B]">
+              <div className="flex flex-col items-center gap-2 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="w-20 h-20 rounded-full bg-[#D8C97B] flex items-center justify-center text-black font-bold text-3xl overflow-hidden border-2 border-[#D8C97B] shadow-lg">
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -334,73 +337,53 @@ export default function Header() {
                     <span>{userInitial}</span>
                   )}
                 </div>
-                <span className="font-bold text-[#D8C97B]">
+                <span className="font-bold text-[#D8C97B] text-xl">
                   {user?.username}
                 </span>
               </div>
             )}
 
-            <li>
-              <NavLink
-                to="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#D8C97B]"
-              >
-                Trang Chủ
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/about"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#D8C97B]"
-              >
-                Về Chúng Tôi
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/value"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#D8C97B]"
-              >
-                Giá Trị
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/events"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#D8C97B]"
-              >
-                Sự Kiện
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/news"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#D8C97B]"
-              >
-                Tin Tức
-              </NavLink>
-            </li>
+            {["Trang Chủ", "Về Chúng Tôi", "Giá Trị", "Sự Kiện", "Tin Tức"].map(
+              (item, index) => {
+                const paths = ["/", "/about", "/value", "/events", "/news"];
+                return (
+                  <li key={index} className="w-full text-center">
+                    <NavLink
+                      to={paths[index]}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `block py-2 text-lg font-medium transition-colors ${
+                          isActive
+                            ? "text-[#D8C97B]"
+                            : "text-white hover:text-[#D8C97B]"
+                        }`
+                      }
+                    >
+                      {item}
+                    </NavLink>
+                  </li>
+                );
+              }
+            )}
 
-            <div className="w-full h-px bg-white/10 my-2"></div>
+            <div className="w-3/4 h-px bg-linear-to-r from-transparent via-white/10 to-transparent my-2"></div>
 
-            <div className="flex flex-col gap-4 w-full px-10">
+            <div className="flex flex-col gap-4 w-full px-8">
               {!isAuthenticated ? (
                 <>
-                  <Link
-                    to="/#contact"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-lg font-bold cursor-pointer"
+                  {/* BUTTON MOBILE CŨNG STYLE LẠI LUÔN */}
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsOrgModalOpen(true);
+                    }}
+                    className="w-full py-3 rounded-xl bg-linear-to-r from-[#D8C97B] to-[#F0E6A1] text-black font-extrabold uppercase tracking-wide flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(216,201,123,0.5)] transition-all"
                   >
-                    Liên hệ
-                  </Link>
+                    <FaPaperPlane /> Liên hệ Hợp tác
+                  </button>
                   <button
                     onClick={openLogin}
-                    className="w-full text-center py-3 bg-[#D8C97B] text-black rounded-lg font-bold cursor-pointer"
+                    className="w-full py-3 border border-[#D8C97B] text-[#D8C97B] rounded-xl font-bold uppercase tracking-wide hover:bg-[#D8C97B]/10 transition-all"
                   >
                     Đăng nhập
                   </button>
@@ -411,9 +394,9 @@ export default function Header() {
                     <Link
                       to="/admin/dashboard"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-lg font-bold"
+                      className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-xl font-bold hover:bg-[#D8C97B] hover:text-black transition-all"
                     >
-                      Trang quản lý
+                      <FaTachometerAlt className="inline mr-2" /> Trang quản lý
                     </Link>
                   )}
                   {user?.role !== ROLES.ORGANIZER && (
@@ -422,33 +405,37 @@ export default function Header() {
                         setIsMobileMenuOpen(false);
                         setIsOrgModalOpen(true);
                       }}
-                      className="w-full text-center py-3 border border-yellow-500 text-yellow-500 rounded-lg font-bold"
+                      className="w-full text-center py-3 border border-[#D8C97B] text-[#D8C97B] rounded-xl font-bold hover:bg-[#D8C97B] hover:text-black transition-all"
                     >
-                      Đăng ký Đối tác
+                      <FaBuilding className="inline mr-2" /> Đăng ký Đối tác
                     </button>
                   )}
-
+                  <Link
+                    to="/my-tickets"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-3 border border-[rgba(255,255,255,0.1)] bg-white/5 text-white rounded-xl font-medium"
+                  >
+                    Vé của tôi
+                  </Link>
                   <Link
                     to="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-3 border border-white/20 text-white rounded-lg font-medium cursor-pointer hover:border-[#D8C97B] hover:text-[#D8C97B]"
+                    className="w-full text-center py-3 border border-[rgba(255,255,255,0.1)] bg-white/5 text-white rounded-xl font-medium"
                   >
                     Thông tin cá nhân
                   </Link>
-
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setIsChangePassModalOpen(true);
                     }}
-                    className="w-full text-center py-3 border border-white/20 text-white rounded-lg font-medium cursor-pointer hover:border-[#D8C97B] hover:text-[#D8C97B]"
+                    className="w-full text-center py-3 border border-[rgba(255,255,255,0.1)] bg-white/5 text-white rounded-xl font-medium"
                   >
                     Đổi mật khẩu
                   </button>
-
                   <button
                     onClick={handleLogout}
-                    className="w-full text-center py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg font-bold cursor-pointer hover:bg-red-500 hover:text-white"
+                    className="w-full text-center py-3 bg-[rgba(239,68,68,0.1)] text-red-500 border border-[rgba(239,68,68,0.2)] rounded-xl font-bold"
                   >
                     Đăng xuất
                   </button>
@@ -459,41 +446,24 @@ export default function Header() {
         </div>
       </nav>
 
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-3 bg-[#D8C97B] text-black rounded-full shadow-[0_0_15px_rgba(216,201,123,0.5)] hover:bg-white hover:scale-110 transition-all duration-300 group"
-            title="Lên đầu trang"
-          >
-            <FaArrowUp className="text-xl group-hover:text-black transition-colors" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       <LoginModal
         isOpen={modalType === "LOGIN"}
         onClose={() => setModalType(null)}
         onSwitchToRegister={() => setModalType("REGISTER")}
         onSwitchToForgot={() => setModalType("FORGOT")}
       />
-
       <RegisterModal
         isOpen={modalType === "REGISTER"}
         onClose={() => setModalType(null)}
         onSwitchToLogin={() => setModalType("LOGIN")}
       />
-
       <ForgotPasswordModal
         isOpen={modalType === "FORGOT"}
         onClose={() => setModalType(null)}
         onSwitchToLogin={() => setModalType("LOGIN")}
       />
 
-      <RegisterOrganizerModal
+      <OrganizerRegModal
         isOpen={isOrgModalOpen}
         onClose={() => setIsOrgModalOpen(false)}
       />

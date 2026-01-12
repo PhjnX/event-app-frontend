@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
 import type { Activity, ActivityCategory } from "../../models/activity";
+import { logoutUser } from "./auth"; 
 
 interface ActivityState {
   data: Activity[];
@@ -16,7 +17,6 @@ const initialState: ActivityState = {
   isLoading: false,
   error: null,
 };
-
 
 export const fetchActivitiesByEvent = createAsyncThunk(
   "activities/fetchByEvent",
@@ -45,7 +45,6 @@ export const fetchActivityCategories = createAsyncThunk(
     }
   }
 );
-
 
 export const createActivity = createAsyncThunk(
   "activities/create",
@@ -137,6 +136,13 @@ const activitySlice = createSlice({
 
       .addCase(deleteActivity.fulfilled, (state, action) => {
         state.data = state.data.filter((a) => a.activityId !== action.payload);
+      })
+
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.data = [];
+        state.categories = [];
+        state.isLoading = false;
+        state.error = null;
       });
   },
 });

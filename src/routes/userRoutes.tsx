@@ -13,6 +13,15 @@ const ProfilePage = React.lazy(
 const PublicEventDetail = React.lazy(
   () => import("../pages/HomeTemplate/EventPage/PublicEventDetail")
 );
+const MyRegistrationsPage = React.lazy(
+  () => import("../pages/HomeTemplate/EventPage/MyRegistrationsPage")
+);
+const EventMomentsPage = React.lazy(
+  () => import("../pages/HomeTemplate/EventPage/EventMomentsPage")
+);
+const NewsDetail = React.lazy(
+  () => import("../pages/HomeTemplate/NewsPage/NewsDetail")
+);
 
 const userRoutes: RouteObject = {
   path: "/",
@@ -23,6 +32,10 @@ const userRoutes: RouteObject = {
     { path: "value", element: <ValuePage /> },
     { path: "events", element: <EventPage /> },
     { path: "news", element: <NewsPage /> },
+    {
+      path: "news/:slug",
+      element: <NewsDetail />,
+    },
 
     {
       path: "event/:slug",
@@ -30,7 +43,11 @@ const userRoutes: RouteObject = {
     },
     {
       element: <ProtectedRoute />,
-      children: [{ path: "profile", element: <ProfilePage /> }],
+      children: [
+        { path: "profile", element: <ProfilePage /> },
+        { path: "my-tickets", element: <MyRegistrationsPage /> },
+        { path: "event/:eventSlug/moments", element: <EventMomentsPage /> },
+      ],
     },
   ],
 };

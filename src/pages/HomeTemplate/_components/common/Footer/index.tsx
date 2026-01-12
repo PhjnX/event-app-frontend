@@ -108,9 +108,11 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#0a0a0a]">
+    <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)]">
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[#0a0a0a]"></div>
+
+        {/* Circuit Pattern SVG */}
         <div className="absolute inset-0 opacity-10">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <pattern
@@ -123,15 +125,15 @@ export default function Footer() {
             >
               <path
                 d="M10,10 L90,10 M10,10 L10,90"
-                stroke="white"
+                stroke="rgba(255,255,255,0.5)"
                 strokeWidth="1"
                 fill="none"
               />
-              <circle cx="10" cy="10" r="2" fill="white" />
-              <circle cx="90" cy="90" r="2" fill="white" />
+              <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.5)" />
+              <circle cx="90" cy="90" r="2" fill="rgba(255,255,255,0.5)" />
               <path
                 d="M50,50 L90,50 M50,50 L50,90"
-                stroke="white"
+                stroke="rgba(255,255,255,0.5)"
                 strokeWidth="1"
                 fill="none"
               />
@@ -139,16 +141,18 @@ export default function Footer() {
             <rect width="100%" height="100%" fill="url(#footer-circuit)" />
           </svg>
         </div>
-        <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-[#0a0a0a] to-transparent z-10"></div>
+
+        <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-[#0a0a0a] to-[rgba(10,10,10,0)] z-10"></div>
+
         <motion.div
-          animate={{ opacity: [0.05, 0.1, 0.05] }}
+          animate={{ opacity: [0.05, 0.12, 0.05] }}
           transition={{ duration: 5, repeat: Infinity }}
-          className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D8C97B] rounded-full blur-[150px] opacity-5 translate-y-[-50%]"
+          className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.1)] rounded-full blur-[150px] translate-y-[-50%]"
         />
         <motion.div
-          animate={{ opacity: [0.05, 0.1, 0.05] }}
+          animate={{ opacity: [0.05, 0.15, 0.05] }}
           transition={{ duration: 7, repeat: Infinity }}
-          className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-900 rounded-full blur-[150px] opacity-10"
+          className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[rgba(30,58,138,0.2)] rounded-full blur-[150px]"
         />
       </div>
 
@@ -181,7 +185,7 @@ export default function Footer() {
                   target="_blank"
                   key={social.id}
                   href={social.url}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
                 >
                   <span className="text-sm">{social.icon}</span>
                 </a>
@@ -195,13 +199,13 @@ export default function Footer() {
               className="flex flex-col"
               variants={itemVariants}
             >
-              <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[#D8C97B]/30 pb-2 w-fit">
+              <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[rgba(216,201,123,0.3)] pb-2 w-fit">
                 {section.title}
               </h3>
 
               <button
                 onClick={() => toggleSection(section.id)}
-                className="lg:hidden w-full flex items-center justify-between py-3 border-b border-white/10 text-left bg-transparent"
+                className="lg:hidden w-full flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)] text-left bg-transparent"
                 type="button"
               >
                 <h3 className="text-[15px] font-bold uppercase tracking-wider text-white m-0">
@@ -239,7 +243,7 @@ export default function Footer() {
         </motion.div>
 
         <motion.div
-          className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left relative z-20"
+          className="border-t border-[rgba(255,255,255,0.1)] pt-8 flex flex-col md:flex-row justify-between items-center gap-5 text-center md:text-left relative z-20"
           variants={itemVariants}
         >
           <p className="text-gray-500 text-xs m-0 font-light">
@@ -248,24 +252,17 @@ export default function Footer() {
             All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-xs font-light">
-            <a
-              href="#"
-              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
-            >
-              Chính Sách Bảo Mật
-            </a>
-            <a
-              href="#"
-              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
-            >
-              Điều Khoản Sử Dụng
-            </a>
-            <a
-              href="#"
-              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
-            >
-              Cookies
-            </a>
+            {["Chính Sách Bảo Mật", "Điều Khoản Sử Dụng", "Cookies"].map(
+              (text) => (
+                <a
+                  key={text}
+                  href="#"
+                  className="text-gray-500 hover:text-[#D8C97B] transition-colors"
+                >
+                  {text}
+                </a>
+              )
+            )}
           </div>
         </motion.div>
       </div>

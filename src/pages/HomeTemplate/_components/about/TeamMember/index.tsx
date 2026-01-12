@@ -11,6 +11,7 @@ import {
 import CEO from "@/assets/images/CEO.jpg";
 import CTO1 from "@/assets/images/CTO_1.png";
 import CTO2 from "@/assets/images/CTO_2.png";
+
 interface TeamMember {
   id: number;
   name: string;
@@ -53,7 +54,7 @@ const scrollRevealVariants: Variants = {
     opacity: 0,
     y: 100,
     scale: 0.9,
-    filter: "blur(10px)", 
+    filter: "blur(10px)",
   },
   visible: {
     opacity: 1,
@@ -62,7 +63,7 @@ const scrollRevealVariants: Variants = {
     filter: "blur(0px)",
     transition: {
       duration: 0.8,
-      ease: [0.25, 0.1, 0.25, 1], 
+      ease: [0.25, 0.1, 0.25, 1],
     },
   },
 };
@@ -76,7 +77,7 @@ const TeamSection: React.FC = () => {
       handleNext();
     }, 8000);
     return () => clearInterval(timer);
-  }, [currentIndex]); 
+  }, [currentIndex]);
 
   const handleNext = () => {
     setDirection(1);
@@ -118,12 +119,13 @@ const TeamSection: React.FC = () => {
   };
 
   return (
-    <section className="relative py-24 md:py-32 bg-[#0a0a0a] overflow-hidden font-noto text-white border-t border-white/5">
+    <section className="relative py-24 md:py-32 bg-[#0a0a0a] overflow-hidden font-noto text-white border-t border-[rgba(255,255,255,0.05)] selection:bg-[rgba(216,201,123,0.3)]">
+      {/* 1. BACKGROUND EFFECTS */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#D8C97B]/5 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3"
+          className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
@@ -133,21 +135,20 @@ const TeamSection: React.FC = () => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#D8C97B]/5 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3"
+          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3"
         />
       </div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-7xl">
+        {/* HEADER */}
         <motion.div
           variants={scrollRevealVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.5 }} 
-          className="text-center mb-16 md:mb-24"
+          viewport={{ once: false, amount: 0.5 }}
+          // FIX: Thêm relative
+          className="relative text-center mb-16 md:mb-24"
         >
-          <span className="text-[#D8C97B] text-sm tracking-[0.3em] uppercase font-bold border-b border-[#D8C97B] pb-1 inline-block mb-6">
-            Ban Lãnh Đạo
-          </span>
           <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-4 tracking-tight">
             NHỮNG NGƯỜI{" "}
             <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#E5D588]">
@@ -159,11 +160,12 @@ const TeamSection: React.FC = () => {
           </p>
         </motion.div>
 
+        {/* MAIN CAROUSEL SECTION */}
         <motion.div
           variants={scrollRevealVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.2 }} 
+          viewport={{ once: false, amount: 0.2 }}
           className="relative"
         >
           <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -174,11 +176,13 @@ const TeamSection: React.FC = () => {
               initial="enter"
               animate="center"
               exit="exit"
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[600px]"
+              // FIX QUAN TRỌNG: Thêm "relative" vào đây vì thẻ này dùng AnimatePresence
+              className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[600px]"
             >
+              {/* LEFT: IMAGE & SOCIALS */}
               <div className="lg:col-span-5 relative group order-2 lg:order-1 ">
-                <div className="absolute top-4 -left-4 w-full h-full border border-[#D8C97B]/30 rounded-br-[40px] z-0 transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2" />
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-[#D8C97B]/10 z-0"></div>
+                <div className="absolute top-4 -left-4 w-full h-full border border-[rgba(216,201,123,0.3)] rounded-br-[40px] z-0 transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2" />
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-[rgba(216,201,123,0.1)] z-0"></div>
 
                 <div className="relative h-[450px] md:h-[550px] w-full rounded-br-[60px] overflow-hidden shadow-2xl z-10">
                   <motion.img
@@ -186,18 +190,18 @@ const TeamSection: React.FC = () => {
                     alt={currentMember.name}
                     className="absolute inset-0 w-full h-full object-cover object-top"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-transparent to-transparent opacity-60"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[rgba(10,10,10,0)] to-[rgba(10,10,10,0)] opacity-60"></div>
 
                   <div className="absolute bottom-0 left-0 p-6 flex gap-3">
                     <a
                       href="#"
-                      className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
+                      className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
                       <FaLinkedinIn />
                     </a>
                     <a
                       href="#"
-                      className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
+                      className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
                       <FaEnvelope />
                     </a>
@@ -205,8 +209,9 @@ const TeamSection: React.FC = () => {
                 </div>
               </div>
 
+              {/* RIGHT: TEXT CONTENT */}
               <div className="lg:col-span-7 relative order-1 lg:order-2 flex flex-col justify-center">
-                <h2 className="absolute -top-10 -left-10 text-8xl md:text-9xl font-black text-white/5 uppercase select-none pointer-events-none whitespace-nowrap z-0">
+                <h2 className="absolute -top-10 -left-10 text-8xl md:text-9xl font-black text-[rgba(255,255,255,0.05)] uppercase select-none pointer-events-none whitespace-nowrap z-0">
                   {currentMember.name.split(" ").pop()}
                 </h2>
 
@@ -229,20 +234,21 @@ const TeamSection: React.FC = () => {
                     </p>
                   </div>
 
-                  <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mb-10 border-l border-white/10 pl-6">
+                  <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mb-10 border-l border-[rgba(255,255,255,0.1)] pl-6 text-justify">
                     {currentMember.desc}
                   </p>
 
-                  <div className="flex items-center justify-between border-t border-white/10 pt-8 mt-4">
+                  <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.1)] pt-8 mt-4">
                     <div className="flex gap-4">
                       {TEAM_MEMBERS.map((member, idx) => (
                         <button
                           key={member.id}
                           onClick={() => handleSelect(idx)}
+                          // FIX: Dùng rgba(216,201,123,0) thay cho border-transparent để tránh lỗi oklab
                           className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${
                             idx === currentIndex
                               ? "border-[#D8C97B] scale-110 shadow-[0_0_15px_rgba(181,166,95,0.4)]"
-                              : "border-transparent opacity-50 hover:opacity-100 hover:border-white/30"
+                              : "border-[rgba(216,201,123,0)] opacity-50 hover:opacity-100 hover:border-[rgba(255,255,255,0.3)]"
                           }`}
                         >
                           <img
@@ -257,13 +263,13 @@ const TeamSection: React.FC = () => {
                     <div className="flex gap-3">
                       <button
                         onClick={handlePrev}
-                        className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
+                        className="w-12 h-12 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
                       >
                         <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
                       </button>
                       <button
                         onClick={handleNext}
-                        className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
+                        className="w-12 h-12 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
                       >
                         <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
                       </button>
@@ -275,6 +281,11 @@ const TeamSection: React.FC = () => {
           </AnimatePresence>
         </motion.div>
       </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+        .font-noto { font-family: 'Noto Serif', serif !important; }
+      `}</style>
     </section>
   );
 };

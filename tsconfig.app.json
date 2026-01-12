@@ -24,9 +24,14 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
+
+    /* --- SỬA Ở ĐÂY: Xóa hoặc để false --- */
+    "erasableSyntaxOnly": false,
+
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* --- KHUYÊN DÙNG: Thêm exclude để tránh check node_modules --- */
+  "exclude": ["node_modules"]
 }

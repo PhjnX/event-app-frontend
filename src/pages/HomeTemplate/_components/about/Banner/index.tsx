@@ -1,51 +1,47 @@
-import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import banner from "../../../../../assets/images/banner.jpg";
 
 const HERO_IMAGE = banner;
 
 const AboutHero = () => {
-  const ref = useRef(null);
+  // CÁCH FIX TRIỆT ĐỂ:
+  // Xóa ref, dùng useScroll toàn cục (Window Scroll).
+  // Không cần quan tâm cha/con có relative hay không nữa.
+  const { scrollY } = useScroll();
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const textScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.9]);
+  // Map 0px (đỉnh) -> 1000px (cuộn xuống)
+  const backgroundY = useTransform(scrollY, [0, 1000], ["0%", "30%"]);
+  const textY = useTransform(scrollY, [0, 1000], ["0%", "100%"]);
+  const textOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const textScale = useTransform(scrollY, [0, 500], [1, 0.9]);
 
   return (
-    <section
-      ref={ref}
-      className="relative h-screen w-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center font-noto selection:bg-[#D8C97B] selection:text-black"
-    >
+    <section className="relative h-screen w-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center font-noto selection:bg-[rgba(216,201,123,0.3)] selection:text-black">
+      {/* 1. BACKGROUND */}
       <motion.div style={{ y: backgroundY }} className="absolute inset-0 z-0">
         <img
           src={HERO_IMAGE}
           alt="Event Manager System Background"
           className="w-full h-full object-cover opacity-80"
         />
-        <div className="absolute inset-0 bg-black/70 z-10" />
-        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/40 z-20" />
+        <div className="absolute inset-0 bg-[rgba(0,0,0,0.7)] z-10" />
+        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[rgba(10,10,10,0)] to-[rgba(10,10,10,0.4)] z-20" />
         <div
           className="absolute inset-0 z-30 opacity-20 pointer-events-none"
           style={{
             backgroundImage:
-              "radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)",
+              "radial-gradient(circle, #ffffff 1.5px, rgba(255,255,255,0) 1.5px)",
             backgroundSize: "40px 40px",
           }}
         ></div>
       </motion.div>
 
+      {/* 2. CONTENT */}
       <div className="relative z-40 container mx-auto px-4 flex flex-col items-center justify-center h-full">
         <motion.div
           style={{ y: textY, opacity: textOpacity, scale: textScale }}
-          className="text-center w-full flex flex-col items-center"
+          className="relative text-center w-full flex flex-col items-center"
         >
-
           <div className="relative flex flex-col items-center justify-center overflow-hidden py-4">
             <div className="overflow-hidden">
               <motion.h1
@@ -90,9 +86,9 @@ const AboutHero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, delay: 1 }}
-            className="mt-10 max-w-2xl text-center px-4"
+            className="relative mt-10 max-w-2xl text-center px-4"
           >
-            <p className="text-gray-400 text-sm md:text-lg font-normal leading-relaxed border-t border-white/10 pt-6">
+            <p className="text-gray-400 text-sm md:text-lg font-normal leading-relaxed border-t border-[rgba(255,255,255,0.1)] pt-6">
               Chúng tôi kiến tạo giải pháp công nghệ toàn diện, giúp tối ưu hóa
               quy trình quản lý cho hệ sinh thái giáo dục và sự kiện tại Việt
               Nam.
@@ -101,6 +97,7 @@ const AboutHero = () => {
         </motion.div>
       </div>
 
+      {/* 3. SCROLL INDICATOR */}
       <motion.div
         style={{ opacity: textOpacity }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-3"
@@ -108,11 +105,11 @@ const AboutHero = () => {
         <span className="text-[10px] uppercase tracking-widest text-white/50 animate-pulse">
           Scroll
         </span>
-        <div className="relative w-px h-16 bg-white/10 overflow-hidden">
+        <div className="relative w-px h-16 bg-[rgba(255,255,255,0.1)] overflow-hidden">
           <motion.div
             animate={{ y: ["-100%", "100%"] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            className="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-transparent via-[#D8C97B] to-transparent"
+            className="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-[rgba(216,201,123,0)] via-[#D8C97B] to-[rgba(216,201,123,0)]"
           ></motion.div>
         </div>
       </motion.div>

@@ -143,26 +143,26 @@ export default function App() {
     <ConfigProvider
       locale={viVN}
       theme={{
-        algorithm: theme.darkAlgorithm, 
+        algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: "#D8C97B", 
-          colorBgBase: "#000000", 
-          colorBgContainer: "#141414", 
-          colorTextBase: "#ffffff", 
-          borderRadius: 8, 
-          fontFamily: "'Inter', sans-serif", 
+          colorPrimary: "#D8C97B",
+          colorBgBase: "#000000",
+          colorBgContainer: "#141414",
+          colorTextBase: "#ffffff",
+          borderRadius: 8,
+          fontFamily: "'Inter', sans-serif",
         },
         components: {
           Card: {
             headerFontSize: 16,
           },
           Table: {
-            headerBg: "#1f1f1f", 
-            headerColor: "#9CA3AF", 
-            rowHoverBg: "#333333", 
+            headerBg: "#1f1f1f",
+            headerColor: "#9CA3AF",
+            rowHoverBg: "#333333",
           },
           Button: {
-            fontWeight: 600, 
+            fontWeight: 600,
           },
         },
       }}

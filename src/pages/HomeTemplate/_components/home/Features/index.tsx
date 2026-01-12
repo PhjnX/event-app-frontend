@@ -16,7 +16,7 @@ const features = [
     description:
       "Quét mã QR Check-in chỉ 01s/người. Xóa bỏ hoàn toàn cảnh xếp hàng ùn tắc tại bàn lễ tân.",
     color: "text-[#D8C97B]",
-    bg: "bg-[#D8C97B]/20",
+    bg: "bg-[rgba(216,201,123,0.2)]",
     animType: "pulse",
   },
   {
@@ -26,7 +26,7 @@ const features = [
     description:
       "Lưu trữ thông tin hàng ngàn khách mời trên một hệ thống duy nhất. Không lo thất lạc dữ liệu.",
     color: "text-blue-400",
-    bg: "bg-blue-400/20",
+    bg: "bg-[rgba(96,165,250,0.2)]",
     animType: "float",
   },
   {
@@ -36,7 +36,7 @@ const features = [
     description:
       "Cập nhật số lượng khách tham gia thực tế ngay tức thì (Real-time) trên biểu đồ trực quan.",
     color: "text-green-400",
-    bg: "bg-green-400/20",
+    bg: "bg-[rgba(74,222,128,0.2)]",
     animType: "spin",
   },
   {
@@ -46,7 +46,7 @@ const features = [
     description:
       "Tự động gửi vé qua Email/App. Mỗi vé là một mã định danh duy nhất, chống vé giả tuyệt đối.",
     color: "text-red-400",
-    bg: "bg-red-400/20",
+    bg: "bg-[rgba(248,113,113,0.2)]",
     animType: "shake",
   },
   {
@@ -56,7 +56,7 @@ const features = [
     description:
       "Tùy biến biểu mẫu đăng ký dễ dàng. Tự động đóng form khi đủ số lượng vé giới hạn.",
     color: "text-purple-400",
-    bg: "bg-purple-400/20",
+    bg: "bg-[rgba(192,132,252,0.2)]",
     animType: "wiggle",
   },
   {
@@ -66,7 +66,7 @@ const features = [
     description:
       "Tính năng độc quyền: Tự động cấp giấy chứng nhận (Certificate) tham gia sau khi sự kiện kết thúc.",
     color: "text-orange-400",
-    bg: "bg-orange-400/20",
+    bg: "bg-[rgba(251,146,60,0.2)]",
     animType: "bounce",
   },
 ];
@@ -121,14 +121,14 @@ const itemVariants: Variants = {
 export default function FeaturesSection() {
   return (
     <section
-      className="relative py-24 text-white font-noto overflow-hidden -mt-10 md:-mt-20 z-30"
+      className="relative py-24 text-white font-noto overflow-hidden -mt-10 md:-mt-20 z-30 selection:bg-[rgba(216,201,123,0.3)]"
       style={{
         backgroundColor: "#0a0a0a",
-        backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.03) 1.5px, transparent 1.5px)`,
+        backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.03) 1.5px, rgba(0, 0, 0, 0) 1.5px)`,
         backgroundSize: "40px 40px",
       }}
     >
-      <div className="absolute top-0 left-0 w-full h-40 bg-linear-to-b from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent z-0 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-full h-40 bg-linear-to-b from-[#0a0a0a] via-[rgba(10,10,10,0.8)] to-[rgba(10,10,10,0)] z-0 pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
@@ -167,20 +167,18 @@ export default function FeaturesSection() {
               key={item.id}
               variants={itemVariants}
               whileHover={{ y: -8 }}
-              className="group relative bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 hover:bg-white/5 transition-colors duration-300 flex flex-col h-full hover:border-[#D8C97B]/30"
+              className="group relative bg-[rgba(10,10,10,0.6)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] rounded-2xl p-6 md:p-8 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-300 flex flex-col h-full hover:border-[rgba(216,201,123,0.3)] shadow-xl"
             >
               <div className="flex items-center justify-between mb-6">
                 <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center ${item.bg} ${item.color} shadow-lg ring-1 ring-white/10`}
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center ${item.bg} ${item.color} shadow-lg ring-1 ring-[rgba(255,255,255,0.1)]`}
                 >
-                  <motion.div
-                    // FIX 4: Gọi biến đã được Typed chính xác, không cần ép kiểu as any nữa
-                    animate={iconVariants[item.animType]}
-                  >
+                  <motion.div animate={iconVariants[item.animType]}>
                     {item.icon}
                   </motion.div>
                 </div>
-                <span className="text-5xl font-black text-white/5 group-hover:text-white/10 transition-colors pointer-events-none select-none">
+                {/* ID Watermark - FIX Warning */}
+                <span className="text-5xl font-black text-[rgba(255,255,255,0.05)] group-hover:text-[rgba(255,255,255,0.1)] transition-colors pointer-events-none select-none font-noto">
                   0{item.id}
                 </span>
               </div>
@@ -192,6 +190,7 @@ export default function FeaturesSection() {
                 {item.description}
               </p>
 
+              {/* Bottom Line Indicator */}
               <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#D8C97B] group-hover:w-full transition-all duration-700 ease-out opacity-0 group-hover:opacity-100"></div>
             </motion.div>
           ))}

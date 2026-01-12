@@ -10,6 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.31.0",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/image": "^2.10.3",
+    "@editorjs/list": "^2.0.9",
+    "@editorjs/quote": "^2.7.6",
     "@google/generative-ai": "^0.24.1",
     "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.11.0",
@@ -32,8 +37,10 @@
     "react-router-dom": "^7.10.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.5.1",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

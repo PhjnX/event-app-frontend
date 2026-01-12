@@ -1,4 +1,4 @@
-import  { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import { fetchSelectedEvents } from "../../../../store/slices/eventSlice";
 
 const ensureUTC = (isoString: string) =>
   isoString && !isoString.endsWith("Z") ? `${isoString}Z` : isoString;
+
 const getEventDate = (isoString: string) => {
   if (!isoString) return { day: "--", month: "---", time: "--:--" };
   const d = new Date(ensureUTC(isoString));
@@ -19,7 +20,7 @@ const getEventDate = (isoString: string) => {
 };
 
 const EventSkeleton = () => (
-  <div className="bg-[#121212] rounded-3xl h-[450px] animate-pulse border border-white/5" />
+  <div className="bg-[#121212] rounded-3xl h-[450px] animate-pulse border border-[rgba(255,255,255,0.05)]" />
 );
 
 export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
@@ -37,16 +38,13 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
   );
 
   return (
-    <section className="container mx-auto px-4 mb-32 font-noto">
+    <section className="container mx-auto px-4 mb-32 font-noto selection:bg-[rgba(216,201,123,0.3)]">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         className="text-center mb-20"
       >
-        <span className="text-[#D8C97B] text-xs font-bold tracking-[0.3em] uppercase border-b border-[#D8C97B] pb-1 mb-4 inline-block">
-          Discover Events
-        </span>
         <h2 className="text-4xl md:text-6xl font-black uppercase text-white tracking-wide mb-2">
           SỰ KIỆN{" "}
           <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
@@ -62,7 +60,7 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
 
       {error && (
         <div className="text-center text-red-400 py-10">
-          Failed to load events.
+          Failed to load events. Vui lòng thử lại sau.
         </div>
       )}
 
@@ -73,7 +71,7 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
           ))}
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-24 bg-[#121212] rounded-3xl border border-dashed border-white/10">
+        <div className="text-center py-24 bg-[#121212] rounded-3xl border border-dashed border-[rgba(255,255,255,0.1)]">
           <FaRegSadTear className="text-5xl mx-auto mb-4 text-gray-700" />
           <p className="text-gray-500 uppercase tracking-widest font-bold">
             Không có sự kiện nào
@@ -96,6 +94,7 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                   to={`/event/${event.slug || event.eventId}`}
                   className="block h-full"
                 >
+                  {/* Banner Image & Overlay */}
                   <div className="absolute inset-0">
                     <img
                       src={
@@ -103,14 +102,14 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                         "https://via.placeholder.com/400x600"
                       }
                       alt={event.eventName}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-black via-black/80 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
+                    <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.8)] to-[rgba(0,0,0,0)] opacity-90 group-hover:opacity-80 transition-opacity" />
                   </div>
-                  <div className="absolute inset-0 border border-white/10 rounded-3xl transition-colors duration-300 group-hover:border-[#D8C97B]/50" />
+                  <div className="absolute inset-0 border border-[rgba(255,255,255,0.1)] rounded-3xl transition-colors duration-300 group-hover:border-[rgba(216,201,123,0.5)]" />
                   <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
                     <div className="flex justify-between items-start">
-                      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 text-center min-w-[70px] group-hover:bg-[#D8C97B] group-hover:text-black transition-colors">
+                      <div className="bg-[rgba(255,255,255,0.05)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] rounded-2xl p-3 text-center min-w-[70px] group-hover:bg-[#D8C97B] group-hover:text-black transition-colors duration-300">
                         <span className="block text-xs font-bold uppercase tracking-wider opacity-80">
                           {dateObj.month}
                         </span>
@@ -118,10 +117,12 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                           {dateObj.day}
                         </span>
                       </div>
-                      <div className="px-3 py-1 rounded-full bg-black/50 backdrop-blur border border-white/10 text-[10px] font-bold uppercase tracking-widest text-[#D8C97B]">
+
+                      <div className="px-3 py-1 rounded-full bg-[rgba(0,0,0,0.5)] backdrop-blur border border-[rgba(255,255,255,0.1)] text-[10px] font-bold uppercase tracking-widest text-[#D8C97B]">
                         {event.status || "Upcoming"}
                       </div>
                     </div>
+
                     <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="h-px w-6 bg-[#D8C97B] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
@@ -129,12 +130,15 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                           {event.location || "Online"}
                         </span>
                       </div>
+
                       <h3 className="text-xl font-bold text-white mb-3 leading-tight uppercase line-clamp-2 group-hover:text-[#D8C97B] transition-colors">
                         {event.eventName}
                       </h3>
-                      <div className="flex items-center justify-between text-gray-400 text-xs border-t border-white/10 pt-4 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+
+                      <div className="flex items-center justify-between text-gray-400 text-xs border-t border-[rgba(255,255,255,0.1)] pt-4 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
                         <span className="flex items-center gap-2">
-                          <FaCalendarAlt /> {dateObj.time}
+                          <FaCalendarAlt className="text-[#D8C97B]" />{" "}
+                          {dateObj.time}
                         </span>
                         <span className="flex items-center gap-1 font-bold text-white uppercase group-hover:text-[#D8C97B]">
                           Chi tiết <FaArrowRight />

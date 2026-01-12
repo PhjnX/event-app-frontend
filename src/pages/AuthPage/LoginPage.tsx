@@ -57,7 +57,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 2. Nếu là USER thường
       if (isUserRole) {
         if (from.includes("/admin")) {
           setShowPermissionModal(true);
@@ -76,28 +75,30 @@ export default function LoginPage() {
   if (isLoading) return <LoadingScreen />;
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#0a0a0a] overflow-hidden font-noto text-white">
-      {/* Background Effect */}
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#0a0a0a] overflow-hidden font-noto text-white selection:bg-[rgba(181,166,95,0.3)]">
+      {/* 1. BACKGROUND EFFECTS - FIX WARNING TRANSPARENT */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-20"
           style={{
+            // FIX: Thay transparent bằng rgba(x,y,z,0)
             backgroundImage:
-              "linear-gradient(rgba(181, 166, 95, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(181, 166, 95, 0.1) 1px, transparent 1px)",
+              "linear-gradient(rgba(181,166,95,0.1) 1px, rgba(181,166,95,0) 1px), linear-gradient(90deg, rgba(181,166,95,0.1) 1px, rgba(181,166,95,0) 1px)",
             backgroundSize: "40px 40px",
           }}
         ></div>
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#D8C97B]/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#D8C97B]/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.1)] rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.1)] rounded-full blur-[120px] translate-x-1/2 translate-y-1/2"></div>
       </div>
 
+      {/* 2. LOGIN CARD */}
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-md p-8 md:p-10"
       >
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-[#D8C97B]/30 rounded-3xl shadow-[0_0_40px_-10px_rgba(181,166,95,0.15)]"></div>
+        <div className="absolute inset-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-xl border border-[rgba(216,201,123,0.3)] rounded-3xl shadow-[0_0_40px_-10px_rgba(181,166,95,0.15)]"></div>
 
         <div className="relative z-20 flex flex-col items-center">
           <div className="mb-8">
@@ -119,7 +120,7 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="w-full mb-6 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg text-center font-medium"
+              className="w-full mb-6 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-red-400 text-sm rounded-lg text-center font-medium"
             >
               {typeof error === "string"
                 ? error
@@ -140,7 +141,7 @@ export default function LoginPage() {
                   type="email"
                   name="email"
                   required
-                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
+                  className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
                   placeholder="name@example.com"
                   value={formData.email}
                   onChange={handleChange}
@@ -160,7 +161,7 @@ export default function LoginPage() {
                   type="password"
                   name="password"
                   required
-                  className="w-full bg-black/40 border border-white/10 text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
+                  className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] text-white text-sm rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] transition-all placeholder-gray-600"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
@@ -173,19 +174,20 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full py-3.5 mt-4 bg-linear-to-r from-[#D8C97B] to-[#8E803E] hover:to-[#D8C97B] text-black font-bold rounded-xl shadow-[0_0_20px_-5px_rgba(181,166,95,0.4)] transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider"
             >
-              Đăng nhập
+              {isLoading ? "Đang xử lý..." : "Đăng nhập"}
             </button>
           </form>
         </div>
       </motion.div>
 
+      {/* 3. PERMISSION MODAL */}
       <ConfirmModal
         isOpen={showPermissionModal}
         onClose={handleCloseModal}
         onConfirm={handleCloseModal}
         type="DELETE"
         title="Truy cập bị từ chối!"
-        message="Tài khoản của bạn không có quyền truy cập vào trang Quản trị (Admin). Vui lòng quay lại trang chủ."
+        message="Tài khoản của bạn không có quyền truy cập vào trang Admin. Vui lòng quay lại trang chủ."
         confirmText="Về trang chủ"
       />
     </div>
