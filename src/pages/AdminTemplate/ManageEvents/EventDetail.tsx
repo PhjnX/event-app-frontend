@@ -28,7 +28,10 @@ import {
   deleteActivity,
   updateActivity,
 } from "../../../store/slices/activitySlice";
-import { fetchPresenters } from "../../../store/slices/presenterSlice";
+import {
+  fetchPresenters,
+  fetchMyPresenters,
+} from "../../../store/slices/presenterSlice";
 import apiService from "../../../services/apiService";
 import type { Event } from "../../../models/event";
 import type { Activity } from "../../../models/activity";
@@ -142,7 +145,11 @@ export default function EventDetail() {
         if (res.eventId) {
           dispatch(fetchActivitiesByEvent(res.eventId));
           dispatch(fetchActivityCategories());
-          dispatch(fetchPresenters());
+          if (isOrganizer) {
+            dispatch(fetchMyPresenters());
+          } else {
+            dispatch(fetchPresenters());
+          }
         }
       } catch (error) {
         toast.error("Không thể tải thông tin sự kiện");
@@ -320,7 +327,7 @@ export default function EventDetail() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-100 font-sans pb-20 selection:bg-[rgba(181,166,95,0.3)]">
-      <div className="bg-[rgba(5,5,5,0.8)] border-b border-white/5 sticky top-0 z-40 backdrop-blur-md">
+      <div className="bg-[rgba(5,5,5,0.8)] border-b border-white/5 top-0 z-40 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <Link
             to="/admin/events"
@@ -404,7 +411,7 @@ export default function EventDetail() {
       <div className="container mx-auto px-4 mt-8 md:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-20">
         <div className="lg:col-span-4 space-y-8">
           {canManage && (
-            <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl sticky top-24">
+            <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl top-24">
               <h3 className="text-lg font-bold text-white uppercase mb-4 flex items-center gap-2">
                 <FaLayerGroup className="text-[#B5A65F]" /> Bảng điều khiển
               </h3>
@@ -466,7 +473,7 @@ export default function EventDetail() {
 
             {Object.keys(groupedActivities).map((dateKey) => (
               <div key={dateKey} className="relative">
-                <div className="mb-8 flex items-center gap-4 sticky top-20 z-30 bg-[#050505] py-2">
+                <div className="mb-8 flex items-center gap-4 top-20 z-30 bg-[#050505] py-2">
                   <div className="bg-[#B5A65F] text-black font-black text-sm px-4 py-2 rounded-lg uppercase tracking-wider shadow-[0_0_15px_rgba(181,166,95,0.4)]">
                     {new Date(dateKey).toLocaleDateString("vi-VN", {
                       weekday: "long",

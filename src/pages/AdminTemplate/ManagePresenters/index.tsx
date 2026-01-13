@@ -27,6 +27,7 @@ import * as XLSX from "xlsx";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
+  fetchMyPresenters,
   fetchPresenters,
   fetchPresentersByOrganizer,
   deletePresenter,
@@ -44,17 +45,6 @@ import ConfirmModal from "./../_components/ConfirmModal";
 import LoadingOverlay from "../../HomeTemplate/_components/common/LoadingOverlay";
 
 const ITEMS_PER_PAGE = 8;
-
-const toSlug = (str: string) => {
-  if (!str) return "";
-  str = str.toLowerCase();
-  str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  str = str.replace(/[đĐ]/g, "d");
-  str = str.replace(/([^0-9a-z-\s])/g, "");
-  str = str.replace(/(\s+)/g, "-");
-  str = str.replace(/^-+|-+$/g, "");
-  return str;
-};
 
 export default function ManagePresenters() {
   const dispatch = useDispatch<AppDispatch>();
@@ -128,13 +118,7 @@ export default function ManagePresenters() {
         if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
         else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
       } else if (isOrganizer && user) {
-        let mySlug =
-          (user as any)?.slug ||
-          (user as any)?.organizerSlug ||
-          (user as any)?.organizer?.slug;
-        if (!mySlug && user.username) mySlug = toSlug(user.username);
-        if (mySlug) dispatch(fetchPresentersByOrganizer(mySlug));
-        else setMissingSlugError(true);
+        dispatch(fetchMyPresenters());
       }
     };
     loadData();
@@ -278,9 +262,8 @@ export default function ManagePresenters() {
       if (isSAdmin) {
         if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
         else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
-      } else if (isOrganizer && user) {
-        let mySlug = (user as any)?.slug || (user as any)?.organizerSlug;
-        if (mySlug) dispatch(fetchPresentersByOrganizer(mySlug));
+      } else if (isOrganizer) {
+        dispatch(fetchMyPresenters());
       }
     } catch (error: any) {
       toast.error(error.message || "Có lỗi xảy ra!");

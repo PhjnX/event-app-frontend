@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import type { Presenter } from "../../models/presenter";
-import { logoutUser } from "./auth"; 
+import { logoutUser } from "./auth";
 
 interface PresenterState {
   data: Presenter[];
@@ -40,6 +40,24 @@ export const fetchPresentersByOrganizer = createAsyncThunk(
       return Array.isArray(response)
         ? response
         : (response as any).content || [];
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+// 3. Lấy diễn giả của CHÍNH TÔI (Dành cho Organizer đang đăng nhập)
+export const fetchMyPresenters = createAsyncThunk(
+  "presenters/fetchMyPresenters",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get<Presenter[]>(
+        "/presenters/my-presenters"
+      );
+      const list = Array.isArray(response)
+        ? response
+        : (response as any).content || [];
+      return list;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -105,8 +123,8 @@ const presenterSlice = createSlice({
   initialState,
   reducers: {
     resetPresenterState: (state) => {
-      state.data = []; 
-      state.isLoading = true; 
+      state.data = [];
+      state.isLoading = true;
       state.error = null;
     },
   },
@@ -136,6 +154,20 @@ const presenterSlice = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(fetchMyPresenters.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyPresenters.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.data = action.payload; 
+      })
+      .addCase(fetchMyPresenters.rejected, (state, action: any) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // --- Other Actions ---
       .addCase(updateFeaturedList.fulfilled, (state, action) => {
         const newFeaturedIds = action.payload;
         state.data.forEach((p) => {
@@ -168,6 +200,5 @@ const presenterSlice = createSlice({
   },
 });
 
-// Export action resetPresenterState để component sử dụng
 export const { resetPresenterState } = presenterSlice.actions;
 export default presenterSlice.reducer;
