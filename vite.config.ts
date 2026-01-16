@@ -3,11 +3,27 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { visualizer } from "rollup-plugin-visualizer";
+import sitemap from "vite-plugin-sitemap";
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+
+    sitemap({
+      hostname: "https://ems.webie.com.vn",
+
+      dynamicRoutes: ["/about", "/value", "/events", "/news"],
+
+      robots: [
+        {
+          userAgent: "*",
+          allow: "/",
+          disallow: ["/profile", "/my-tickets", "/event/*/moments", "/admin"],
+        },
+      ],
+    }),
+
     visualizer({
       open: true,
       filename: "stats.html",
@@ -15,6 +31,7 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+
   server: { port: 3000 },
 
   resolve: {

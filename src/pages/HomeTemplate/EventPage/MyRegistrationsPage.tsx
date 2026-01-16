@@ -1,317 +1,323 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionTemplate,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import {
   FaMapMarkerAlt,
   FaClock,
-  FaTicketAlt,
-  FaCalendarAlt,
-  FaHistory,
-  FaArrowRight,
   FaCopy,
   FaCheck,
-  FaHourglassStart,
-  FaTimesCircle,
-  FaBan,
+  FaQrcode,
+  FaTicketAlt,
   FaCamera,
+  FaHourglassHalf,
 } from "react-icons/fa";
 import type { AppDispatch, RootState } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import LoadingScreen from "../_components/common/LoadingSrceen";
+
 const formatDate = (dateString: string) => {
   if (!dateString)
-    return { day: "00", month: "DEC", full: "TBA", time: "--:--" };
+    return { day: "00", month: "DEC", time: "--:--", fullDate: "" };
   const date = new Date(dateString);
   return {
-    day: date.getDate(),
+    day: date.getDate().toString().padStart(2, "0"),
     month: date.toLocaleString("en-US", { month: "short" }).toUpperCase(),
     year: date.getFullYear(),
     time: date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    weekday: date.toLocaleDateString("vi-VN", { weekday: "long" }),
+    fullDate: date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
   };
 };
 
-const StatusIndicator = ({
-  status,
-  isExpired,
-}: {
-  status: string;
-  isExpired: boolean;
-}) => {
-  if (isExpired && status !== "REJECTED") {
-    return (
-      <div className="flex items-center gap-2 text-zinc-500 border border-zinc-700 bg-zinc-800/50 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">
-        <FaBan size={10} /> Event Ended
-      </div>
-    );
-  }
-  const map: any = {
-    APPROVED: {
-      color: "text-[#B5A65F]",
-      bg: "bg-[#B5A65F]/10",
-      border: "border-[#B5A65F]/30",
-      icon: (
-        <span className="w-1.5 h-1.5 rounded-full bg-[#B5A65F] animate-pulse" />
-      ),
-      label: "Valid Ticket",
-    },
-    CHECKED_IN: {
-      color: "text-cyan-500",
-      bg: "bg-cyan-500/10",
-      border: "border-cyan-500/30",
-      icon: <FaCheck size={10} />,
-      label: "Checked In",
-    },
-    PENDING: {
-      color: "text-orange-400",
-      bg: "bg-orange-500/5",
-      border: "border-orange-500/20",
-      icon: <FaHourglassStart size={10} />,
-      label: "Processing",
-    },
-    REJECTED: {
-      color: "text-red-500",
-      bg: "bg-red-500/5",
-      border: "border-red-500/20",
-      icon: <FaTimesCircle size={10} />,
-      label: "Cancelled",
-    },
-  };
-  const s = map[status] || map.REJECTED;
-  return (
-    <div
-      className={`flex items-center gap-2 ${s.color} ${s.bg} border ${s.border} px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-sm`}
-    >
-      {s.icon} {s.label}
-    </div>
-  );
-};
-
-const TicketCard = ({ ticket, index }: { ticket: any; index: number }) => {
+const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
   const dateInfo = formatDate(ticket.eventStartDate);
-  const [imgError, setImgError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
-  const now = new Date();
-  const eventEndDate = new Date(ticket.eventEndDate);
-  const isExpired = now > eventEndDate;
+  const isExpired = new Date() > new Date(ticket.eventEndDate);
   const isApproved = ticket.status === "APPROVED";
   const isUsed = ticket.status === "CHECKED_IN";
-  const showQR = (isApproved || isUsed) && !isExpired;
+  const canShowQR = (isApproved || isUsed) && !isExpired;
+  const showGallery = isApproved || isUsed;
 
-  // Lấy Slug
-  const targetSlug = ticket.eventSlug;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${ticket.ticketCode}&bgcolor=ffffff`;
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseX = useSpring(x, { stiffness: 500, damping: 100 });
+  const mouseY = useSpring(y, { stiffness: 500, damping: 100 });
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-5deg", "5deg"]);
+  const brightness = useTransform(mouseY, [-0.5, 0.5], [1.15, 0.9]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    x.set((e.clientX - rect.left - width / 2) / width);
+    y.set((e.clientY - rect.top - height / 2) / height);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const handleCopy = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     navigator.clipboard.writeText(ticket.ticketCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const getStatusColor = () => {
+    if (isExpired && ticket.status !== "REJECTED") return "bg-zinc-600";
+    switch (ticket.status) {
+      case "APPROVED":
+        return "bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]";
+      case "CHECKED_IN":
+        return "bg-emerald-500 shadow-[0_0_10px_#10b981]";
+      case "REJECTED":
+        return "bg-red-500";
+      default:
+        return "bg-zinc-400";
+    }
+  };
+
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className={`group relative w-full flex flex-col md:flex-row bg-[#0a0a0a] rounded-2xl overflow-hidden border transition-all duration-500 shadow-2xl ${
-        isExpired
-          ? "border-zinc-800 opacity-80 grayscale-[0.8]"
-          : "border-[#B5A65F]/20 hover:border-[#B5A65F]/50 hover:shadow-[0_10px_40px_-10px_rgba(181,166,95,0.15)]"
-      }`}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="perspective-1000 w-full mb-8 group font-noto"
     >
-      {!isExpired && (
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-[#B5A65F]/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none z-0" />
-      )}
-
-      <Link
-        to={`/event/${ticket.eventSlug}`}
-        className="relative w-full md:w-[300px] h-64 md:h-auto shrink-0 overflow-hidden block"
+      <motion.div
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX,
+          rotateY,
+          filter: useMotionTemplate`brightness(${brightness})`,
+        }}
+        className="relative w-full h-auto min-h-[300px] md:h-[260px] rounded-3xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] transition-all duration-300 bg-[#0e0e0e] border border-white/5 hover:border-[#D4AF37]/30"
       >
-        <img
-          src={
-            imgError || !ticket.eventBanner
-              ? "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop"
-              : ticket.eventBanner
-          }
-          alt={ticket.eventName}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          onError={() => setImgError(true)}
-        />
-        <div
-          className={`absolute top-4 left-4 z-20 backdrop-blur-md border p-3 rounded-lg flex flex-col items-center min-w-[70px] shadow-lg ${
-            isExpired
-              ? "bg-zinc-900/80 border-zinc-700"
-              : "bg-[#0a0a0a]/80 border-[#B5A65F]/30"
-          }`}
-        >
-          <span
-            className={`text-[10px] font-bold uppercase tracking-widest ${
-              isExpired ? "text-zinc-500" : "text-[#B5A65F]"
+        <div className="absolute inset-0 z-0 select-none">
+          <img
+            src={
+              ticket.eventBanner ||
+              "https://images.unsplash.com/photo-1492684223066-81342ee5ff30"
+            }
+            alt="bg"
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-[0.35] ${
+              isExpired ? "grayscale opacity-20" : ""
             }`}
-          >
-            {dateInfo.month}
-          </span>
-          <span className="text-3xl font-black text-white leading-none font-noto">
-            {dateInfo.day}
-          </span>
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-black via-[#050505]/95 to-transparent" />
         </div>
-      </Link>
 
-      <div className="flex-1 p-6 md:p-8 flex flex-col justify-between relative z-10">
-        <div>
-          <div className="flex justify-between items-start mb-4">
-            <StatusIndicator status={ticket.status} isExpired={isExpired} />
-            <span className="text-[10px] font-mono text-zinc-600 tracking-widest">
-              #{ticket.registrationId?.toString().padStart(6, "0")}
-            </span>
-          </div>
-          <Link to={`/event/${ticket.eventSlug}`}>
-            <h2
-              className={`text-2xl md:text-3xl font-bold mb-2 leading-tight transition-colors duration-300 font-noto ${
-                isExpired
-                  ? "text-zinc-400"
-                  : "text-white group-hover:text-[#B5A65F]"
-              }`}
-            >
-              {ticket.eventName}
-            </h2>
-          </Link>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div className="flex items-start gap-3">
-              <FaClock
-                className={`mt-1 shrink-0 ${
-                  isExpired ? "text-zinc-600" : "text-[#B5A65F]"
-                }`}
-              />
-              <div>
-                <p
-                  className={`text-[10px] uppercase font-bold tracking-wider ${
-                    isExpired ? "text-zinc-600" : "text-[#B5A65F]/70"
-                  }`}
+        <div className="absolute inset-0 z-10 flex flex-col md:flex-row items-stretch">
+          <div className="flex-1 p-6 md:p-7 flex flex-col justify-between relative">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md flex items-center gap-2 border border-white/5 bg-white/5 text-zinc-300`}
                 >
-                  Time
-                </p>
-                <p className="text-sm text-zinc-300 font-noto">
-                  {dateInfo.time} - {dateInfo.weekday}
-                </p>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${getStatusColor()} ${
+                      !isExpired && "animate-pulse"
+                    }`}
+                  ></div>
+                  {isExpired ? "Archived" : ticket.status.replace("_", " ")}
+                </div>
+                <div className="h-px w-8 bg-white/10" />
+                <span className="text-[10px] font-mono text-white/30 tracking-wider">
+                  ID: {ticket.registrationId}
+                </span>
               </div>
+
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-[1.1] tracking-tighter line-clamp-2 uppercase">
+                {ticket.eventName}
+              </h2>
             </div>
-            <div className="flex items-start gap-3">
-              <FaMapMarkerAlt
-                className={`mt-1 shrink-0 ${
-                  isExpired ? "text-zinc-600" : "text-[#B5A65F]"
-                }`}
-              />
-              <div>
-                <p
-                  className={`text-[10px] uppercase font-bold tracking-wider ${
-                    isExpired ? "text-zinc-600" : "text-[#B5A65F]/70"
-                  }`}
-                >
-                  Location
-                </p>
-                <p className="text-sm text-zinc-300 font-noto line-clamp-1">
+
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-xs font-medium text-zinc-400">
+              <div className="flex items-center gap-2">
+                <FaClock className="text-[#D4AF37]" />
+                <span>{dateInfo.time}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FaMapMarkerAlt className="text-[#D4AF37]" />
+                <span className="truncate max-w-[200px]">
                   {ticket.location || "TBA"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative w-full h-px md:w-px md:h-full bg-transparent flex items-center justify-center">
+            <div className="w-full h-px md:w-px md:h-[80%] border-t md:border-l border-dashed border-white/10 group-hover:border-[#D4AF37]/30 transition-colors"></div>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 md:top-0 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-[#050505] rounded-full z-20 border-r md:border-b border-white/10" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 md:bottom-0 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-[#050505] rounded-full z-20 border-l md:border-t border-white/10" />
+          </div>
+
+          <div className="w-full md:w-[220px] p-4 flex flex-col justify-center gap-4 bg-white/1 backdrop-blur-[2px]">
+            <div className="flex flex-row md:flex-col items-center justify-between md:justify-center md:gap-1 text-center border-b md:border-b-0 border-white/5 pb-3 md:pb-0 mb-2 md:mb-0">
+              <span className="md:hidden text-xs font-bold text-[#D4AF37] uppercase tracking-widest">
+                Date
+              </span>
+
+              <div>
+                <div className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.4em] mb-1 md:block hidden">
+                  START
+                </div>
+                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">
+                  {dateInfo.day}
+                </div>
+                <div className="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                  {dateInfo.month}
+                </div>
+                <div className="text-[9px] text-zinc-600 font-mono mt-1">
+                  {dateInfo.year}
+                </div>
+              </div>
+
+              <span className="md:hidden text-xs font-bold text-zinc-500">
+                {dateInfo.time}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <Link
+                to={`/event/${ticket.eventSlug}`}
+                className="w-full h-9 bg-white text-black hover:bg-[#D4AF37] transition-all rounded font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 group/btn"
+              >
+                View Details
+              </Link>
+
+              {canShowQR ? (
+                <button
+                  onClick={() => setShowQrModal(true)}
+                  className="w-full h-9 border border-white/10 text-[#D4AF37] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all rounded font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  <FaQrcode /> Ticket Code
+                </button>
+              ) : (
+                !isExpired && (
+                  <div className="w-full h-9 border border-dashed border-white/10 text-zinc-600 rounded font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
+                    <FaHourglassHalf /> Pending
+                  </div>
+                )
+              )}
+
+              {showGallery && (
+                <Link
+                  to={`/event/${ticket.eventSlug}/moments`}
+                  className="block w-full text-center mt-1"
+                >
+                  <span className="text-[9px] text-zinc-500 hover:text-white border-b border-transparent hover:border-white transition-colors uppercase tracking-widest flex items-center justify-center gap-1">
+                    <FaCamera size={10} /> Event Gallery
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 duration-1000 transition-opacity z-20"
+          style={{
+            background:
+              "linear-gradient(105deg, transparent 40%, rgba(212, 175, 55, 0.05) 45%, rgba(212, 175, 55, 0.08) 50%, transparent 54%)",
+          }}
+        />
+      </motion.div>
+
+      <AnimatePresence>
+        {showQrModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowQrModal(false)}
+              className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+            />
+            <motion.div
+              layoutId={`qr-${ticket.registrationId}`}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative z-10 bg-black border border-white/10 p-6 rounded-3xl max-w-[320px] w-full text-center shadow-2xl"
+            >
+              <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-[#D4AF37]" />
+              <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-[#D4AF37]" />
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-[#D4AF37]" />
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-[#D4AF37]" />
+
+              <div className="py-4">
+                <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-tight mb-1">
+                  {ticket.eventName}
+                </h3>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                  {dateInfo.fullDate}
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Link
-            to={`/event/${ticket.eventSlug}`}
-            className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all ${
-              isExpired
-                ? "text-zinc-500 hover:text-zinc-300"
-                : "text-[#B5A65F] hover:gap-4"
-            }`}
-          >
-            View Details <FaArrowRight />
-          </Link>
-
-          {/* LINK SANG TRANG MOMENT (Dùng Slug) */}
-          {(isApproved || isUsed) && (
-            <Link
-              to={`/event/${targetSlug}/moments`}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
-                isExpired
-                  ? "bg-zinc-800 border-zinc-700 text-zinc-400"
-                  : "bg-[#B5A65F]/10 border-[#B5A65F]/20 text-white hover:bg-[#B5A65F] hover:text-black"
-              }`}
-            >
-              <FaCamera className={isExpired ? "" : "animate-pulse"} />{" "}
-              {isExpired ? "Gallery" : "Moments"}
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="relative w-full md:w-60 bg-[#050505] p-6 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-dashed border-[#B5A65F]/20 shrink-0">
-        {showQR ? (
-          <div className="w-full flex flex-col items-center">
-            <div className="relative p-1 rounded-xl bg-linear-to-br from-[#B5A65F] to-[#7a6f3b] shadow-lg mb-5 group-hover:scale-105 transition-transform duration-300">
-              <div className="bg-white p-2 rounded-lg relative overflow-hidden">
+              <div className="bg-white p-3 rounded-xl mx-auto mb-5 shadow-[0_0_20px_rgba(255,255,255,0.05)] w-fit relative overflow-hidden">
                 <img
-                  src={qrCodeUrl}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${ticket.ticketCode}&bgcolor=ffffff&color=000000&format=svg`}
+                  className="w-40 h-40 object-contain"
                   alt="QR"
-                  className={`w-32 h-32 object-contain mix-blend-multiply ${
-                    isUsed ? "opacity-30 blur-[1px]" : ""
-                  }`}
                 />
-                {isUsed && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="border-4 border-cyan-500 text-cyan-500 px-2 py-1 text-2xl font-black uppercase -rotate-12 opacity-80 tracking-widest">
-                      USED
-                    </div>
-                  </div>
-                )}
+                <div className="absolute left-0 top-0 w-full h-1 bg-[#D4AF37] opacity-80 shadow-[0_0_15px_#D4AF37] animate-[scan_3s_infinite_ease-in-out]"></div>
               </div>
-            </div>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] mb-2">
-              Access Code
-            </p>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[#B5A65F]/10 border border-[#B5A65F]/20 hover:border-[#B5A65F] transition-colors group/code"
-            >
-              <span className="font-mono text-sm font-bold text-[#B5A65F] tracking-widest">
-                {ticket.ticketCode?.substring(0, 8)}...
-              </span>
-              {copied ? (
-                <FaCheck className="text-green-400 text-xs" />
-              ) : (
-                <FaCopy className="text-[#B5A65F]/50 group-hover/code:text-[#B5A65F] text-xs" />
-              )}
-            </button>
-          </div>
-        ) : (
-          <div className="opacity-40 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4">
-              {isExpired ? (
-                <FaHistory size={30} className="text-zinc-600" />
-              ) : (
-                <FaTicketAlt size={30} className="text-zinc-600" />
-              )}
-            </div>
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">
-              {isExpired
-                ? "Event Ended"
-                : ticket.status === "PENDING"
-                ? "Processing..."
-                : "Unavailable"}
-            </span>
+
+              <div
+                onClick={handleCopy}
+                className="bg-[#111] border border-dashed border-zinc-800 rounded px-4 py-3 flex items-center justify-between cursor-pointer hover:border-[#D4AF37] transition-colors mb-4 group/copy"
+              >
+                <span className="text-[10px] text-zinc-500 uppercase font-bold">
+                  Code
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[#D4AF37] font-bold text-sm tracking-widest">
+                    {ticket.ticketCode}
+                  </span>
+                  {copied ? (
+                    <FaCheck size={10} className="text-emerald-500" />
+                  ) : (
+                    <FaCopy
+                      size={10}
+                      className="text-zinc-600 group-hover/copy:text-white"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="text-zinc-500 hover:text-white text-[10px] font-bold uppercase tracking-widest"
+              >
+                Close Overlay
+              </button>
+            </motion.div>
           </div>
         )}
-      </div>
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -327,99 +333,147 @@ export default function MyRegistrationsPage() {
     dispatch(fetchMyRegistrations());
   }, [dispatch]);
 
-  const now = new Date();
   const filteredList = (myRegistrations || []).filter((t: any) => {
     const endDate = new Date(t.eventEndDate);
-    if (activeTab === "UPCOMING") return endDate >= now;
-    return endDate < now;
+    return activeTab === "UPCOMING"
+      ? endDate >= new Date()
+      : endDate < new Date();
   });
 
+  const status = {
+    active: (myRegistrations || []).filter(
+      (t: any) =>
+        new Date(t.eventEndDate) >= new Date() && t.status === "APPROVED"
+    ).length,
+    total: (myRegistrations || []).length,
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white pt-32 pb-24 px-4 md:px-8 font-noto relative selection:bg-[#B5A65F] selection:text-black">
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[#B5A65F]/10 rounded-full blur-[150px]" />
-        <div
-          className="absolute inset-0 opacity-[0.05]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-8"
-          >
-            My{" "}
-            <span className="text-transparent bg-clip-text bg-linear-to-b from-[#B5A65F] to-[#8a7d45]">
-              Tickets
-            </span>
-          </motion.h1>
-          <div className="inline-flex p-1 bg-[#111] border border-white/10 rounded-xl">
-            {[
-              { id: "UPCOMING", label: "Upcoming" },
-              { id: "PAST", label: "History" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`relative px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
-                  activeTab === tab.id
-                    ? "text-black"
-                    : "text-zinc-500 hover:text-white"
-                }`}
-              >
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="gold-tab"
-                    className="absolute inset-0 bg-[#B5A65F] rounded-lg shadow-[0_0_20px_rgba(181,166,95,0.4)]"
-                  />
-                )}{" "}
-                <span className="relative z-10 flex items-center gap-2">
-                  {tab.id === "UPCOMING" ? <FaCalendarAlt /> : <FaHistory />}{" "}
-                  {tab.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="min-h-[400px]">
-          {isLoading ? (
-            <div className="flex justify-center py-20">
-              <LoadingScreen />
+    <div className="min-h-screen bg-[#050505] text-white font-noto">
+      <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] z-0" />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 pt-32 pb-24">
+        <header className="mb-20">
+          <div className="relative w-full border-b border-white/10 pb-8 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]">
+            <div className="absolute inset-0 bg-linear-to-b from-transparent to-[#050505]" />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-end justify-between gap-8">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D4AF37]"></span>
+                  </span>
+                  <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-[0.3em] font-noto">
+                    Member Access
+                  </span>
+                </div>
+                <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.85] tracking-tighter">
+                  TICKET
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D4AF37] to-[#F2C94C] opacity-90">
+                    WALLET.
+                  </span>
+                </h1>
+              </div>
+
+              <div className="flex gap-8 items-center border-l border-white/10 pl-8 h-24 backdrop-blur-sm">
+                <div className="hidden md:block">
+                  {/* Số Active màu trắng sáng */}
+                  <div className="text-4xl md:text-5xl font-black text-white text-right tracking-tighter leading-none">
+                    {status.active}
+                  </div>
+                  <div className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest text-right mt-1">
+                    Active Passes
+                  </div>
+                </div>
+
+                <div className="hidden md:block w-px h-10 bg-linear-to-b from-transparent via-white/20 to-transparent"></div>
+
+                <div>
+                  <div className="text-4xl md:text-5xl font-black text-zinc-600 text-right tracking-tighter leading-none">
+                    {status.total}
+                  </div>
+                  <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest text-right mt-1">
+                    Total History
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
+          </div>
+
+          <div className="flex justify-start pt-6">
+            <div className="inline-flex relative gap-6">
+              {["UPCOMING", "PAST"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`relative pb-2 mr-2 text-xs font-black uppercase tracking-[0.2em] transition-all group ${
+                    activeTab === tab
+                      ? "text-white"
+                      : "text-zinc-600 hover:text-[#D4AF37]"
+                  }`}
+                >
+                  <span className="relative z-10">{tab} EVENTS</span>
+
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="tabLine"
+                      className="absolute bottom-0 left-0 w-full h-[3px] bg-[#D4AF37] shadow-[0_0_15px_#D4AF37]"
+                    />
+                  )}
+                  {activeTab !== tab && (
+                    <div className="absolute bottom-0 left-0 w-0 h-px bg-white/20 transition-all duration-300 group-hover:w-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
+
+        {isLoading ? (
+          <div className="py-20 flex justify-center">
+            <LoadingScreen />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
             <AnimatePresence mode="popLayout">
               {filteredList.length > 0 ? (
-                <div className="flex flex-col gap-8">
-                  {filteredList.map((ticket: any, idx: number) => (
-                    <TicketCard
-                      key={ticket.registrationId}
-                      ticket={ticket}
-                      index={idx}
-                    />
-                  ))}
-                </div>
+                filteredList.map((ticket: any, idx: number) => (
+                  <LuxuryTicket
+                    key={ticket.registrationId}
+                    ticket={ticket}
+                    index={idx}
+                  />
+                ))
               ) : (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-32 border border-dashed border-zinc-800 rounded-[40px] bg-zinc-900/30"
+                  className="text-center py-20 border border-dashed border-white/10 rounded-2xl bg-[#0a0a0a]"
                 >
-                  <FaHistory className="text-6xl text-zinc-700 mb-6" />
-                  <h3 className="text-xl font-bold text-zinc-400 uppercase tracking-widest">
-                    {activeTab === "UPCOMING"
-                      ? "No Upcoming Events"
-                      : "No History Found"}
+                  <FaTicketAlt className="text-4xl text-zinc-700 mx-auto mb-4" />
+                  <h3 className="text-zinc-400 font-bold uppercase tracking-widest text-sm">
+                    No Tickets Found
                   </h3>
+                  {activeTab === "UPCOMING" && (
+                    <Link
+                      to="/events"
+                      className="mt-4 inline-block text-[10px] font-black uppercase text-[#D4AF37] border-b border-[#D4AF37]"
+                    >
+                      Find Events
+                    </Link>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      <style>{`
+          @keyframes scan { 0%, 100% { top: 0% } 50% { top: 100% } }
+       `}</style>
     </div>
   );
 }

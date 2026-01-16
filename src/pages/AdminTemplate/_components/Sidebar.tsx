@@ -18,7 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
 
- 
   const showFull = !isCollapsed || isHovered;
 
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN;
@@ -34,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       initial={false}
       animate={{
         width: showFull ? 280 : 80,
-        backgroundColor: isHovered ? "#0f0f0f" : "#0a0a0a", 
+        backgroundColor: isHovered ? "#0f0f0f" : "#0a0a0a",
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={`fixed left-0 top-0 h-screen border-r border-[#D8C97B]/20 flex flex-col z-50 overflow-hidden shadow-2xl
@@ -62,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 transition={{ duration: 0.2 }}
                 className="text-[#D8C97B] font-bold text-xl font-noto"
               >
-                WEBIE ADMIN
+                Webie Hub
               </motion.span>
             )}
           </AnimatePresence>
@@ -127,7 +126,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       </motion.span>
                     )}
                   </AnimatePresence>
-
                 </NavLink>
               </li>
             );

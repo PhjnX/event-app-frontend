@@ -20,11 +20,15 @@ import {
   FaUsers,
   FaFileExcel,
   FaSpinner,
+  FaLock,
+  FaCalendarAlt,
+  FaRegStar,
+  FaHourglassHalf,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton, Tooltip } from "antd";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx"; // Đã import và sẽ được sử dụng bên dưới
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -33,15 +37,16 @@ import {
   deleteEvent,
   approveEvent,
   rejectEvent,
-  submitEventForApproval, // <--- IMPORT MỚI
+  submitEventForApproval,
   fetchFeaturedEvents,
   fetchSelectedEvents,
   updateFeaturedEvents,
   updateSelectedEvents,
 } from "../../../store/slices/eventSlice";
+
+import { fetchOrganizerDetail } from "../../../store/slices/organizerSlice";
 import { ROLES } from "@/constants";
 import ConfirmModal from "./../_components/ConfirmModal";
-import apiService from "../../../services/apiService";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -51,13 +56,66 @@ export default function ManageEvents() {
     (state: RootState) => state.events
   );
   const { user } = useSelector((state: RootState) => state.auth);
-
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
 
+  const toSlug = (str: string) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[đĐ]/g, "d")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+  };
+
+  const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
+  const [isChecking, setIsChecking] = useState(user?.role === "ORGANIZER");
+
+  useEffect(() => {
+    if (user?.role === "ORGANIZER") {
+      setIsChecking(true);
+      const orgData = (user as any).organizer || {};
+      const slugToCheck =
+        orgData.slug ||
+        (user as any).slug ||
+        toSlug((user as any).username) ||
+        toSlug(orgData.name);
+
+      if (slugToCheck) {
+        dispatch(fetchOrganizerDetail(slugToCheck))
+          .then((res: any) => {
+            if (res.payload) {
+              setOrgStatus({
+                locked: res.payload.locked === true,
+                approved: res.payload.approved === true,
+              });
+            }
+          })
+          .finally(() => setIsChecking(false));
+      } else {
+        setIsChecking(false);
+      }
+    }
+  }, [dispatch, user]);
+
+  const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
+
+  // --- STATE UI ---
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
+
+  const [tempHeroState, setTempHeroState] = useState<Record<number, boolean>>(
+    {}
+  );
+  const [tempSelectedState, setTempSelectedState] = useState<
+    Record<number, boolean>
+  >({});
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -66,9 +124,13 @@ export default function ManageEvents() {
   }>({ isOpen: false, type: null, data: null });
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const isEventExpired = (endDate: string) => {
-    if (!endDate) return false;
-    return new Date(endDate) < new Date();
+  const checkTimeStatus = (startDate: string, endDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (now > end) return "ENDED";
+    if (now < start) return "UPCOMING";
+    return "HAPPENING";
   };
 
   useEffect(() => {
@@ -87,14 +149,13 @@ export default function ManageEvents() {
 
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
-      // SADMIN không thấy DRAFT
       if (isSAdmin && event.status === "DRAFT") return false;
 
       if (activeTab === "ALL") return true;
-      if (activeTab === "HAPPENING")
-        return event.status === "PUBLISHED" && !isEventExpired(event.endDate);
-      if (activeTab === "ENDED")
-        return event.status === "PUBLISHED" && isEventExpired(event.endDate);
+
+      if (activeTab === "APPROVED") {
+        return event.status === "PUBLISHED" || event.status === "APPROVED";
+      }
 
       return event.status === activeTab;
     });
@@ -107,11 +168,14 @@ export default function ManageEvents() {
 
     return result.sort((a, b) => {
       const getPriorityScore = (event: any) => {
-        const expired = isEventExpired(event.endDate);
-        if (event.status === "PENDING_APPROVAL") return 1;
-        if (event.status === "PUBLISHED" && !expired) return 2;
-        if (event.status === "PUBLISHED" && expired) return 3;
-        if (event.status === "REJECTED") return 4;
+        if (event.status === "REJECTED") return 1;
+        if (event.status === "PENDING_APPROVAL") return 2;
+        const timeStatus = checkTimeStatus(event.startDate, event.endDate);
+        if (event.status === "PUBLISHED") {
+          if (timeStatus === "HAPPENING") return 3;
+          if (timeStatus === "UPCOMING") return 4;
+          if (timeStatus === "ENDED") return 6;
+        }
         return 5;
       };
       const scoreA = getPriorityScore(a);
@@ -126,6 +190,79 @@ export default function ManageEvents() {
     return filteredAndSortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedData, currentPage]);
 
+  const handleToggleHero = async (event: any) => {
+    if (!isSAdmin) return;
+    const isCurrentlyHero = tempHeroState.hasOwnProperty(event.eventId)
+      ? tempHeroState[event.eventId]
+      : featuredEvents.some((e) => e.eventId === event.eventId);
+    const nextState = !isCurrentlyHero;
+    if (
+      nextState &&
+      featuredEvents.length >= 4 &&
+      !tempHeroState[event.eventId]
+    ) {
+      toast.warning("Tối đa 4 sự kiện Hero Banner!");
+      return;
+    }
+    setTempHeroState((prev) => ({ ...prev, [event.eventId]: nextState }));
+    try {
+      const currentIds = featuredEvents.map((e) => e.eventId);
+      let newIds = [];
+      if (nextState) {
+        newIds = [...currentIds, event.eventId];
+      } else {
+        newIds = currentIds.filter((id) => id !== event.eventId);
+      }
+      await dispatch(updateFeaturedEvents(newIds)).unwrap();
+      dispatch(fetchFeaturedEvents());
+      if (nextState) toast.success("Đã thêm vào Hero Banner");
+      else toast.info("Đã gỡ khỏi Hero Banner");
+    } catch (error) {
+      toast.error("Lỗi cập nhật!");
+      setTempHeroState((prev) => ({
+        ...prev,
+        [event.eventId]: isCurrentlyHero,
+      }));
+    }
+  };
+
+  const handleToggleSelected = async (event: any) => {
+    if (!isSAdmin) return;
+    const isCurrentlySelected = tempSelectedState.hasOwnProperty(event.eventId)
+      ? tempSelectedState[event.eventId]
+      : selectedEvents.some((e) => e.eventId === event.eventId);
+    const nextState = !isCurrentlySelected;
+    if (
+      nextState &&
+      selectedEvents.length >= 8 &&
+      !tempSelectedState[event.eventId]
+    ) {
+      toast.warning("Tối đa 8 sự kiện Nổi bật!");
+      return;
+    }
+    setTempSelectedState((prev) => ({ ...prev, [event.eventId]: nextState }));
+    try {
+      const currentIds = selectedEvents.map((e) => e.eventId);
+      let newIds = [];
+      if (nextState) {
+        newIds = [...currentIds, event.eventId];
+      } else {
+        newIds = currentIds.filter((id) => id !== event.eventId);
+      }
+      await dispatch(updateSelectedEvents(newIds)).unwrap();
+      dispatch(fetchSelectedEvents());
+      if (nextState) toast.success("Đã thêm vào Nổi bật");
+      else toast.info("Đã gỡ khỏi Nổi bật");
+    } catch (error) {
+      toast.error("Lỗi cập nhật!");
+      setTempSelectedState((prev) => ({
+        ...prev,
+        [event.eventId]: isCurrentlySelected,
+      }));
+    }
+  };
+
+  // --- HÀM XUẤT EXCEL CHÍNH THỨC ---
   const handleExportExcel = async () => {
     if (filteredAndSortedData.length === 0) {
       toast.warn("Không có dữ liệu để xuất!");
@@ -133,133 +270,50 @@ export default function ManageEvents() {
     }
 
     setIsExporting(true);
-    toast.info("Đang lấy dữ liệu hoạt động, vui lòng chờ...");
-
     try {
-      const exportData: any[] = [];
-      const promises = filteredAndSortedData.map(async (event) => {
-        try {
-          const activities = await apiService.get<any[]>(
-            `/activities/by-event/${event.eventId}`
-          );
-          return {
-            ...event,
-            fetchedActivities: Array.isArray(activities) ? activities : [],
-          };
-        } catch (error) {
-          console.error(`Lỗi lấy activity cho event ${event.eventId}`, error);
-          return { ...event, fetchedActivities: [] };
-        }
-      });
+      // 1. Chuẩn bị dữ liệu (Map dữ liệu raw thành dạng bảng đẹp hơn)
+      const dataToExport = filteredAndSortedData.map((event) => ({
+        "ID Sự kiện": event.eventId,
+        "Tên sự kiện": event.eventName,
+        "Trạng thái": event.status,
+        "Địa điểm": event.location,
+        "Ngày bắt đầu": new Date(event.startDate).toLocaleDateString("vi-VN"),
+        "Giờ bắt đầu": new Date(event.startDate).toLocaleTimeString("vi-VN"),
+        "Ngày kết thúc": new Date(event.endDate).toLocaleDateString("vi-VN"),
+        "Người tổ chức": event.organizerName || "N/A", 
+        "Số lượng vé": event.totalTickets || 0,
+        "Lý do từ chối (nếu có)": event.reason || "",
+      }));
 
-      const eventsWithActivities = await Promise.all(promises);
-
-      eventsWithActivities.forEach((event: any) => {
-        const basicInfo = {
-          "ID Sự kiện": event.eventId,
-          "Tên sự kiện": event.eventName,
-          "Tổ chức bởi": event.organizerName || "N/A",
-          "Địa điểm": event.location,
-          "Bắt đầu": new Date(event.startDate).toLocaleString("vi-VN"),
-          "Kết thúc": new Date(event.endDate).toLocaleString("vi-VN"),
-          "Trạng thái": event.status,
-          "Quyền riêng tư": event.visibility,
-          "Đã xóa?": event.isDeleted ? "Có" : "Không",
-        };
-
-        const activities = event.fetchedActivities;
-
-        if (activities && activities.length > 0) {
-          activities.forEach((act: any) => {
-            exportData.push({
-              ...basicInfo,
-              "---": "---",
-              "Tên Hoạt động": act.activityName,
-              "HĐ Bắt đầu": new Date(act.startTime).toLocaleTimeString("vi-VN"),
-              "HĐ Kết thúc": new Date(act.endTime).toLocaleTimeString("vi-VN"),
-              "Địa điểm HĐ": act.roomOrVenue || "Như sự kiện",
-              "Danh mục HĐ": act.category?.categoryName || "Chung",
-            });
-          });
-        } else {
-          exportData.push({
-            ...basicInfo,
-            "---": "",
-            "Tên Hoạt động": "(Không có hoạt động)",
-            "HĐ Bắt đầu": "",
-            "HĐ Kết thúc": "",
-            "Địa điểm HĐ": "",
-            "Danh mục HĐ": "",
-          });
-        }
-      });
-
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách Chi tiết");
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
       const wscols = [
-        { wch: 10 },
-        { wch: 30 },
-        { wch: 20 },
-        { wch: 25 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 15 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 5 },
-        { wch: 30 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 20 },
-        { wch: 15 },
+        { wch: 10 }, 
+        { wch: 30 }, 
+        { wch: 15 }, 
+        { wch: 20 }, 
+        { wch: 15 }, 
+        { wch: 10 }, 
+        { wch: 15 }, 
+        { wch: 20 }, 
       ];
       worksheet["!cols"] = wscols;
 
-      XLSX.writeFile(
-        workbook,
-        `Events_Activities_List_${new Date().toISOString().slice(0, 10)}.xlsx`
-      );
-      toast.success("Xuất file thành công!");
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách sự kiện");
+
+      const fileName = `Danh_sach_su_kien_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      toast.success("Xuất file Excel thành công!");
     } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi khi xuất dữ liệu.");
+      console.error("Lỗi xuất file:", error);
+      toast.error("Có lỗi xảy ra khi xuất file Excel.");
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handleToggleHero = async (event: any) => {
-    if (!isSAdmin) return;
-    const currentIds = featuredEvents.map((e) => e.eventId);
-    const isActive = currentIds.includes(event.eventId);
-    let newIds = isActive
-      ? currentIds.filter((id) => id !== event.eventId)
-      : [...currentIds, event.eventId];
-    if (!isActive && currentIds.length >= 4)
-      return toast.warning("Tối đa 4 sự kiện!");
-
-    isActive
-      ? toast.info(`Đã gỡ khỏi Hero Banner`)
-      : toast.success(`Đã thêm vào Hero Banner`);
-    await dispatch(updateFeaturedEvents(newIds));
-  };
-
-  const handleToggleSelected = async (event: any) => {
-    if (!isSAdmin) return;
-    const currentIds = selectedEvents.map((e) => e.eventId);
-    const isActive = currentIds.includes(event.eventId);
-    let newIds = isActive
-      ? currentIds.filter((id) => id !== event.eventId)
-      : [...currentIds, event.eventId];
-    if (!isActive && currentIds.length >= 8)
-      return toast.warning("Tối đa 8 sự kiện!");
-
-    isActive
-      ? toast.info(`Đã gỡ khỏi Nổi bật`)
-      : toast.success(`Đã thêm vào Nổi bật`);
-    await dispatch(updateSelectedEvents(newIds));
   };
 
   const handleConfirmAction = async () => {
@@ -283,10 +337,8 @@ export default function ManageEvents() {
         toast.success("Đã từ chối!");
         setRejectionReason("");
       } else if (type === "SEND") {
-        // ===> FIX: GỌI API SUBMIT THAY VÌ UPDATE
-        // data.slug được dùng để gọi api
         await dispatch(submitEventForApproval(data.slug)).unwrap();
-        toast.success("Đã gửi yêu cầu duyệt sự kiện!");
+        toast.success("Đã gửi yêu cầu duyệt!");
       }
     } catch (error: any) {
       toast.error(error || "Lỗi");
@@ -294,7 +346,6 @@ export default function ManageEvents() {
       setConfirmModal({ isOpen: false, type: null, data: null });
     }
   };
-
   const openModal = (type: any, eventItem: any) => {
     if (type === "REJECT") setRejectionReason("");
     setConfirmModal({ isOpen: true, type, data: eventItem });
@@ -302,63 +353,77 @@ export default function ManageEvents() {
 
   const StatusBadge = ({
     status,
+    startDate,
     endDate,
   }: {
     status: string;
+    startDate: string;
     endDate: string;
   }) => {
-    const expired = isEventExpired(endDate);
-    if (status === "PUBLISHED" && expired)
+    const timeStatus = checkTimeStatus(startDate, endDate);
+
+    if (status === "PENDING_APPROVAL")
       return (
-        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-gray-600 text-white border-gray-500">
-          KẾT THÚC
+        <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-blue-500/10 text-blue-400 border-blue-500/30 flex items-center gap-1.5">
+          <FaHourglassHalf className="animate-pulse" /> ĐANG CHỜ DUYỆT
         </span>
       );
-    if (status === "PUBLISHED" && !expired)
+    if (status === "REJECTED")
       return (
-        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-green-500/20 text-green-400 border-green-500/30">
-          ĐANG DIỄN RA
+        <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-red-500/10 text-red-400 border-red-500/30 flex items-center gap-1.5">
+          <FaExclamationCircle /> TỪ CHỐI
+        </span>
+      );
+    if (status === "DRAFT")
+      return (
+        <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-gray-500/10 text-gray-400 border-gray-500/30">
+          BẢN NHÁP
         </span>
       );
 
-    let classes = "bg-gray-500/10 text-gray-400 border-gray-500/20";
-    if (status === "PENDING_APPROVAL")
-      classes = "bg-blue-500/20 text-blue-400 border-blue-500/30";
-    if (status === "REJECTED")
-      classes = "bg-red-500/20 text-red-400 border-red-500/30";
-    return (
-      <span
-        className={`px-3 py-1 rounded-full text-[10px] font-bold border ${classes}`}
-      >
-        {status === "PENDING_APPROVAL"
-          ? "CHỜ DUYỆT"
-          : status === "REJECTED"
-          ? "TỪ CHỐI"
-          : status}
-      </span>
-    );
+    if (status === "PUBLISHED" || status === "APPROVED") {
+      if (timeStatus === "ENDED")
+        return (
+          <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-gray-700 text-gray-300 border-gray-600">
+            ĐÃ KẾT THÚC
+          </span>
+        );
+      if (timeStatus === "UPCOMING")
+        return (
+          <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-yellow-500/10 text-yellow-500 border-yellow-500/30 flex items-center gap-1">
+            <FaClock /> SẮP DIỄN RA
+          </span>
+        );
+      return (
+        <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-green-500/10 text-green-400 border-green-500/30 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />{" "}
+          ĐANG DIỄN RA
+        </span>
+      );
+    }
+    return null;
   };
 
   const TABS = [
     { id: "ALL", label: "Tất cả" },
-    { id: "PENDING_APPROVAL", label: "Chờ duyệt" },
-    { id: "HAPPENING", label: "Đang diễn ra" },
-    { id: "ENDED", label: "Đã kết thúc" },
-    { id: "REJECTED", label: "Đã từ chối" },
     { id: "DRAFT", label: "Bản nháp" },
+    { id: "PENDING_APPROVAL", label: "Chờ duyệt" },
+    { id: "APPROVED", label: "Đã công bố" },
+    { id: "REJECTED", label: "Bị từ chối" },
   ];
+
   const visibleTabs = isSAdmin ? TABS.filter((t) => t.id !== "DRAFT") : TABS;
 
   return (
     <div className="min-h-screen pb-20 font-sans text-white">
       <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 pt-4">
         <div className="w-full xl:w-auto overflow-x-auto custom-scrollbar">
-          <div className="flex gap-1 p-1 bg-[#1a1a1a] border border-white/10 rounded-full w-max">
+          <div className="flex gap-1 p-1 bg-[#1a1a1a] border border-white/10 rounded-2xl w-max">
             {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                className={`px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                   activeTab === tab.id
                     ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
                     : "text-gray-400 hover:text-white hover:bg-white/5"
@@ -369,83 +434,99 @@ export default function ManageEvents() {
             ))}
           </div>
         </div>
-
         <div className="flex items-center gap-3 w-full xl:w-auto">
           <button
             onClick={handleExportExcel}
             disabled={isExporting}
-            className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all font-bold text-sm whitespace-nowrap shadow-lg ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl border transition-all font-bold text-sm whitespace-nowrap shadow-lg ${
               isExporting
                 ? "bg-gray-700 text-gray-400 border-gray-600 cursor-not-allowed"
-                : "bg-green-600/20 text-green-500 border-green-600/30 hover:bg-green-600 hover:text-white shadow-green-900/20 hover:shadow-green-500/30"
+                : "bg-green-600/20 text-green-500 border-green-600/30 hover:bg-green-600 hover:text-white"
             }`}
           >
             {isExporting ? (
               <FaSpinner className="animate-spin" />
             ) : (
               <FaFileExcel />
-            )}
-            {isExporting ? "Đang lấy dữ liệu..." : "Xuất Excel"}
+            )}{" "}
+            {isExporting ? "Đang tạo file..." : "Xuất Excel"}
           </button>
 
           <div className="relative group w-full sm:w-72">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F]" />
             <input
               type="text"
               placeholder="Tìm kiếm sự kiện..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] focus:ring-1 focus:ring-[#B5A65F] outline-none transition-all placeholder-gray-600"
+              className="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none"
             />
           </div>
-          {!isSAdmin && (
-            <Link
-              to="/admin/events/create"
-              className="px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-full flex items-center gap-2 hover:bg-[#c9ba6e] transition-all shadow-lg whitespace-nowrap"
-            >
-              <FaPlus /> Tạo mới
-            </Link>
-          )}
+          {!isSAdmin &&
+            (isChecking ? (
+              <div className="px-6 py-3 bg-[#1a1a1a] border border-white/10 text-gray-400 font-bold text-sm rounded-2xl flex items-center gap-2 cursor-wait">
+                <FaSpinner className="animate-spin" /> Check...
+              </div>
+            ) : isRestricted ? (
+              <div
+                className="px-4 py-3 bg-red-500/10 text-red-500 font-bold text-sm rounded-2xl flex items-center gap-2 border border-red-500/20 cursor-not-allowed opacity-80"
+                title="Bị khóa"
+              >
+                <FaLock /> Bị hạn chế
+              </div>
+            ) : (
+              <Link
+                to="/admin/events/create"
+                className="px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-2xl flex items-center gap-2 hover:bg-[#c9ba6e] transition-all shadow-lg whitespace-nowrap"
+              >
+                <FaPlus /> Tạo mới
+              </Link>
+            ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
         {isLoading ? (
           <>
-            {[...Array(6)].map((_, i) => (
-              <div
+            {" "}
+            {[...Array(4)].map((_, i) => (
+              <Skeleton.Image
                 key={i}
-                className="bg-[#1a1a1a] rounded-3xl border border-white/5 overflow-hidden flex flex-col h-[400px]"
-              >
-                <Skeleton.Image
-                  active
-                  className="w-full! h-64! opacity-20"
-                  style={{ width: "100%", height: "256px" }}
-                />
-                <div className="p-6 flex-1 flex flex-col gap-4">
-                  <Skeleton
-                    active
-                    title={{ width: "80%" }}
-                    paragraph={{ rows: 2 }}
-                  />
-                </div>
-              </div>
-            ))}
+                active
+                className="w-full! h-64! rounded-3xl"
+              />
+            ))}{" "}
           </>
         ) : (
           <AnimatePresence mode="popLayout">
             {paginatedData.map((event) => {
-              const isHero = featuredEvents.some(
-                (e) => e.eventId === event.eventId
+              const isHero = tempHeroState.hasOwnProperty(event.eventId)
+                ? tempHeroState[event.eventId]
+                : featuredEvents.some((e) => e.eventId === event.eventId);
+              const isSelected = tempSelectedState.hasOwnProperty(event.eventId)
+                ? tempSelectedState[event.eventId]
+                : selectedEvents.some((e) => e.eventId === event.eventId);
+              const timeStatus = checkTimeStatus(
+                event.startDate,
+                event.endDate
               );
-              const isSelected = selectedEvents.some(
-                (e) => e.eventId === event.eventId
-              );
-              const isExpired = isEventExpired(event.endDate);
+              const isExpired = timeStatus === "ENDED";
               const canDelete =
                 event.status === "DRAFT" ||
                 event.status === "REJECTED" ||
                 isExpired;
+
+              let borderClass = "border-white/5 hover:border-[#B5A65F]/30";
+              if (isHero)
+                borderClass =
+                  "border-[#FFD700]/40 shadow-[0_0_15px_rgba(255,215,0,0.1)]";
+              else if (isSelected) borderClass = "border-blue-500/30";
+              else if (event.status === "REJECTED")
+                borderClass =
+                  "border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.1)]";
+              else if (event.status === "PENDING_APPROVAL")
+                borderClass =
+                  "border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.1)]";
 
               return (
                 <motion.div
@@ -455,13 +536,7 @@ export default function ManageEvents() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   key={event.eventId}
-                  className={`group relative flex flex-col bg-[#1a1a1a] rounded-3xl border overflow-hidden transition-all ${
-                    isHero
-                      ? "border-[#FFD700]/40 shadow-[0_0_15px_rgba(255,215,0,0.1)]"
-                      : isSelected
-                      ? "border-blue-500/30"
-                      : "border-white/5 hover:border-[#B5A65F]/30"
-                  }`}
+                  className={`group relative flex flex-col bg-[#1a1a1a] rounded-3xl border overflow-hidden transition-all ${borderClass}`}
                 >
                   <div className="relative h-64 w-full bg-black">
                     <img
@@ -476,34 +551,10 @@ export default function ManageEvents() {
                     <div className="absolute top-4 right-4 z-10">
                       <StatusBadge
                         status={event.status}
+                        startDate={event.startDate}
                         endDate={event.endDate}
                       />
                     </div>
-                    {isSAdmin && !isExpired && (
-                      <div className="absolute top-4 left-4 z-20 flex items-center gap-1 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
-                        <button
-                          onClick={() => handleToggleHero(event)}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                            isHero
-                              ? "bg-[#FFD700] text-black scale-110"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          <FaStar size={14} />
-                        </button>
-                        <div className="w-px h-4 bg-white/20"></div>
-                        <button
-                          onClick={() => handleToggleSelected(event)}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                            isSelected
-                              ? "bg-blue-500 text-white scale-110"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          <FaBolt size={14} />
-                        </button>
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex-1 px-8 pt-2 pb-6 flex flex-col gap-3 relative z-10 -mt-16">
@@ -514,13 +565,14 @@ export default function ManageEvents() {
                     >
                       {event.eventName}
                     </h3>
+
                     <div className="space-y-2 text-sm text-gray-400 bg-[#1a1a1a]/50 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
                       <div className="flex items-center gap-3">
-                        <FaMapMarkerAlt className="text-[#B5A65F]" />
+                        <FaMapMarkerAlt className="text-[#B5A65F]" />{" "}
                         <span className="truncate">{event.location}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <FaClock className="text-[#B5A65F]" />
+                        <FaCalendarAlt className="text-[#B5A65F]" />{" "}
                         <span>
                           {new Date(event.startDate).toLocaleDateString(
                             "vi-VN"
@@ -528,14 +580,39 @@ export default function ManageEvents() {
                         </span>
                       </div>
                     </div>
-                    {event.status === "REJECTED" && event.reason && (
-                      <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 items-start animate-pulse">
+
+                    {event.status === "REJECTED" && (
+                      <div className="mt-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex gap-3 items-start animate-pulse">
                         <FaExclamationCircle className="text-red-500 mt-0.5 shrink-0 text-lg" />
                         <div className="text-xs text-red-400">
-                          <span className="font-bold block mb-1">
-                            Lý do từ chối:
+                          <span className="font-bold block mb-1 uppercase tracking-wide">
+                            Yêu cầu bị từ chối
                           </span>
-                          {event.reason}
+                          <span className="text-gray-300">Lý do: </span>
+                          {event.reason || "Vi phạm chính sách cộng đồng."}
+                        </div>
+                      </div>
+                    )}
+
+                    {event.status === "PENDING_APPROVAL" && (
+                      <div className="mt-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl flex gap-3 items-center">
+                        <div className="shrink-0">
+                          {isSAdmin ? (
+                            <FaExclamationCircle className="text-blue-400 text-lg animate-pulse" />
+                          ) : (
+                            <FaHourglassHalf className="text-blue-400 animate-spin-slow text-lg" />
+                          )}
+                        </div>
+
+                        <div className="text-xs text-blue-300">
+                          <span className="font-bold block mb-1 uppercase tracking-wide">
+                            {isSAdmin
+                              ? "Yêu cầu phê duyệt"
+                              : "Đang chờ phê duyệt"}
+                          </span>
+                          {isSAdmin
+                            ? "Sự kiện này đang chờ bạn kiểm duyệt. Vui lòng kiểm tra."
+                            : "Sự kiện đang được Admin xem xét. Vui lòng chờ."}
                         </div>
                       </div>
                     )}
@@ -549,6 +626,40 @@ export default function ManageEvents() {
                       <FaEye /> CHI TIẾT
                     </Link>
                     <div className="flex items-center gap-2">
+                      {isSAdmin && !isExpired && (
+                        <>
+                          <Tooltip title="Hero Banner">
+                            <button
+                              onClick={() => handleToggleHero(event)}
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${
+                                isHero
+                                  ? "bg-[#FFD700] text-black border-[#FFD700]"
+                                  : "bg-gray-800 text-gray-500 border-transparent hover:text-[#FFD700]"
+                              }`}
+                            >
+                              {isHero ? (
+                                <FaStar size={14} />
+                              ) : (
+                                <FaRegStar size={14} />
+                              )}
+                            </button>
+                          </Tooltip>
+                          <Tooltip title="Nổi bật">
+                            <button
+                              onClick={() => handleToggleSelected(event)}
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${
+                                isSelected
+                                  ? "bg-blue-500 text-white border-blue-500"
+                                  : "bg-gray-800 text-gray-500 border-transparent hover:text-blue-400"
+                              }`}
+                            >
+                              <FaBolt size={14} />
+                            </button>
+                          </Tooltip>
+                          <div className="w-px h-4 bg-white/10 mx-1"></div>
+                        </>
+                      )}
+
                       {isSAdmin &&
                         event.status === "PENDING_APPROVAL" &&
                         !isExpired && (
@@ -567,6 +678,7 @@ export default function ManageEvents() {
                             </button>
                           </>
                         )}
+
                       {!isSAdmin && !isExpired && (
                         <>
                           {(event.status === "PUBLISHED" ||
@@ -580,29 +692,31 @@ export default function ManageEvents() {
                               </Link>
                             </Tooltip>
                           )}
-
-                          {(event.status === "DRAFT" ||
-                            event.status === "REJECTED") && (
-                            <>
-                              <Link
-                                to={`/admin/events/${event.slug}/edit`}
-                                className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center"
-                              >
-                                <FaEdit />
-                              </Link>
-                              {/* NÚT GỬI DUYỆT */}
-                              <button
-                                onClick={() => openModal("SEND", event)}
-                                className="w-9 h-9 rounded-xl bg-[#B5A65F]/10 text-[#B5A65F] hover:bg-[#B5A65F] hover:text-black flex items-center justify-center"
-                                title="Gửi duyệt"
-                              >
-                                <FaPaperPlane />
-                              </button>
-                            </>
-                          )}
+                          {!isChecking &&
+                            !isRestricted &&
+                            (event.status === "DRAFT" ||
+                              event.status === "REJECTED") && (
+                              <>
+                                <Link
+                                  to={`/admin/events/${event.slug}/edit`}
+                                  className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center"
+                                  title="Sửa"
+                                >
+                                  <FaEdit />
+                                </Link>
+                                <button
+                                  onClick={() => openModal("SEND", event)}
+                                  className="w-9 h-9 rounded-xl bg-[#B5A65F]/10 text-[#B5A65F] hover:bg-[#B5A65F] hover:text-black flex items-center justify-center"
+                                  title="Gửi duyệt"
+                                >
+                                  <FaPaperPlane />
+                                </button>
+                              </>
+                            )}
                         </>
                       )}
-                      {canDelete && (
+
+                      {!isChecking && !isRestricted && canDelete && (
                         <button
                           onClick={() => openModal("DELETE", event)}
                           className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center"
@@ -622,47 +736,50 @@ export default function ManageEvents() {
 
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
+          {" "}
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
           >
             <FaChevronLeft />
-          </button>
+          </button>{" "}
           <span className="text-sm">
             Trang {currentPage} / {totalPages}
-          </span>
+          </span>{" "}
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
           >
             <FaChevronRight />
-          </button>
+          </button>{" "}
         </div>
       )}
-
       {confirmModal.isOpen && confirmModal.type === "REJECT" ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          {" "}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-[#1a1a1a] border border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl"
           >
+            {" "}
             <h3 className="text-xl font-bold text-white mb-2">
               Từ chối sự kiện
-            </h3>
+            </h3>{" "}
             <p className="text-gray-400 text-sm mb-4">
               Vui lòng nhập lý do từ chối.
-            </p>
+            </p>{" "}
             <textarea
               className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-red-500 outline-none resize-none h-32"
               placeholder="Nhập lý do..."
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               autoFocus
-            />
+            />{" "}
             <div className="flex gap-3 mt-6 justify-end">
+              {" "}
               <button
                 onClick={() =>
                   setConfirmModal({ ...confirmModal, isOpen: false })
@@ -670,15 +787,15 @@ export default function ManageEvents() {
                 className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5"
               >
                 Hủy bỏ
-              </button>
+              </button>{" "}
               <button
                 onClick={handleConfirmAction}
                 className="px-6 py-2 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600"
               >
                 Xác nhận
-              </button>
-            </div>
-          </motion.div>
+              </button>{" "}
+            </div>{" "}
+          </motion.div>{" "}
         </div>
       ) : (
         <ConfirmModal

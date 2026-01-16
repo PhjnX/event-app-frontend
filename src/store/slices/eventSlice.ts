@@ -3,11 +3,9 @@ import apiService from "../../services/apiService";
 import type { Event } from "../../models/event";
 import { logoutUser } from "./auth";
 
-
 const API_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://ems-backend-jkjx.onrender.com/api";
-
 
 const getBackendRootUrl = () => {
   if (API_URL.endsWith("/api")) {
@@ -18,7 +16,7 @@ const getBackendRootUrl = () => {
 
 const processImageUrl = (url: string | null | undefined) => {
   if (!url) return "";
-  if (url.startsWith("http")) return url; 
+  if (url.startsWith("http")) return url;
 
   const root = getBackendRootUrl();
   const cleanPath = url.startsWith("/") ? url : `/${url}`;
@@ -30,7 +28,7 @@ interface EventState {
   featuredEvents: Event[];
   selectedEvents: Event[];
   registrations: any[];
-  myRegistrations: any[]; 
+  myRegistrations: any[];
   isLoading: boolean;
   error: string | null;
 }

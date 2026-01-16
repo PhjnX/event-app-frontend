@@ -39,17 +39,14 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
             class: ImageTool as any,
             config: {
               uploader: {
-                // [QUAN TRỌNG] Hàm xử lý upload
                 async uploadByFile(file: File) {
                   try {
-                    // 1. Gọi API upload
                     const imageUrl = await uploadImage(file);
 
                     if (!imageUrl) {
                       throw new Error("Upload failed, no URL returned");
                     }
 
-                    // 2. Trả về đúng format Editor.js yêu cầu để hiển thị ảnh
                     return {
                       success: 1,
                       file: {
@@ -58,7 +55,6 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
                     };
                   } catch (error) {
                     console.error("Editor Upload Error:", error);
-                    // 3. Nếu lỗi, trả về success: 0 để nó dừng quay vòng tròn
                     return {
                       success: 0,
                     };
@@ -77,7 +73,6 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
     }
 
     return () => {
-      // Cleanup an toàn
       if (ref.current && typeof ref.current.destroy === "function") {
         try {
           ref.current.destroy();

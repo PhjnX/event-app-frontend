@@ -21,6 +21,8 @@ import {
   FaRegStar,
   FaUserTie,
   FaFileExcel,
+  FaLock, 
+  FaSpinner, 
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
@@ -36,7 +38,10 @@ import {
   updateFeaturedList,
   resetPresenterState,
 } from "../../../store/slices/presenterSlice";
-import { fetchOrganizers } from "../../../store/slices/organizerSlice";
+import {
+  fetchOrganizers,
+  fetchOrganizerDetail,
+} from "../../../store/slices/organizerSlice";
 import { uploadAvatar } from "../../../store/slices/auth";
 import type { Presenter } from "../../../models/presenter";
 import { ROLES } from "@/constants";
@@ -60,6 +65,57 @@ export default function ManagePresenters() {
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
   const isOrganizer =
     user?.role === ROLES.ORGANIZER || user?.role === "ORGANIZER";
+
+  const toSlug = (str: string) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[đĐ]/g, "d")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+  };
+
+  const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
+  // Mặc định đang check nếu là Organizer
+  const [isChecking, setIsChecking] = useState(isOrganizer);
+
+  useEffect(() => {
+    if (isOrganizer && user) {
+      setIsChecking(true);
+      const orgData = (user as any).organizer || {};
+
+      const slugToCheck =
+        orgData.slug ||
+        (user as any).slug ||
+        toSlug((user as any).username) ||
+        toSlug(orgData.name);
+
+      if (slugToCheck) {
+        dispatch(fetchOrganizerDetail(slugToCheck))
+          .then((res: any) => {
+            if (res.payload) {
+              setOrgStatus({
+                locked: res.payload.locked === true,
+                approved: res.payload.approved === true,
+              });
+            }
+          })
+          .finally(() => {
+            setIsChecking(false);
+          });
+      } else {
+        setIsChecking(false);
+      }
+    }
+  }, [dispatch, isOrganizer, user]);
+
+  const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrgSlug, setSelectedOrgSlug] = useState("ALL");
@@ -102,9 +158,7 @@ export default function ManagePresenters() {
   const [localFeatured, setLocalFeatured] = useState<Record<number, boolean>>(
     {}
   );
-  const [, setMissingSlugError] = useState(false);
 
-  // FETCH DATA
   useEffect(() => {
     if (isSAdmin) dispatch(fetchOrganizers());
   }, [dispatch, isSAdmin]);
@@ -112,8 +166,6 @@ export default function ManagePresenters() {
   useEffect(() => {
     const loadData = async () => {
       dispatch(resetPresenterState());
-      setMissingSlugError(false);
-
       if (isSAdmin) {
         if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
         else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
@@ -259,6 +311,7 @@ export default function ManagePresenters() {
 
       toast.success("Thao tác thành công!");
       setIsModalOpen(false);
+
       if (isSAdmin) {
         if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
         else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
@@ -316,7 +369,6 @@ export default function ManagePresenters() {
         )}
       </AnimatePresence>
 
-      {/* --- HEADER CONTROLS --- */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
         {isSAdmin ? (
           <div className="relative z-40 w-full xl:w-auto" ref={dropdownRef}>
@@ -411,16 +463,29 @@ export default function ManagePresenters() {
               className="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none"
             />
           </div>
-          <button
-            onClick={openCreateModal}
-            className="w-full sm:w-auto px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-2xl hover:bg-[#c4b56a] flex justify-center items-center gap-2 shadow-lg"
-          >
-            <FaPlus /> Thêm mới
-          </button>
+
+          {!isSAdmin && isChecking ? (
+            <div className="w-full sm:w-auto px-6 py-3 bg-[#1a1a1a] border border-white/10 text-gray-400 font-bold text-sm rounded-2xl flex justify-center items-center gap-2 cursor-wait">
+              <FaSpinner className="animate-spin" /> Đang kiểm tra...
+            </div>
+          ) : !isSAdmin && isRestricted ? (
+            <div
+              className="w-full sm:w-auto px-6 py-3 bg-red-500/10 text-red-500 font-bold text-sm rounded-2xl border border-red-500/20 flex justify-center items-center gap-2 cursor-not-allowed opacity-80"
+              title="Tài khoản bị khóa hoặc chờ duyệt"
+            >
+              <FaLock /> Bị hạn chế
+            </div>
+          ) : (
+            <button
+              onClick={openCreateModal}
+              className="w-full sm:w-auto px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-2xl hover:bg-[#c4b56a] flex justify-center items-center gap-2 shadow-lg"
+            >
+              <FaPlus /> Thêm mới
+            </button>
+          )}
         </div>
       </div>
 
-      {/* --- MAIN GRID --- */}
       {isLoading ? (
         <div className="text-center py-20 text-gray-500 italic">
           Đang tải danh sách diễn giả...
@@ -510,7 +575,8 @@ export default function ManagePresenters() {
                     >
                       <FaEye /> Chi tiết
                     </button>
-                    {(isOrganizer || isSAdmin) && (
+                    {(isSAdmin ||
+                      (isOrganizer && !isChecking && !isRestricted)) && (
                       <>
                         <button
                           onClick={() => handleEdit(item)}
@@ -534,7 +600,6 @@ export default function ManagePresenters() {
         </div>
       )}
 
-      {/* --- PAGINATION --- */}
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
           <button
@@ -558,7 +623,6 @@ export default function ManagePresenters() {
         </div>
       )}
 
-      {/* --- MODAL DETAIL --- */}
       <AnimatePresence>
         {viewDetailPresenter && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
@@ -613,7 +677,6 @@ export default function ManagePresenters() {
         )}
       </AnimatePresence>
 
-      {/* --- MODAL FORM --- */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
@@ -806,3 +869,4 @@ export default function ManagePresenters() {
     </div>
   );
 }
+  

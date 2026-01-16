@@ -141,7 +141,7 @@ export default function EditEventPage() {
         endDate: endDateISO,
         registrationDeadline: regDateISO,
         visibility: formData.visibility,
-        status: formData.status, // Giữ nguyên status (thường là Draft hoặc Rejected khi sửa)
+        status: formData.status, 
       };
 
       if (slug) {

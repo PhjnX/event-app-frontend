@@ -48,15 +48,14 @@ const parseDateTimeToInput = (isoString: string) => {
 
 const combineToISO = (dateVal: string, timeVal: string) => {
   if (!dateVal || !timeVal) return "";
-  return `${dateVal}T${timeVal}:00.000Z`;
+  return `${dateVal}T${timeVal}:00`;
 };
 
 const formatDisplayTime = (isoString: string) => {
   if (!isoString) return "";
-  const parts = isoString.split("T");
-  return parts[1] ? parts[1].substring(0, 5) : "";
+  const timePart = isoString.split("T")[1];
+  return timePart ? timePart.substring(0, 5) : "";
 };
-
 const formatShortDate = (isoString: string) => {
   if (!isoString) return "";
   const datePart = isoString.split("T")[0];
@@ -98,7 +97,6 @@ export default function EventDetail() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
 
-  // Logic phân quyền quản lý
   const canManage =
     isOrganizer &&
     event &&
@@ -234,8 +232,32 @@ export default function EventDetail() {
     const startISO = combineToISO(actForm.startDate, actForm.startTime);
     const endISO = combineToISO(actForm.endDate, actForm.endTime);
 
-    if (new Date(startISO) >= new Date(endISO)) {
-      toast.warn("Giờ kết thúc phải sau giờ bắt đầu!");
+    const actStart = new Date(startISO);
+    const actEnd = new Date(endISO);
+
+    const eventStart = new Date(event.startDate);
+    const eventEnd = new Date(event.endDate);
+
+    if (actStart >= actEnd) {
+      toast.warn("Giờ kết thúc hoạt động phải sau giờ bắt đầu!");
+      return;
+    }
+
+    if (actStart < eventStart) {
+      toast.warn(
+        `Hoạt động không được bắt đầu trước sự kiện! (Sự kiện bắt đầu lúc: ${formatDisplayTime(
+          event.startDate
+        )} ${formatShortDate(event.startDate)})`
+      );
+      return;
+    }
+
+    if (actEnd > eventEnd) {
+      toast.warn(
+        `Hoạt động không được kết thúc sau sự kiện! (Sự kiện kết thúc lúc: ${formatDisplayTime(
+          event.endDate
+        )} ${formatShortDate(event.endDate)})`
+      );
       return;
     }
 
@@ -266,7 +288,9 @@ export default function EventDetail() {
       }
       dispatch(fetchActivitiesByEvent(event.eventId));
       setIsModalOpen(false);
-    } catch (error: any) {}
+    } catch (error: any) {
+      toast.error(error.message || "Có lỗi xảy ra");
+    }
   };
 
   const handleQuickCreateCategory = async () => {
@@ -481,7 +505,6 @@ export default function EventDetail() {
                       month: "2-digit",
                     })}
                   </div>
-                  {/* FIX WARNING: to-transparent -> rgba alpha 0 */}
                   <div className="h-px flex-1 bg-linear-to-r from-[rgba(181,166,95,0.5)] to-primary-gold-transparent"></div>
                 </div>
 

@@ -17,40 +17,40 @@ export interface MenuItem {
 
 export const ADMIN_MENU: MenuItem[] = [
   {
-    title: "Dashboard",
+    title: "Trang Chủ",
     path: "/admin/dashboard",
     icon: FaChartPie,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
   {
-    title: "Quản lý Người dùng",
+    title: "Quản lý Người Dùng",
     path: "/admin/users",
     icon: FaUsers,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
 
   {
-    title: "Quản lý Sự kiện",
+    title: "Quản lý Sự Kiện",
     path: "/admin/events",
     icon: FaCalendarAlt,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
 
   {
-    title: "Quản lý Diễn giả",
+    title: "Quản lý Khách Mời",
     path: "/admin/presenters",
     icon: FaChalkboardTeacher,
     roles: [ROLES.SUPER_ADMIN, ROLES.ORGANIZER],
   },
 
   {
-    title: "Duyệt Nhà Tổ Chức",
+    title: "Quản Lý Nhà Tổ Chức",
     path: "/admin/organizers",
     icon: FaBuilding,
     roles: [ROLES.SUPER_ADMIN],
   },
   {
-    title: "Quản lý Tin tức",
+    title: "Quản lý Tin Tức",
     path: "/admin/news",
     icon: FaNewspaper,
     roles: [ROLES.SUPER_ADMIN],

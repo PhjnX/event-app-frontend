@@ -1,10 +1,25 @@
-import React from "react";
-import { FaSignOutAlt, FaHome, FaChevronRight } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import {
+  FaSignOutAlt,
+  FaHome,
+  FaChevronRight,
+  FaLock, 
+  FaClock, 
+  FaExclamationTriangle, 
+} from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 import { logoutUser } from "@/store/slices/auth";
+import {
+  requestUnlockOrganizer,
+  fetchOrganizerDetail,
+} from "@/store/slices/organizerSlice";
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
+
+import ConfirmModal from "./ConfirmModal";
 
 interface TopbarProps {
   isCollapsed: boolean;
@@ -17,67 +32,195 @@ const Topbar: React.FC<TopbarProps> = () => {
   const location = useLocation();
   const { user } = useSelector((state: RootState) => state.auth);
 
+  const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
+  const isOrganizer =
+    user?.role === ROLES.ORGANIZER || user?.role === "ORGANIZER";
+
+  const [orgStatus, setOrgStatus] = useState({
+    locked: false,
+    approved: true,
+    unlockRequested: false,
+  });
+
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean }>({
+    isOpen: false,
+  });
+
+  const toSlug = (str: string) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[đĐ]/g, "d")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+  };
+
+  useEffect(() => {
+    if (isOrganizer && user) {
+      const orgData = (user as any).organizer || {};
+
+      const slugToCheck =
+        orgData.slug ||
+        (user as any).slug ||
+        toSlug((user as any).username) ||
+        toSlug(orgData.name);
+
+      if (slugToCheck) {
+        dispatch(fetchOrganizerDetail(slugToCheck)).then((res: any) => {
+          if (res.payload) {
+            setOrgStatus({
+              locked: res.payload.locked === true,
+              approved: res.payload.approved === true,
+              // Backend trả về true/false cho field này
+              unlockRequested: res.payload.unlockRequested === true,
+            });
+          }
+        });
+      }
+    }
+  }, [dispatch, isOrganizer, user]);
+
+  const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
+
+  const handleRequestClick = () => {
+    if (!orgStatus.approved) {
+      toast.info("Tài khoản của bạn đang chờ Admin phê duyệt hồ sơ.");
+      return;
+    }
+    if (orgStatus.unlockRequested) {
+      toast.info("Yêu cầu mở khóa đang được xử lý. Vui lòng chờ.");
+      return;
+    }
+
+    setConfirmModal({ isOpen: true });
+  };
+
+  const handleConfirmUnlock = async () => {
+    try {
+      await dispatch(requestUnlockOrganizer()).unwrap();
+
+      toast.success("Đã gửi yêu cầu mở khóa!");
+      setOrgStatus((prev) => ({ ...prev, unlockRequested: true }));
+    } catch (error) {
+      toast.error("Gửi yêu cầu thất bại. Vui lòng thử lại sau.");
+    } finally {
+      setConfirmModal({ isOpen: false });
+    }
+  };
+
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate("/auth");
   };
 
-  const isSAdmin = user?.role === ROLES.SUPER_ADMIN;
-
   const getPageTitle = (path: string) => {
-    if (path.includes("/admin/events")) return "Event Management";
-    if (path.includes("/admin/presenters")) return "Presenter Management";
-    if (path.includes("/admin/organizers")) return "Organizer Management";
-    if (path.includes("/admin/users")) return "User Management";
+    if (path.includes("/admin/events")) return "Manage Events";
+    if (path.includes("/admin/presenters")) return "Manage Guest Speakers";
+    if (path.includes("/admin/organizers")) return "Manage Organizers";
+    if (path.includes("/admin/users")) return "Manage Users";
+    if (path.includes("/admin/news")) return "Manage News";
     return "Dashboard";
   };
-
   const currentTitle = getPageTitle(location.pathname);
 
   return (
-    <header className="h-16 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#D8C97B]/20 flex items-center justify-between px-6 sticky top-0 z-40 transition-all duration-300">
-      <div className="flex items-center gap-2 text-sm">
-        {currentTitle !== "Dashboard" ? (
-          <>
-            <Link
-              to="/admin"
-              className="text-gray-500 hover:text-[#D8C97B] transition-colors flex items-center gap-1 font-medium"
-            >
-              <FaHome className="mt-0.5" /> Dashboard
-            </Link>
-            <FaChevronRight className="text-gray-700 text-xs" />
-            <span className="text-white font-bold  tracking-wide">
-              {currentTitle}
+    <>
+      <header className="h-16 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#D8C97B]/20 flex items-center justify-between px-6 sticky top-0 z-40 transition-all duration-300">
+        <div className="flex items-center gap-2 text-sm">
+          {currentTitle !== "Dashboard" ? (
+            <>
+              <Link
+                to="/admin"
+                className="text-gray-500 hover:text-[#D8C97B] transition-colors flex items-center gap-1 font-medium"
+              >
+                <FaHome className="mt-0.5" /> Dashboard
+              </Link>
+              <FaChevronRight className="text-gray-700 text-xs" />
+              <span className="text-white font-bold tracking-wide">
+                {currentTitle}
+              </span>
+            </>
+          ) : (
+            <span className="text-white font-bold tracking-wide flex items-center gap-2">
+              <FaHome className="mt-0.5 text-[#D8C97B]" /> Dashboard
             </span>
-          </>
-        ) : (
-          <span className="text-white font-bold  tracking-wide flex items-center gap-2">
-            <FaHome className="mt-0.5 text-[#D8C97B]" /> Dashboard
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-6">
-        <div className="flex flex-col items-end">
-          <span className="text-[#D8C97B] font-black font-noto text-sm tracking-wider uppercase">
-            {isSAdmin ? "SUPER ADMIN" : "ORGANIZER"}
-          </span>
-          <span className="text-[10px] text-gray-500 font-mono">
-            {user?.username}
-          </span>
+          )}
         </div>
 
-        <div className="h-8 w-px bg-white/10"></div>
+        <div className="flex items-center gap-6">
+          {isRestricted && (
+            <button
+              onClick={handleRequestClick}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border animate-fadeIn ${
+                !orgStatus.approved
+                  ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20 cursor-default" 
+                  : orgStatus.unlockRequested
+                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20 cursor-default" 
+                  : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white cursor-pointer animate-pulse" // Bị khóa -> Bấm để mở
+              }`}
+              title={
+                !orgStatus.approved
+                  ? "Tài khoản chưa được duyệt"
+                  : orgStatus.unlockRequested
+                  ? "Đang chờ Admin xử lý"
+                  : "Nhấn để yêu cầu mở khóa"
+              }
+            >
+              {!orgStatus.approved ? (
+                <>
+                  {" "}
+                  <FaExclamationTriangle /> Chờ duyệt{" "}
+                </>
+              ) : orgStatus.unlockRequested ? (
+                <>
+                  {" "}
+                  <FaClock /> Đang chờ duyệt{" "}
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <FaLock /> Bị khóa (Yêu cầu mở){" "}
+                </>
+              )}
+            </button>
+          )}
 
-        <button
-          onClick={handleLogout}
-          className="group flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors"
-          title="Đăng xuất"
-        >
-          <FaSignOutAlt className="group-hover:-translate-x-1 transition-transform text-lg" />
-        </button>
-      </div>
-    </header>
+          <div className="flex flex-col items-end">
+            <span className="text-[#D8C97B] font-black font-noto text-sm tracking-wider uppercase">
+              {isSAdmin ? "SUPER ADMIN" : "ORGANIZER"}
+            </span>
+            <span className="text-[10px] text-gray-500 font-mono">
+              {user?.username}
+            </span>
+          </div>
+
+          <div className="h-8 w-px bg-white/10"></div>
+
+          <button
+            onClick={handleLogout}
+            className="group flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors"
+            title="Đăng xuất"
+          >
+            <FaSignOutAlt className="group-hover:-translate-x-1 transition-transform text-lg" />
+          </button>
+        </div>
+      </header>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmUnlock}
+        type="APPROVE"
+        title="Yêu cầu mở khóa"
+        message="Bạn có chắc muốn gửi yêu cầu mở khóa tài khoản đến Quản trị viên?"
+        confirmText="Gửi yêu cầu"
+      />
+    </>
   );
 };
 

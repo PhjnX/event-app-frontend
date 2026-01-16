@@ -85,13 +85,18 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
+// 👇 ĐÂY LÀ HÀM QUAN TRỌNG NHẤT ĐỂ CHECK TRẠNG THÁI LOCKED
 export const fetchCurrentUser = createAsyncThunk(
   "auth/me",
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (!token) return rejectWithValue("Không tìm thấy token");
-      const response = await apiService.get("/users/me");
+
+      // Gọi API lấy thông tin mới nhất
+      // LƯU Ý QUAN TRỌNG: API /users/me này BẮT BUỘC phải trả về object user
+      // có chứa thông tin organizer (và field 'locked') bên trong.
+      const response = await apiService.get<User>("/users/me");
       return response;
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -145,6 +150,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // --- REGISTER ---
     builder
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -158,6 +164,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       });
 
+    // --- VERIFY ---
     builder
       .addCase(verifyUser.pending, (state) => {
         state.isLoading = true;
@@ -171,6 +178,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       });
 
+    // --- LOGIN ---
     builder
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
@@ -187,6 +195,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
+    // --- UPLOAD ---
     builder
       .addCase(uploadAvatar.pending, (state) => {
         state.isLoading = true;
@@ -197,12 +206,15 @@ const authSlice = createSlice({
       .addCase(uploadAvatar.rejected, (state) => {
         state.isLoading = false;
       });
+
+    // --- FETCH CURRENT USER (ME) ---
     builder
       .addCase(fetchCurrentUser.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action: any) => {
         state.isAuthenticated = true;
+        // Cập nhật toàn bộ thông tin user (bao gồm trạng thái locked mới nhất)
         state.user = action.payload;
         state.isLoading = false;
       })
@@ -211,6 +223,8 @@ const authSlice = createSlice({
         state.user = null;
         state.isLoading = false;
       });
+
+    // --- UPDATE PROFILE ---
     builder
       .addCase(updateUserProfile.pending, (state) => {
         state.isLoading = true;
@@ -222,6 +236,8 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state) => {
         state.isLoading = false;
       });
+
+    // --- LOGOUT ---
     builder
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;

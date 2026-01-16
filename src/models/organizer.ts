@@ -8,6 +8,9 @@ export interface Organizer {
   contactPhoneNumber: string;
   contactEmail: string;
   userId: number;
-  username: string; 
-  approved: boolean; 
+  username: string;
+  approved: boolean;
+
+  locked: boolean;
+  unlockRequested: boolean;
 }

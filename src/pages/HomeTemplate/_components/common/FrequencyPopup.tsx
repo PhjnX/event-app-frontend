@@ -5,7 +5,7 @@ import OrganizerRegModal from "./OrganizerRegModal";
 import webieBg from "@/assets/images/webie_background.png";
 
 import { useSelector } from "react-redux";
-import type { RootState } from "@/store"; 
+import type { RootState } from "@/store";
 import { ROLES } from "@/constants";
 
 const FrequencyPopup = () => {
@@ -17,7 +17,6 @@ const FrequencyPopup = () => {
   );
 
   useEffect(() => {
-   
     if (
       isAuthenticated &&
       (user?.role === ROLES.ORGANIZER || user?.role === ROLES.SUPER_ADMIN)
@@ -31,10 +30,10 @@ const FrequencyPopup = () => {
     const newCount = currentCount + 1;
     localStorage.setItem("page_load_count", newCount.toString());
 
-    if (newCount > 0 && newCount % 1 === 0) {
+    if (newCount > 0 && newCount % 10 === 0) {
       setIsVisible(true);
     }
-  }, [isAuthenticated, user]); 
+  }, [isAuthenticated, user]);
 
   const handleOpenModal = () => {
     setIsVisible(false);

@@ -16,7 +16,7 @@ const apiService = axios.create({
     Accept: "application/json",
   },
   timeout: 60000,
-  withCredentials: false, 
+  withCredentials: false,
 });
 
 apiService.interceptors.request.use(

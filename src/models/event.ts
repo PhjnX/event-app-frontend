@@ -1,4 +1,6 @@
 export interface Event {
+  totalTickets: number;
+  organizerLogoUrl: string;
   eventId: number;
   slug: string;
   eventName: string;
@@ -7,7 +9,7 @@ export interface Event {
   endDate: string;
   location: string;
   bannerImageUrl: string;
-  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "PUBLISHED"; 
+  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "PUBLISHED";
   visibility: "PUBLIC" | "PRIVATE";
   registrationDeadline: string;
   organizerId: number;

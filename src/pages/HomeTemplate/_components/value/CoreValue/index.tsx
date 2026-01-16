@@ -123,7 +123,7 @@ const CoreValues: React.FC = () => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter grayscale group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-75"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.7)] to-[rgba(0,0,0,0)] opacity-90 group-hover:opacity-80 transition-opacity duration-500"></div>
               </div>

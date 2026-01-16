@@ -13,9 +13,13 @@ import {
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
-import { createEvent } from "../../../store/slices/eventSlice";
-import { uploadEventImage } from "../../../store/slices/eventSlice";
+import {
+  createEvent,
+  uploadEventImage,
+} from "../../../store/slices/eventSlice";
 import type { AppDispatch } from "../../../store";
+
+import LockedGuard from "../_components/LockedGuard";
 
 const formatToBackendISO = (dateTimeLocal: string) => {
   if (!dateTimeLocal) return "";
@@ -94,7 +98,7 @@ export default function CreateEventPage() {
         startDate: formatToBackendISO(formData.startDate),
         endDate: formatToBackendISO(formData.endDate),
         registrationDeadline: formatToBackendISO(formData.registrationDeadline),
-        status: "DRAFT", 
+        status: "DRAFT",
         visibility: formData.visibility,
       };
 
@@ -118,6 +122,7 @@ export default function CreateEventPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-200">
+      
       <div className="flex items-center justify-between mb-8 py-4 border-b border-white/10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Link
@@ -132,166 +137,171 @@ export default function CreateEventPage() {
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 lg:grid-cols-12 gap-8"
-      >
-        <div className="lg:col-span-4 space-y-6">
-          <div className={sectionClass}>
-            <label className={labelClass}>
-              <FaImage /> Ảnh Bìa
-            </label>
-            <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-[#1a1a1a] border-2 border-dashed border-white/20 hover:border-[#B5A65F] transition-all cursor-pointer">
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  className="w-full h-full object-cover"
-                  alt="Preview"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                  <FaImage className="text-5xl mb-3 opacity-50" />
-                  <span className="text-xs font-bold uppercase">Chọn ảnh</span>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div className={sectionClass}>
-            <label className={labelClass}>
-              <FaGlobe /> Quyền riêng tư
-            </label>
-            <select
-              name="visibility"
-              value={formData.visibility}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value="PUBLIC">Công khai (Public)</option>
-              <option value="PRIVATE">Riêng tư (Private)</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="lg:col-span-8 space-y-6">
-          <div className={sectionClass}>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className={labelClass}>
-                    <FaCalendarAlt /> Tên sự kiện
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    name="eventName"
-                    value={formData.eventName}
-                    onChange={handleChange}
-                    className={`${inputClass} text-lg font-bold`}
+    
+      <LockedGuard>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+        >
+          <div className="lg:col-span-4 space-y-6">
+            <div className={sectionClass}>
+              <label className={labelClass}>
+                <FaImage /> Ảnh Bìa
+              </label>
+              <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-[#1a1a1a] border-2 border-dashed border-white/20 hover:border-[#B5A65F] transition-all cursor-pointer">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    className="w-full h-full object-cover"
+                    alt="Preview"
                   />
-                </div>
-                <div className="md:col-span-2">
-                  <label className={labelClass}>
-                    <FaMapMarkerAlt /> Địa điểm
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
-                <div>
-                  <label className={labelClass}>
-                    <FaClock /> Bắt đầu
-                  </label>
-                  <input
-                    required
-                    type="datetime-local"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    className={`${inputClass} scheme-dark`}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>
-                    <FaClock /> Kết thúc
-                  </label>
-                  <input
-                    required
-                    type="datetime-local"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    className={`${inputClass} scheme-dark`}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className={`${labelClass} text-red-400`}>
-                    <FaClock /> Hạn chót đăng ký
-                  </label>
-                  <input
-                    required
-                    type="datetime-local"
-                    name="registrationDeadline"
-                    value={formData.registrationDeadline}
-                    onChange={handleChange}
-                    className={`${inputClass} scheme-dark bg-red-500/5`}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClass}>
-                  <FaAlignLeft /> Mô tả
-                </label>
-                <textarea
-                  required
-                  rows={6}
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className={`${inputClass} h-32 resize-none`}
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                    <FaImage className="text-5xl mb-3 opacity-50" />
+                    <span className="text-xs font-bold uppercase">
+                      Chọn ảnh
+                    </span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
                 />
               </div>
             </div>
+
+            <div className={sectionClass}>
+              <label className={labelClass}>
+                <FaGlobe /> Quyền riêng tư
+              </label>
+              <select
+                name="visibility"
+                value={formData.visibility}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="PUBLIC">Công khai (Public)</option>
+                <option value="PRIVATE">Riêng tư (Private)</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-4">
-            <Link
-              to="/admin/events"
-              className="px-6 py-3.5 rounded-xl bg-[#1e1e1e] text-gray-300 font-bold border border-white/10"
-            >
-              Hủy
-            </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold shadow-lg flex items-center gap-2"
-            >
-              {loading ? (
-                "Đang xử lý..."
-              ) : (
-                <>
-                  <FaSave /> Lưu Nháp
-                </>
-              )}
-            </button>
+          <div className="lg:col-span-8 space-y-6">
+            <div className={sectionClass}>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>
+                      <FaCalendarAlt /> Tên sự kiện
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      name="eventName"
+                      value={formData.eventName}
+                      onChange={handleChange}
+                      className={`${inputClass} text-lg font-bold`}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>
+                      <FaMapMarkerAlt /> Địa điểm
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                  <div>
+                    <label className={labelClass}>
+                      <FaClock /> Bắt đầu
+                    </label>
+                    <input
+                      required
+                      type="datetime-local"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      className={`${inputClass} scheme-dark`}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      <FaClock /> Kết thúc
+                    </label>
+                    <input
+                      required
+                      type="datetime-local"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                      className={`${inputClass} scheme-dark`}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={`${labelClass} text-red-400`}>
+                      <FaClock /> Hạn chót đăng ký
+                    </label>
+                    <input
+                      required
+                      type="datetime-local"
+                      name="registrationDeadline"
+                      value={formData.registrationDeadline}
+                      onChange={handleChange}
+                      className={`${inputClass} scheme-dark bg-red-500/5`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <FaAlignLeft /> Mô tả
+                  </label>
+                  <textarea
+                    required
+                    rows={6}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className={`${inputClass} h-32 resize-none`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Link
+                to="/admin/events"
+                className="px-6 py-3.5 rounded-xl bg-[#1e1e1e] text-gray-300 font-bold border border-white/10"
+              >
+                Hủy
+              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-3.5 rounded-xl bg-[#B5A65F] text-black font-bold shadow-lg flex items-center gap-2"
+              >
+                {loading ? (
+                  "Đang xử lý..."
+                ) : (
+                  <>
+                    <FaSave /> Lưu Nháp
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </LockedGuard>
     </div>
   );
 }

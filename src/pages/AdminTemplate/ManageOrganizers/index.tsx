@@ -11,11 +11,10 @@ import {
   FaSearch,
   FaEye,
   FaIdBadge,
-  FaChevronLeft,
-  FaChevronRight,
   FaBuilding,
   FaFileExcel,
   FaBan,
+  FaLock, // Icon ổ khóa
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
@@ -24,8 +23,8 @@ import type { AppDispatch, RootState } from "../../../store";
 import {
   fetchOrganizers,
   approveOrganizer,
-  deleteOrganizer,
-  rejectOrganizer,
+  lockOrganizer,
+  unlockOrganizer,
 } from "../../../store/slices/organizerSlice";
 import { fetchUserList } from "../../../store/slices/userSlice";
 import type { Organizer } from "../../../models/organizer";
@@ -45,7 +44,7 @@ export default function ManageOrganizers() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<
-    "ALL" | "ACTIVE" | "INACTIVE"
+    "ALL" | "ACTIVE" | "INACTIVE" | "LOCKED"
   >("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -53,7 +52,7 @@ export default function ManageOrganizers() {
 
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
-    type: "ACTIVATE" | "DEACTIVATE" | null;
+    type: "ACTIVATE" | "LOCK" | "UNLOCK" | null;
     data: Organizer | null;
   }>({ isOpen: false, type: null, data: null });
 
@@ -61,7 +60,6 @@ export default function ManageOrganizers() {
     isOpen: boolean;
     org: Organizer | null;
   }>({ isOpen: false, org: null });
-  const [rejectReason, setRejectReason] = useState("");
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -96,8 +94,10 @@ export default function ManageOrganizers() {
       if (!matchesSearch) return false;
 
       if (filterStatus === "ALL") return true;
-      if (filterStatus === "ACTIVE") return org.approved === true;
+      if (filterStatus === "ACTIVE")
+        return org.approved === true && !org.locked;
       if (filterStatus === "INACTIVE") return org.approved === false;
+      if (filterStatus === "LOCKED") return org.locked === true;
 
       return true;
     });
@@ -120,7 +120,11 @@ export default function ManageOrganizers() {
         "Tên Tổ Chức": org.name,
         "Người đại diện": org.username,
         "Email liên hệ": org.contactEmail,
-        "Trạng thái": org.approved ? "Hoạt động" : "Chờ duyệt/Vô hiệu",
+        "Trạng thái": org.locked
+          ? "Đã khóa"
+          : org.approved
+          ? "Hoạt động"
+          : "Chờ duyệt",
       }));
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
@@ -140,8 +144,12 @@ export default function ManageOrganizers() {
     try {
       if (type === "ACTIVATE") {
         await dispatch(approveOrganizer(data.organizerId)).unwrap();
-      } else if (type === "DEACTIVATE") {
-        await dispatch(deleteOrganizer(data.slug)).unwrap();
+      } else if (type === "LOCK") {
+        await dispatch(lockOrganizer(data.organizerId)).unwrap();
+        toast.success(`Đã khóa tài khoản ${data.name}`);
+      } else if (type === "UNLOCK") {
+        await dispatch(unlockOrganizer(data.organizerId)).unwrap();
+        toast.success(`Đã mở khóa tài khoản ${data.name}`);
       }
       setConfirmState({ isOpen: false, type: null, data: null });
       if (selectedOrg?.organizerId === data.organizerId) setSelectedOrg(null);
@@ -152,83 +160,53 @@ export default function ManageOrganizers() {
     }
   };
 
-  const handleRejectSubmit = async () => {
-    if (!rejectModal.org || !rejectReason.trim()) {
-      toast.warn("Vui lòng nhập lý do từ chối!");
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      await dispatch(
-        rejectOrganizer({
-          organizerId: rejectModal.org.organizerId,
-          reason: rejectReason,
-        })
-      ).unwrap();
-
-      setRejectModal({ isOpen: false, org: null });
-      setRejectReason("");
-      setSelectedOrg(null);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const openConfirmModal = (
-    type: "ACTIVATE" | "DEACTIVATE",
+    type: "ACTIVATE" | "LOCK" | "UNLOCK",
     org: Organizer
   ) => {
     setConfirmState({ isOpen: true, type, data: org });
   };
 
-  const StatusBadge = ({ approved }: { approved: boolean }) => (
-    <span
-      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5 tracking-wider
-        ${
-          approved
-            ? "bg-[rgba(181,166,95,0.2)] text-[#B5A65F] border-[rgba(181,166,95,0.3)] shadow-primary-gold-low"
-            : "bg-[rgba(239,68,68,0.1)] text-red-400 border-[rgba(239,68,68,0.3)] shadow-[rgba(239,68,68,0.1)]"
-        }
-      `}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          approved ? "bg-[#B5A65F]" : "bg-red-400 animate-pulse"
-        }`}
-      />
-      {approved ? "Active" : "Inactive"}
-    </span>
-  );
+  const StatusBadge = ({ org }: { org: Organizer }) => {
+    if (!org.approved)
+      return (
+        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5 tracking-wider bg-[rgba(239,68,68,0.1)] text-red-400 border-[rgba(239,68,68,0.3)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+          CHỜ DUYỆT
+        </span>
+      );
+    if (org.locked)
+      return (
+        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5 tracking-wider bg-red-900/20 text-red-500 border-red-500/30">
+          <FaLock size={8} /> {org.unlockRequested ? "YÊU CẦU MỞ" : "ĐÃ KHÓA"}
+        </span>
+      );
+    return (
+      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm backdrop-blur-md flex items-center gap-1.5 tracking-wider bg-[rgba(181,166,95,0.2)] text-[#B5A65F] border-[rgba(181,166,95,0.3)] shadow-primary-gold-low">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#B5A65F]" />
+        HOẠT ĐỘNG
+      </span>
+    );
+  };
 
   return (
     <div className="min-h-screen pb-20 font-sans text-white relative selection:bg-[rgba(181,166,95,0.3)]">
       <AnimatePresence>
         {isProcessing && (
-          <LoadingOverlay
-            message="Đang xử lý yêu cầu..."
-            className="z-9999"
-          />
+          <LoadingOverlay message="Đang xử lý yêu cầu..." className="z-9999" />
         )}
       </AnimatePresence>
 
       <div className="flex flex-col lg:flex-row justify-between items-end lg:items-center gap-4 mb-8 pt-4">
         <div className="p-1 bg-[#1a1a1a] border border-white/10 rounded-full flex gap-1 w-full lg:w-auto overflow-x-auto">
-          {["ALL", "ACTIVE", "INACTIVE"].map((tabId) => {
+          {["ALL", "ACTIVE", "INACTIVE", "LOCKED"].map((tabId) => {
             const labels: any = {
               ALL: "Tất cả",
               ACTIVE: "Hoạt động",
               INACTIVE: "Chờ duyệt",
+              LOCKED: "Đã khóa",
             };
             const isActive = filterStatus === tabId;
-            const count = organizers.filter((o) => {
-              if (tabId === "ALL") return true;
-              if (tabId === "ACTIVE") return o.approved;
-              return !o.approved;
-            }).length;
-
             return (
               <button
                 key={tabId}
@@ -240,15 +218,6 @@ export default function ManageOrganizers() {
                 }`}
               >
                 {labels[tabId]}
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[9px] min-w-5 text-center ${
-                    isActive
-                      ? "bg-[rgba(0,0,0,0.2)] text-black"
-                      : "bg-[rgba(255,255,255,0.1)] text-gray-500"
-                  }`}
-                >
-                  {count}
-                </span>
               </button>
             );
           })}
@@ -261,7 +230,6 @@ export default function ManageOrganizers() {
           >
             <FaFileExcel /> Xuất Excel
           </button>
-
           <div className="relative group w-full sm:w-72">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
             <input
@@ -295,22 +263,22 @@ export default function ManageOrganizers() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 key={org.organizerId}
                 className={`group relative bg-[#1a1a1a] rounded-3xl border transition-all duration-300 flex flex-col ${
-                  org.approved
+                  org.locked
+                    ? "border-red-500/20"
+                    : org.approved
                     ? "border-white/5 hover:border-[rgba(181,166,95,0.3)] hover:shadow-2xl"
                     : "border-red-500/10 opacity-80"
                 }`}
               >
-                <div
-                  className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none transition-all ${
-                    org.approved
-                      ? "bg-[rgba(181,166,95,0.05)] group-hover:bg-[rgba(181,166,95,0.15)]"
-                      : "bg-[rgba(239,68,68,0.05)]"
-                  }`}
-                />
+                {org.locked && (
+                  <div className="absolute inset-0 bg-black/40 z-20 rounded-3xl flex items-center justify-center pointer-events-none">
+                    <FaLock className="text-red-500/20 text-9xl -rotate-12" />
+                  </div>
+                )}
 
                 <div className="relative pt-6 px-6 pb-2 flex flex-col items-center z-10">
                   <div className="w-full flex justify-end -mb-4">
-                    <StatusBadge approved={org.approved} />
+                    <StatusBadge org={org} />
                   </div>
                   <div
                     className={`w-28 h-28 rounded-2xl p-1 border-2 bg-[#121212] overflow-hidden transition-all ${
@@ -361,7 +329,7 @@ export default function ManageOrganizers() {
                   ))}
                 </div>
 
-                <div className="px-6 py-4 border-t border-white/5 bg-[rgba(10,10,10,1)] flex justify-between items-center z-10">
+                <div className="px-6 py-4 border-t border-white/5 bg-[rgba(10,10,10,1)] flex justify-between items-center z-30">
                   <button
                     onClick={() => setSelectedOrg(org)}
                     className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white transition-colors group/btn"
@@ -371,7 +339,7 @@ export default function ManageOrganizers() {
                   </button>
 
                   <div className="flex items-center gap-2">
-                    {!org.approved && (
+                    {!org.approved ? (
                       <>
                         <button
                           onClick={() => openConfirmModal("ACTIVATE", org)}
@@ -388,13 +356,25 @@ export default function ManageOrganizers() {
                           <FaBan size={12} />
                         </button>
                       </>
-                    )}
-
-                    {org.approved && (
+                    ) : org.locked ? (
                       <button
-                        onClick={() => openConfirmModal("DEACTIVATE", org)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-500/10 text-gray-400 hover:bg-gray-500 hover:text-white transition-all border border-white/5"
-                        title="Vô hiệu hóa"
+                        onClick={() => openConfirmModal("UNLOCK", org)}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all border ${
+                          org.unlockRequested
+                            ? "bg-yellow-500/20 text-yellow-500 border-yellow-500 animate-pulse"
+                            : "bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white"
+                        }`}
+                        title={
+                          org.unlockRequested ? "Có yêu cầu mở khóa" : "Mở khóa"
+                        }
+                      >
+                        <FaUnlock size={12} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openConfirmModal("LOCK", org)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                        title="Khóa tài khoản"
                       >
                         <FaPowerOff size={12} />
                       </button>
@@ -409,24 +389,7 @@ export default function ManageOrganizers() {
 
       {!isLoadingOrg && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
-          >
-            <FaChevronLeft size={10} />
-          </button>
-          <span className="text-sm font-bold text-gray-500 px-2">
-            Trang <span className="text-white">{currentPage}</span> /{" "}
-            {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
-          >
-            <FaChevronRight size={10} />
-          </button>
+          {/* ... */}
         </div>
       )}
 
@@ -465,7 +428,7 @@ export default function ManageOrganizers() {
                     {selectedOrg.name}
                   </h2>
                   <div className="flex justify-center items-center gap-2 mt-2">
-                    <StatusBadge approved={selectedOrg.approved} />
+                    <StatusBadge org={selectedOrg} />
                   </div>
                 </div>
                 <div className="space-y-4 w-full">
@@ -480,29 +443,35 @@ export default function ManageOrganizers() {
                   </div>
 
                   {selectedOrg.approved ? (
-                    <button
-                      onClick={() => {
-                        openConfirmModal("DEACTIVATE", selectedOrg);
-                      }}
-                      className="w-full py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-[rgba(255,255,255,0.05)] text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white"
-                    >
-                      <FaPowerOff className="inline mr-2" /> Vô hiệu hóa tài
-                      khoản
-                    </button>
+                    selectedOrg.locked ? (
+                      <button
+                        onClick={() => openConfirmModal("UNLOCK", selectedOrg)}
+                        className="w-full py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-green-500/10 text-green-500 border border-green-500/20 hover:bg-green-500 hover:text-white"
+                      >
+                        <FaUnlock className="inline mr-2" /> Mở khóa tài khoản
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openConfirmModal("LOCK", selectedOrg)}
+                        className="w-full py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-[rgba(255,255,255,0.05)] text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white"
+                      >
+                        <FaPowerOff className="inline mr-2" /> Khóa tài khoản
+                      </button>
+                    )
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       <button
-                        onClick={() => {
-                          setRejectModal({ isOpen: true, org: selectedOrg });
-                        }}
+                        onClick={() =>
+                          setRejectModal({ isOpen: true, org: selectedOrg })
+                        }
                         className="py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white"
                       >
                         <FaBan className="inline mr-2" /> Từ chối
                       </button>
                       <button
-                        onClick={() => {
-                          openConfirmModal("ACTIVATE", selectedOrg);
-                        }}
+                        onClick={() =>
+                          openConfirmModal("ACTIVATE", selectedOrg)
+                        }
                         className="py-3.5 font-bold rounded-xl transition-all uppercase text-sm bg-linear-to-r from-[#B5A65F] to-[#C5B358] text-black shadow-lg shadow-[rgba(181,166,95,0.4)]"
                       >
                         <FaUnlock className="inline mr-2" /> Phê duyệt
@@ -519,70 +488,28 @@ export default function ManageOrganizers() {
       <AnimatePresence>
         {rejectModal.isOpen && (
           <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setRejectModal({ isOpen: false, org: null })}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md bg-[#181818] border border-red-500/30 rounded-2xl p-6 shadow-2xl z-10"
-            >
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <FaBan className="text-red-500" /> Từ chối hồ sơ
-              </h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Bạn đang từ chối tổ chức{" "}
-                <span className="text-white font-bold">
-                  {rejectModal.org?.name}
-                </span>
-                . Vui lòng nhập lý do để gửi email thông báo.
-              </p>
-
-              <textarea
-                className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-red-500 outline-none resize-none min-h-[100px]"
-                placeholder="Nhập lý do từ chối (VD: Thông tin chưa rõ ràng, Logo mờ...)"
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-              />
-
-              <div className="flex gap-3 mt-6 justify-end">
-                <button
-                  onClick={() => setRejectModal({ isOpen: false, org: null })}
-                  className="px-4 py-2 rounded-lg text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  onClick={handleRejectSubmit}
-                  disabled={!rejectReason.trim()}
-                  className="px-6 py-2 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-red-900/20"
-                >
-                  Xác nhận Từ chối
-                </button>
-              </div>
-            </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* --- CONFIRM MODAL (DUYỆT/XÓA) --- */}
       {confirmState.data && (
         <ConfirmModal
           isOpen={confirmState.isOpen}
           onClose={() => setConfirmState({ ...confirmState, isOpen: false })}
           onConfirm={handleConfirmAction}
-          type={confirmState.type === "DEACTIVATE" ? "DELETE" : "APPROVE"}
+          type={confirmState.type === "LOCK" ? "DELETE" : "APPROVE"}
           title={
-            confirmState.type === "DEACTIVATE" ? "Vô hiệu hóa" : "Kích hoạt"
+            confirmState.type === "LOCK"
+              ? "Khóa tài khoản"
+              : confirmState.type === "UNLOCK"
+              ? "Mở khóa tài khoản"
+              : "Kích hoạt"
           }
           message={
-            confirmState.type === "DEACTIVATE"
-              ? `Vô hiệu hóa tổ chức "${confirmState.data.name}"?`
+            confirmState.type === "LOCK"
+              ? `Bạn có chắc muốn khóa quyền tương tác của "${confirmState.data.name}"? Họ sẽ chỉ có thể xem dữ liệu.`
+              : confirmState.type === "UNLOCK"
+              ? `Khôi phục quyền cho "${confirmState.data.name}"?`
               : `Kích hoạt tổ chức "${confirmState.data.name}"?`
           }
           confirmText="Xác nhận"

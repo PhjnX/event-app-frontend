@@ -14,7 +14,9 @@ import {
   FaSearch,
   FaChevronLeft,
   FaChevronRight,
-  FaFilter,
+  FaClock,
+  FaUsers,
+  FaTicketAlt,
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -25,35 +27,42 @@ import {
   clearRegistrations,
 } from "../../../store/slices/eventSlice";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8; 
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
-    PENDING: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    APPROVED: "bg-green-500/10 text-green-500 border-green-500/20",
-    CONFIRMED: "bg-green-500/10 text-green-500 border-green-500/20",
-    REJECTED: "bg-red-500/10 text-red-500 border-red-500/20",
-    CHECKED_IN: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    PENDING:
+      "bg-yellow-500/10 text-yellow-400 border-yellow-500/20 ring-yellow-500/20",
+    APPROVED:
+      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 ring-emerald-500/20",
+    CONFIRMED:
+      "bg-green-500/10 text-green-400 border-green-500/20 ring-green-500/20",
+    REJECTED: "bg-red-500/10 text-red-400 border-red-500/20 ring-red-500/20",
+    CHECKED_IN:
+      "bg-purple-500/10 text-purple-400 border-purple-500/20 ring-purple-500/20",
   };
 
   const labels: Record<string, string> = {
-    PENDING: "Chờ duyệt",
+    PENDING: "Chờ xử lý",
     APPROVED: "Đã duyệt",
     CONFIRMED: "Đã xác nhận",
     REJECTED: "Từ chối",
-    CHECKED_IN: "Đã check-in",
+    CHECKED_IN: "Đã Check-in",
   };
 
-  const defaultStyle = "bg-gray-500/10 text-gray-400 border-gray-500/20";
-
   return (
-    <span
-      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wide ${
-        styles[status] || defaultStyle
+    <div
+      className={`px-3 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1.5 uppercase tracking-widest ${
+        styles[status] || "text-gray-400 border-gray-700"
       }`}
     >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${
+          status === "PENDING" ? "animate-pulse" : ""
+        } bg-current`}
+      ></span>
       {labels[status] || status}
-    </span>
+    </div>
   );
 };
 
@@ -142,132 +151,137 @@ export default function ManageRegistrations() {
   };
 
   return (
-    <div className="min-h-screen pb-20 font-sans text-white bg-black">
-      <div className="pt-6 mb-8">
+    <div className="min-h-screen pb-20 font-sans text-gray-200 bg-[#090909]">
+      <div className="relative pt-8 pb-10 px-6 sm:px-10 border-b border-white/5 bg-[#0f0f0f]">
         <button
           onClick={() => navigate("/admin/events")}
-          className="flex items-center gap-2 text-gray-400 hover:text-[#B5A65F] transition-colors mb-6 group"
+          className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-[#B5A65F] transition-colors mb-6 group w-fit"
         >
-          <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Quay lại danh sách</span>
+          <div className="p-2 rounded-full border border-white/10 group-hover:border-[#B5A65F] transition-colors">
+            <FaArrowLeft className="group-hover:-translate-x-0.5 transition-transform" />
+          </div>
+          Quay lại danh sách
         </button>
 
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
+        <div className="flex flex-col xl:flex-row justify-between items-end gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Quản lý người tham gia
-            </h1>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl font-black text-white mb-2 uppercase tracking-tight"
+            >
+              Quản lý đăng ký
+            </motion.h1>
             <p className="text-gray-400 text-sm flex items-center gap-2">
-              Sự kiện ID:{" "}
-              <span className="text-[#B5A65F] font-mono font-bold">
+              Event Reference:{" "}
+              <span className="bg-[#1a1a1a] px-2 py-1 rounded text-[#B5A65F] font-mono border border-white/10">
                 #{eventId}
               </span>
             </p>
           </div>
 
-          {/* Stats Cards */}
           <div className="flex gap-4">
-            <div className="px-5 py-3 rounded-2xl bg-[#1a1a1a] border border-white/5 flex flex-col items-center min-w-[100px]">
-              <span className="text-2xl font-bold text-white">
+            <div className="relative overflow-hidden group px-6 py-4 rounded-2xl bg-[#141414] border border-white/5 hover:border-white/10 transition-all min-w-[140px]">
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <FaUsers size={40} />
+              </div>
+              <span className="text-3xl font-black text-white block mb-1">
                 {registrations.length}
               </span>
-              <span className="text-[10px] uppercase text-gray-500 font-bold tracking-wider">
-                Tổng
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                Tổng đăng ký
               </span>
             </div>
-            <div className="px-5 py-3 rounded-2xl bg-[#1a1a1a] border border-[#B5A65F]/20 flex flex-col items-center min-w-[100px]">
-              <span className="text-2xl font-bold text-[#B5A65F]">
+
+            <div className="relative overflow-hidden group px-6 py-4 rounded-2xl bg-linear-to-br from-[#1f1a0b] to-[#141414] border border-[#B5A65F]/30 min-w-[140px]">
+              <div className="absolute top-0 right-0 p-3 text-[#B5A65F] opacity-10 group-hover:opacity-30 transition-opacity">
+                <FaClock size={40} />
+              </div>
+              <span className="text-3xl font-black text-[#B5A65F] block mb-1">
                 {
                   registrations.filter((r: any) => r.status === "PENDING")
                     .length
                 }
               </span>
-              <span className="text-[10px] uppercase text-[#B5A65F] font-bold tracking-wider">
-                Chờ duyệt
+              <span className="text-[10px] text-[#B5A65F]/80 font-bold uppercase tracking-widest">
+                Cần duyệt ngay
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center bg-[#141414] p-2 rounded-2xl border border-white/5">
-        <div className="flex gap-1 p-1 bg-[#0a0a0a] rounded-xl w-full md:w-auto overflow-x-auto">
-          {["ALL", "PENDING", "APPROVED", "REJECTED"].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                filterStatus === status
-                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/10"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              {status === "ALL" ? "Tất cả" : status}
-            </button>
-          ))}
+      <div className="px-6 sm:px-10 -mt-6">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-[#141414]/80 backdrop-blur-md p-2 rounded-2xl border border-white/5 shadow-2xl mb-8">
+          <div className="flex gap-1 bg-[#0a0a0a] p-1.5 rounded-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
+            {["ALL", "PENDING", "APPROVED", "REJECTED", "CHECKED_IN"].map(
+              (status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`
+                            px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap
+                            ${
+                              filterStatus === status
+                                ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
+                                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                            }
+                        `}
+                >
+                  {status === "ALL" ? "Tất cả" : status}
+                </button>
+              )
+            )}
+          </div>
+
+          <div className="relative w-full md:w-80 group">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-[#B5A65F] transition-colors" />
+            <input
+              type="text"
+              placeholder="Tìm theo tên, email, ticket ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F]/50 focus:ring-4 focus:ring-[#B5A65F]/10 focus:outline-none transition-all placeholder-gray-700"
+            />
+          </div>
         </div>
 
-        <div className="relative w-full md:w-72">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
-          <input
-            type="text"
-            placeholder="Tìm tên, email, mã vé..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-[#B5A65F] focus:outline-none transition-colors placeholder-gray-600 focus:ring-1 focus:ring-[#B5A65F]"
-          />
-        </div>
-      </div>
-
-      <div className="w-full bg-[#141414] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#1a1a1a] border-b border-white/5 text-gray-400 text-xs uppercase tracking-wider">
-                <th className="px-6 py-4 font-semibold">Người tham gia</th>
-                <th className="px-6 py-4 font-semibold">Liên hệ</th>
-                <th className="px-6 py-4 font-semibold">Thông tin vé</th>
-                <th className="px-6 py-4 font-semibold">Ngày đăng ký</th>
-                <th className="px-6 py-4 font-semibold text-center">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-4 font-semibold text-right">
-                  Hành động
-                </th>
+        <div className="w-full">
+          <table className="w-full text-left border-separate border-spacing-y-2">
+            <thead className="hidden md:table-header-group">
+              <tr className="text-gray-500 text-[10px] uppercase tracking-wider font-bold">
+                <th className="px-4 pb-2">Hồ sơ người dùng</th>
+                <th className="px-4 pb-2">Liên lạc</th>
+                <th className="px-4 pb-2">Chi tiết vé</th>
+                <th className="px-4 pb-2 text-center">Tình trạng</th>
+                <th className="px-4 pb-2 text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="align-middle">
               {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-6 py-4">
-                      <div className="h-10 w-10 bg-gray-800 rounded-full inline-block mr-3"></div>
-                      <div className="h-4 w-32 bg-gray-800 rounded inline-block"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 w-40 bg-gray-800 rounded"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-6 w-20 bg-gray-800 rounded"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 w-24 bg-gray-800 rounded"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-6 w-20 bg-gray-800 rounded mx-auto"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-8 w-8 bg-gray-800 rounded-full float-right"></div>
-                    </td>
+                [...Array(4)].map((_, i) => (
+                  <tr
+                    key={i}
+                    className="bg-[#141414] rounded-2xl animate-pulse h-20"
+                  >
+                    <td
+                      colSpan={5}
+                      className="rounded-xl border border-white/5"
+                    ></td>
                   </tr>
                 ))
               ) : currentData.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center justify-center opacity-50">
-                      <FaFilter className="text-4xl text-gray-600 mb-3" />
-                      <p className="text-gray-400">
-                        Không tìm thấy dữ liệu phù hợp
+                  <td colSpan={5} className="py-20 text-center">
+                    <div className="inline-flex flex-col items-center justify-center bg-[#141414] p-8 rounded-3xl border border-dashed border-white/10">
+                      <div className="w-16 h-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+                        <FaSearch className="text-2xl text-gray-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-300">
+                        Không tìm thấy dữ liệu
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Thử thay đổi bộ lọc hoặc tìm kiếm khác
                       </p>
                     </div>
                   </td>
@@ -277,16 +291,16 @@ export default function ManageRegistrations() {
                   {currentData.map((item: any) => (
                     <motion.tr
                       layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
                       key={item.id}
-                      className="group hover:bg-white/5 transition-colors"
+                      className="bg-[#141414] hover:bg-[#1a1a1a] transition-all group shadow-sm border border-transparent hover:border-white/10"
                     >
-                      {/* Column: User */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#222] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                      {/* USER */}
+                      <td className="px-4 py-4 rounded-l-2xl border-l border-y border-white/5 group-hover:border-white/10">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-[#222] ring-1 ring-white/10 overflow-hidden shrink-0 shadow-lg">
                             {item.avatarUrl ? (
                               <img
                                 src={item.avatarUrl}
@@ -294,101 +308,100 @@ export default function ManageRegistrations() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <FaUser className="text-gray-500" />
+                              <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                <FaUser />
+                              </div>
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-white group-hover:text-[#B5A65F] transition-colors">
-                              {item.username || "No Name"}
-                            </p>
-                            <p className="text-[10px] text-gray-500 font-mono">
-                              #{item.userId}
-                            </p>
+                            <div className="font-bold text-white text-base group-hover:text-[#B5A65F] transition-colors flex items-center gap-2">
+                              {item.username || "Unknown"}
+                            </div>
+                            <div className="text-[10px] text-gray-500 font-mono mt-0.5 flex items-center gap-1">
+                              ID: {item.userId}
+                            </div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <FaEnvelope className="text-gray-600" />
+                      {/* CONTACT */}
+                      <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-6 h-6 rounded-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 text-[10px]">
+                              <FaEnvelope />
+                            </div>
                             <span
-                              className="truncate max-w-[150px]"
+                              className="text-xs text-gray-300 font-medium truncate max-w-[150px]"
                               title={item.email}
                             >
                               {item.email}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <FaPhone className="text-gray-600" />
-                            <span>{item.phoneNumber || "---"}</span>
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-6 h-6 rounded-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 text-[10px]">
+                              <FaPhone />
+                            </div>
+                            <span className="text-xs text-gray-400 font-mono">
+                              {item.phoneNumber || "---"}
+                            </span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col items-start gap-1.5">
+                      <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
+                        <div className="space-y-2">
                           {item.ticketCode ? (
-                            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#2a1a3f] border border-purple-500/30 text-purple-400 text-[10px] font-mono">
-                              <FaQrcode />
-                              {item.ticketCode}
+                            <div className="flex items-center gap-2 w-fit bg-[#221a2c] text-[#d8b4fe] border border-[#d8b4fe]/20 px-2.5 py-1 rounded text-[10px] font-mono tracking-wide">
+                              <FaQrcode /> {item.ticketCode}
                             </div>
                           ) : (
-                            <span className="text-[10px] italic text-gray-600">
-                              Chưa cấp mã
+                            <span className="text-[10px] text-gray-600 bg-white/5 px-2 py-1 rounded">
+                              Processing
                             </span>
                           )}
-                          {item.eventCheckInStatus === "CHECKED_IN" && (
-                            <StatusBadge status="CHECKED_IN" />
-                          )}
+                          <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                            <FaClock size={10} />
+                            {item.registrationDate
+                              ? new Date(
+                                  item.registrationDate
+                                ).toLocaleDateString("vi-VN")
+                              : "---"}
+                          </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <span className="text-xs text-gray-400">
-                          {item.registrationDate
-                            ? new Date(
-                                item.registrationDate
-                              ).toLocaleDateString("vi-VN")
-                            : "---"}
-                        </span>
-                        <div className="text-[10px] text-gray-600">
-                          {item.registrationDate
-                            ? new Date(
-                                item.registrationDate
-                              ).toLocaleTimeString("vi-VN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : ""}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-4 text-center border-y border-white/5 group-hover:border-white/10">
                         <StatusBadge status={item.status} />
+                        {item.eventCheckInStatus === "CHECKED_IN" && (
+                          <div className="mt-2 inline-flex items-center gap-1 text-[9px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                            <FaTicketAlt /> Checked-In
+                          </div>
+                        )}
                       </td>
 
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-4 rounded-r-2xl border-r border-y border-white/5 group-hover:border-white/10 text-right">
                         {item.status === "PENDING" ? (
-                          <div className="flex justify-end gap-2 opacity-100 transition-opacity">
+                          <div className="flex justify-end gap-2">
                             <button
                               onClick={() => handleApprove(item.id)}
-                              className="w-8 h-8 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white border border-green-500/30 flex items-center justify-center transition-all shadow-lg hover:shadow-green-500/20"
-                              title="Duyệt"
+                              className="group/btn relative px-4 py-2 rounded-lg bg-linear-to-t from-emerald-900/50 to-emerald-800/20 border border-emerald-500/30 text-emerald-400 hover:text-white hover:border-emerald-400 transition-all shadow-lg hover:shadow-emerald-500/20"
                             >
-                              <FaCheck size={12} />
+                              <span className="flex items-center gap-1.5 text-xs font-bold uppercase">
+                                <FaCheck size={10} /> Duyệt
+                              </span>
                             </button>
+
                             <button
                               onClick={() => openRejectModal(item.id)}
-                              className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 flex items-center justify-center transition-all shadow-lg hover:shadow-red-500/20"
-                              title="Từ chối"
+                              className="px-3 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-colors"
                             >
                               <FaTimes size={12} />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-gray-600 italic">
-                            Đã xử lý
+                          <span className="text-[10px] uppercase font-bold text-gray-700 tracking-wider pr-2">
+                            Hoàn tất
                           </span>
                         )}
                       </td>
@@ -400,41 +413,35 @@ export default function ManageRegistrations() {
           </table>
         </div>
 
+        {/* PAGINATION */}
         {!isLoading && filteredData.length > 0 && (
-          <div className="px-6 py-4 border-t border-white/5 bg-[#1a1a1a] flex justify-between items-center">
-            <span className="text-xs text-gray-500">
-              Hiển thị {currentData.length} trên tổng {filteredData.length} kết
-              quả
+          <div className="py-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest bg-[#1a1a1a] px-3 py-1 rounded-full border border-white/5">
+              Page {currentPage} of {totalPages} ({filteredData.length} records)
             </span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 p-1 bg-[#141414] border border-white/5 rounded-xl">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0a0a0a] border border-white/10 text-gray-400 hover:text-white hover:border-[#B5A65F] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
               >
                 <FaChevronLeft size={10} />
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                      currentPage === page
-                        ? "bg-[#B5A65F] text-black shadow-md shadow-[#B5A65F]/20"
-                        : "bg-[#0a0a0a] border border-white/10 text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
+
+              <div className="flex items-center px-2">
+                <span className="text-sm font-bold text-white">
+                  {currentPage}
+                </span>
+                <span className="text-xs text-gray-600 mx-1">/</span>
+                <span className="text-xs text-gray-500">{totalPages}</span>
+              </div>
+
               <button
                 disabled={currentPage === totalPages}
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0a0a0a] border border-white/10 text-gray-400 hover:text-white hover:border-[#B5A65F] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
               >
                 <FaChevronRight size={10} />
               </button>
@@ -451,51 +458,61 @@ export default function ManageRegistrations() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsRejectModalOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10"
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="relative bg-[#0a0a0a] border border-red-500/20 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(239,68,68,0.1)] overflow-hidden"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">Từ chối vé</h3>
+              <div className="bg-red-500/10 px-6 py-4 border-b border-red-500/20 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-red-500 uppercase tracking-wide flex items-center gap-2">
+                  <FaTimes className="text-xl" /> Từ chối vé
+                </h3>
                 <button
                   onClick={() => setIsRejectModalOpen(false)}
-                  className="text-gray-500 hover:text-white transition-colors"
+                  className="text-red-500/50 hover:text-red-500 transition-colors"
                 >
-                  <FaTimes />
+                  <FaTimes size={20} />
                 </button>
               </div>
 
-              <p className="text-sm text-gray-400 mb-4">
-                Vui lòng nhập lý do từ chối. Lý do này sẽ được gửi email cho
-                người tham gia.
-              </p>
+              <div className="p-6">
+                <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                  Bạn có chắc chắn muốn từ chối yêu cầu này không? Hành động này
+                  sẽ gửi email thông báo cho người dùng và không thể hoàn tác
+                  ngay lập tức.
+                </p>
 
-              <textarea
-                autoFocus
-                rows={4}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Ví dụ: Sai thông tin, hết chỗ..."
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all resize-none mb-6"
-              />
+                <div className="mb-6">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">
+                    Lý do từ chối
+                  </label>
+                  <textarea
+                    autoFocus
+                    rows={4}
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Ví dụ: Sai thông tin xác thực, ảnh không hợp lệ..."
+                    className="w-full bg-[#141414] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-red-500/50 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition-all resize-none placeholder-gray-700"
+                  />
+                </div>
 
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setIsRejectModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  onClick={handleRejectSubmit}
-                  className="px-6 py-2 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"
-                >
-                  Xác nhận từ chối
-                </button>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    onClick={() => setIsRejectModalOpen(false)}
+                    className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleRejectSubmit}
+                    className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/20 transition-all"
+                  >
+                    Xác nhận
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

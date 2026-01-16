@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaSpinner } from "react-icons/fa";
 import type { AppDispatch, RootState } from "@/store";
 import { fetchFeaturedEvents } from "@/store/slices/eventSlice";
 
@@ -13,48 +13,59 @@ export default function HeroCarousel() {
   );
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // 1. Gọi API khi mount
   useEffect(() => {
     dispatch(fetchFeaturedEvents());
   }, [dispatch]);
 
-  const displayData =
-    featuredEvents.length > 0
-      ? featuredEvents
-      : [
-          {
-            eventId: 999,
-            eventName: "TECH SUMMIT 2025",
-            shortDescription:
-              "Đại hội công nghệ lớn nhất năm - Nơi quy tụ những bộ óc vĩ đại.",
-            bannerImageUrl:
-              "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2070",
-            slug: "tech-summit-2025",
-            startTime: "2025-12-20T09:00:00",
-          },
-          {
-            eventId: 888,
-            eventName: "MUSIC FESTIVAL",
-            shortDescription: "Bùng nổ cảm xúc với âm nhạc điện tử đỉnh cao.",
-            bannerImageUrl:
-              "https://images.unsplash.com/photo-1470229722913-7c0d2dbbafd3?auto=format&fit=crop&q=80&w=2070",
-            slug: "music-fest",
-            startTime: "2025-11-15T18:00:00",
-          },
-        ];
+  // 2. Lấy dữ liệu thật từ Redux
+  const displayData = featuredEvents || [];
 
+  // 3. Logic tự động chuyển slide
   useEffect(() => {
     if (displayData.length <= 1) return;
     const timer = setInterval(
       () => setCurrentSlide((prev) => (prev + 1) % displayData.length),
-      6000
+      6000 // 6 giây đổi 1 lần
     );
     return () => clearInterval(timer);
   }, [displayData.length]);
 
-  if (isLoading)
-    return <div className="h-[75vh] w-full bg-[#0a0a0a] animate-pulse" />;
+  // --- XỬ LÝ TRẠNG THÁI LOADING & EMPTY ---
 
-  const currentData = displayData[currentSlide];
+  // A. Đang tải -> Hiện Skeleton màu tối
+  if (isLoading) {
+    return (
+      <div className="h-[80vh] min-h-[600px] w-full bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
+        <FaSpinner className="animate-spin text-[#D8C97B] text-4xl" />
+        <p className="text-[#D8C97B] font-mono text-sm tracking-widest animate-pulse">
+          LOADING EVENTS...
+        </p>
+      </div>
+    );
+  }
+
+  // B. Tải xong nhưng không có sự kiện nào -> Ẩn section hoặc hiện thông báo
+  if (displayData.length === 0) {
+    return null; // Ẩn luôn nếu không có data để tránh vỡ giao diện
+  }
+
+  // --- RENDER DỮ LIỆU ---
+
+  // Đảm bảo currentSlide không vượt quá mảng (an toàn)
+  const safeIndex = currentSlide % displayData.length;
+  const currentData = displayData[safeIndex];
+
+  // Xử lý an toàn cho các trường thiếu
+  const eventName = currentData.eventName || "Sự kiện hấp dẫn";
+  const description =
+    currentData.description ||
+    (currentData as any).description ||
+    "Khám phá ngay các sự kiện nổi bật nhất tại Webie.";
+  const image =
+    currentData.bannerImageUrl ||
+    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070";
+  const link = `/event/${currentData.slug || currentData.eventId}`;
 
   return (
     <section className="relative h-[80vh] min-h-[600px] w-full overflow-hidden bg-[#0a0a0a] font-noto group">
@@ -67,6 +78,7 @@ export default function HeroCarousel() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8 }}
         >
+          {/* Background Image có hiệu ứng zoom nhẹ */}
           <motion.div
             className="absolute inset-0"
             initial={{ scale: 1.1 }}
@@ -74,15 +86,17 @@ export default function HeroCarousel() {
             transition={{ duration: 6, ease: "linear" }}
           >
             <img
-              src={currentData.bannerImageUrl}
-              alt={currentData.eventName}
+              src={image}
+              alt={eventName}
               className="w-full h-full object-cover filter brightness-[0.6]"
             />
           </motion.div>
 
-          <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
-          <div className="absolute inset-0 bg-linear-to-r from-[#0a0a0a]/90 via-transparent to-transparent" />
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-transparent to-transparent" />
 
+          {/* Content Text */}
           <div className="absolute inset-0 flex items-center container mx-auto px-6 md:px-12">
             <div className="max-w-4xl relative z-10">
               <motion.div
@@ -101,18 +115,18 @@ export default function HeroCarousel() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-none mb-6 uppercase tracking-tighter drop-shadow-2xl"
+                className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-none mb-6 uppercase tracking-tighter drop-shadow-2xl line-clamp-2"
               >
-                {currentData.eventName}
+                {eventName}
               </motion.h1>
 
               <motion.p
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="text-gray-300 text-lg md:text-xl font-light max-w-2xl mb-10 leading-relaxed border-l-2 border-[#D8C97B]/50 pl-5"
+                className="text-gray-300 text-lg md:text-xl font-light max-w-2xl mb-10 leading-relaxed border-l-2 border-[#D8C97B]/50 pl-5 line-clamp-3"
               >
-                {(currentData as any).shortDescription}
+                {description}
               </motion.p>
 
               <motion.div
@@ -121,10 +135,10 @@ export default function HeroCarousel() {
                 transition={{ delay: 0.6 }}
               >
                 <Link
-                  to={`/event/${currentData.slug || currentData.eventId}`}
+                  to={link}
                   className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white/5 border border-[#D8C97B]/50 backdrop-blur-md text-white font-bold text-sm uppercase tracking-widest rounded-full overflow-hidden transition-all hover:bg-[#D8C97B] hover:text-black hover:border-[#D8C97B] hover:shadow-[0_0_30px_rgba(216,201,123,0.4)]"
                 >
-                  <span className="relative z-10">Đặt Vé Ngay</span>
+                  <span className="relative z-10">Xem Chi Tiết</span>
                   <FaArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </motion.div>
@@ -133,34 +147,36 @@ export default function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute bottom-12 right-6 md:right-12 z-20 flex flex-col items-end gap-4">
-        {/* Slide Numbers */}
-        <div className="text-white font-black text-4xl font-mono">
-          0{currentSlide + 1}
-          <span className="text-lg text-gray-500 font-medium">
-            /0{displayData.length}
-          </span>
-        </div>
+      {/* Slide Indicators / Navigation */}
+      {displayData.length > 1 && (
+        <div className="absolute bottom-12 right-6 md:right-12 z-20 flex flex-col items-end gap-4">
+          <div className="text-white font-black text-4xl font-mono">
+            0{safeIndex + 1}
+            <span className="text-lg text-gray-500 font-medium">
+              /0{displayData.length}
+            </span>
+          </div>
 
-        <div className="flex gap-2">
-          {displayData.map((_, idx) => (
-            <div
-              key={idx}
-              onClick={() => setCurrentSlide(idx)}
-              className="h-1 rounded-full cursor-pointer bg-white/20 w-12 overflow-hidden"
-            >
-              {idx === currentSlide && (
-                <motion.div
-                  className="h-full bg-[#D8C97B]"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 6, ease: "linear" }}
-                />
-              )}
-            </div>
-          ))}
+          <div className="flex gap-2">
+            {displayData.map((_, idx) => (
+              <div
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className="h-1 rounded-full cursor-pointer bg-white/20 w-12 overflow-hidden"
+              >
+                {idx === safeIndex && (
+                  <motion.div
+                    className="h-full bg-[#D8C97B]"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 6, ease: "linear" }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

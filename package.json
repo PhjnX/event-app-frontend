@@ -18,12 +18,14 @@
     "@google/generative-ai": "^0.24.1",
     "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.11.0",
+    "@stomp/stompjs": "^7.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "antd": "^6.1.2",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
     "days": "^1.1.1",
+    "fa6": "^2.0.1",
     "flowbite": "^4.0.1",
     "framer-motion": "^12.23.26",
     "jwt-decode": "^4.0.0",
@@ -38,6 +40,7 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.5.1",
     "socket.io-client": "^4.8.3",
+    "sockjs-client": "^1.6.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "xlsx": "^0.18.5"
@@ -47,6 +50,7 @@
     "@types/node": "^24.10.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -55,6 +59,7 @@
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vite-plugin-sitemap": "^0.8.2"
   }
 }

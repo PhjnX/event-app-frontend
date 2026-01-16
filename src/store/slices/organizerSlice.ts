@@ -16,6 +16,34 @@ const initialState: OrganizerState = {
   error: null,
 };
 
+// --- ACTION CƠ BẢN ---
+
+export const fetchOrganizers = createAsyncThunk(
+  "organizers/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get<Organizer[]>("/organizers");
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// 👇 [QUAN TRỌNG] Action lấy chi tiết theo SLUG (Để check status Locked)
+export const fetchOrganizerDetail = createAsyncThunk(
+  "organizers/fetchDetail",
+  async (slug: string, { rejectWithValue }) => {
+    try {
+      // Gọi API: GET /api/organizers/{slug}
+      const response = await apiService.get<Organizer>(`/organizers/${slug}`);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const registerOrganizer = createAsyncThunk(
   "organizers/register",
   async (data: any, { rejectWithValue }) => {
@@ -31,17 +59,7 @@ export const registerOrganizer = createAsyncThunk(
   }
 );
 
-export const fetchOrganizers = createAsyncThunk(
-  "organizers/fetchAll",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await apiService.get<Organizer[]>("/organizers");
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+// --- ACTION ADMIN ---
 
 export const approveOrganizer = createAsyncThunk(
   "organizers/approve",
@@ -51,7 +69,6 @@ export const approveOrganizer = createAsyncThunk(
       toast.success("Đã duyệt tổ chức thành công!");
       return organizerId;
     } catch (error: any) {
-      toast.error("Lỗi khi duyệt");
       return rejectWithValue(error.message);
     }
   }
@@ -67,28 +84,55 @@ export const rejectOrganizer = createAsyncThunk(
       await apiService.put(`/organizers/${organizerId}/reject`, null, {
         params: { reason },
       });
-      toast.success("Đã từ chối và gửi email lý do cho người dùng!");
+      toast.success("Đã từ chối hồ sơ!");
       return organizerId;
     } catch (error: any) {
-      toast.error("Lỗi khi từ chối hồ sơ");
       return rejectWithValue(error.message);
     }
   }
 );
 
-export const deleteOrganizer = createAsyncThunk(
-  "organizers/delete",
-  async (slug: string, { rejectWithValue }) => {
+export const lockOrganizer = createAsyncThunk(
+  "organizers/lock",
+  async (organizerId: number, { rejectWithValue }) => {
     try {
-      await apiService.delete(`/organizers/${slug}`);
-      toast.success("Đã xóa/vô hiệu hóa tổ chức");
-      return slug;
+      await apiService.put(`/organizers/${organizerId}/lock`, {});
+      return organizerId;
     } catch (error: any) {
-      toast.error("Không thể xóa tổ chức này");
+      toast.error(error.message || "Lỗi khóa tài khoản");
       return rejectWithValue(error.message);
     }
   }
 );
+
+export const unlockOrganizer = createAsyncThunk(
+  "organizers/unlock",
+  async (organizerId: number, { rejectWithValue }) => {
+    try {
+      await apiService.put(`/organizers/${organizerId}/unlock`, {});
+      return organizerId;
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi mở khóa");
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+  
+export const requestUnlockOrganizer = createAsyncThunk(
+  "organizers/requestUnlock",
+  async (_, { rejectWithValue }) => {
+    try {
+      await apiService.post("/organizers/me/request-unlock");
+
+      return true; // Trả về true là được
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// --- SLICE ---
 
 const organizerSlice = createSlice({
   name: "organizers",
@@ -96,42 +140,42 @@ const organizerSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(registerOrganizer.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(registerOrganizer.fulfilled, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(registerOrganizer.rejected, (state, action: any) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
       .addCase(fetchOrganizers.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchOrganizers.fulfilled, (state, action: any) => {
-        state.isLoading = false;
         state.data = action.payload;
+        state.isLoading = false;
       })
 
-      .addCase(approveOrganizer.fulfilled, (state, action: any) => {
+      // 👇 Xử lý khi lấy chi tiết thành công -> Cập nhật vào store
+      .addCase(fetchOrganizerDetail.fulfilled, (state, action: any) => {
+        const index = state.data.findIndex(
+          (o) => o.slug === action.payload.slug
+        );
+        if (index !== -1) {
+          state.data[index] = action.payload; // Update data cũ
+        } else {
+          state.data.push(action.payload); // Thêm data mới
+        }
+      })
+
+      // Update state khi Lock/Unlock
+      .addCase(lockOrganizer.fulfilled, (state, action: any) => {
         const org = state.data.find((o) => o.organizerId === action.payload);
-        if (org) org.approved = true;
+        if (org) org.locked = true;
       })
-
-      .addCase(rejectOrganizer.fulfilled, (state, action: any) => {
-        state.data = state.data.filter((o) => o.organizerId !== action.payload);
-      })
-
-      .addCase(deleteOrganizer.fulfilled, (state, action: any) => {
-        state.data = state.data.filter((o) => o.slug !== action.payload);
+      .addCase(unlockOrganizer.fulfilled, (state, action: any) => {
+        const org = state.data.find((o) => o.organizerId === action.payload);
+        if (org) {
+          org.locked = false;
+          org.unlockRequested = false;
+        }
       })
 
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];
         state.isLoading = false;
-        state.error = null;
       });
   },
 });

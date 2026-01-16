@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -7,13 +7,18 @@ import {
   FaPlus,
   FaNewspaper,
   FaSpinner,
+  FaFileExcel, 
 } from "react-icons/fa";
+import { toast } from "react-toastify"; 
+import * as XLSX from "xlsx";
+
 import { fetchPosts, deletePost } from "../../../store/slices/newsSlice";
 import { type AppDispatch, type RootState } from "@/store";
 
 const ManageNews: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
+  const [isExporting, setIsExporting] = useState(false); 
 
   useEffect(() => {
     dispatch(fetchPosts({ page: 0, size: 100 }));
@@ -25,9 +30,60 @@ const ManageNews: React.FC = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    if (!data || data.length === 0) {
+      toast.warn("Không có dữ liệu bài viết để xuất!");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const dataToExport = data.map((post) => ({
+        "ID Bài viết": post.id,
+        "Tiêu đề": post.title,
+        "Tóm tắt": post.summary,
+        "Nội dung": post.content ? post.content.substring(0, 100) + "..." : "", 
+        "Ngày tạo": post.createdAt
+          ? new Date(post.createdAt).toLocaleDateString("vi-VN")
+          : "N/A",
+        "Người tạo": post.authorName || "Admin", 
+        "Hình ảnh (URL)": post.thumbnailUrl || "N/A",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      const wscols = [
+        { wch: 10 }, 
+        { wch: 40 }, 
+        { wch: 40 }, 
+        { wch: 30 }, 
+        { wch: 15 }, 
+        { wch: 15 }, 
+        { wch: 30 }, 
+      ];
+      worksheet["!cols"] = wscols;
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách Tin tức");
+
+      const fileName = `Danh_sach_tin_tuc_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+
+      toast.success("Xuất file Excel thành công!");
+    } catch (error) {
+      console.error("Lỗi xuất file:", error);
+      toast.error("Có lỗi xảy ra khi xuất file.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-black min-h-screen text-white">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col xl:flex-row justify-between items-center mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-bold text-[#B5A65F] flex items-center gap-3">
             <FaNewspaper /> Quản lý Tin tức
@@ -37,12 +93,31 @@ const ManageNews: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/admin/news/create"
-          className="bg-[#B5A65F] hover:bg-[#B5A65F] text-black font-bold px-6 py-2.5 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
-        >
-          <FaPlus /> Thêm bài viết
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg border transition-all font-bold text-sm whitespace-nowrap shadow-lg ${
+              isExporting
+                ? "bg-gray-700 text-gray-400 border-gray-600 cursor-not-allowed"
+                : "bg-green-600/20 text-green-500 border-green-600/30 hover:bg-green-600 hover:text-white"
+            }`}
+          >
+            {isExporting ? (
+              <FaSpinner className="animate-spin" />
+            ) : (
+              <FaFileExcel />
+            )}{" "}
+            {isExporting ? "Đang xuất..." : "Xuất Excel"}
+          </button>
+
+          <Link
+            to="/admin/news/create"
+            className="bg-[#B5A65F] hover:bg-[#c9ba6e] text-black font-bold px-6 py-2.5 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+          >
+            <FaPlus /> Thêm bài viết
+          </Link>
+        </div>
       </div>
 
       <div className="bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
@@ -51,7 +126,7 @@ const ManageNews: React.FC = () => {
             <FaSpinner className="animate-spin text-[#B5A65F] text-4xl" />
           </div>
         ) : data && data.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#2a2a2a] text-[#B5A65F] border-b border-gray-700">

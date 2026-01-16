@@ -39,10 +39,12 @@ const ImageSlider = ({
 
       <div className="absolute -bottom-10 -right-4 md:-right-12 z-20 w-72">
         <div className="relative bg-[rgba(15,15,15,0.95)] backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.1)] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+          {/* Thanh bên trái - Đã đổi sang màu vàng #D8C97B */}
           <motion.div
-            animate={{ backgroundColor: currentSlide.color }}
+            animate={{ backgroundColor: "#D8C97B" }}
             className="absolute left-0 top-0 bottom-0 w-1"
           />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -52,9 +54,10 @@ const ImageSlider = ({
               transition={{ duration: 0.4 }}
             >
               <div className="flex items-center gap-3 mb-3">
+                {/* Icon - Đã đổi sang màu vàng #D8C97B */}
                 <div
                   className="p-2 rounded-lg bg-[rgba(255,255,255,0.05)] text-lg"
-                  style={{ color: currentSlide.color }}
+                  style={{ color: "#D8C97B" }}
                 >
                   {currentSlide.icon}
                 </div>
@@ -70,13 +73,15 @@ const ImageSlider = ({
               </p>
             </motion.div>
           </AnimatePresence>
+
           <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[rgba(255,255,255,0.1)]">
+            {/* Thanh tiến trình bên dưới - Đã đổi sang màu vàng #D8C97B */}
             <motion.div
               key={currentIndex}
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: 5, ease: "linear" }}
-              style={{ backgroundColor: currentSlide.color }}
+              style={{ backgroundColor: "#D8C97B" }}
               className="h-full"
             />
           </div>

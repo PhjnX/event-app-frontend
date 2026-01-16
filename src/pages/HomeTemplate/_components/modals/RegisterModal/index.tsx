@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaEnvelope, FaLock, FaUser, FaKey } from "react-icons/fa";
+import {
+  FaTimes,
+  FaEnvelope,
+  FaLock,
+  FaUser,
+  FaKey,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -40,6 +48,9 @@ export default function RegisterModal({
   const [verificationCode, setVerificationCode] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       setStep(1);
@@ -51,6 +62,9 @@ export default function RegisterModal({
       });
       setVerificationCode("");
       setLocalError(null);
+      // Reset hiển thị mật khẩu
+      setShowPassword(false);
+      setShowConfirmPassword(false);
       dispatch(clearError());
     }
   }, [isOpen, dispatch]);
@@ -102,7 +116,6 @@ export default function RegisterModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans selection:bg-[rgba(216,201,123,0.3)]">
-          {/* Backdrop Overlay - FIX WARNING black/80 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -146,7 +159,6 @@ export default function RegisterModal({
                 </p>
               </div>
 
-              {/* Error Block - FIX WARNING red-500/10 */}
               {(error || localError) && (
                 <div className="mb-4 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.5)] rounded-lg text-red-400 text-sm text-center font-medium">
                   {localError || error}
@@ -198,14 +210,25 @@ export default function RegisterModal({
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-12 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#D8C97B] cursor-pointer transition-colors p-1"
+                      >
+                        {showPassword ? (
+                          <FaEyeSlash size={16} />
+                        ) : (
+                          <FaEye size={16} />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -216,14 +239,27 @@ export default function RegisterModal({
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
                       <input
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
+                        className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-12 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#D8C97B] cursor-pointer transition-colors p-1"
+                      >
+                        {showConfirmPassword ? (
+                          <FaEyeSlash size={16} />
+                        ) : (
+                          <FaEye size={16} />
+                        )}
+                      </button>
                     </div>
                   </div>
 
