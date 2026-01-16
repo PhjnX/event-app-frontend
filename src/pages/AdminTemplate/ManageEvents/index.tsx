@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -24,11 +24,13 @@ import {
   FaCalendarAlt,
   FaRegStar,
   FaHourglassHalf,
+  FaFilter, // Icon filter cho dropdown
+  FaChevronDown, // Icon mũi tên dropdown
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton, Tooltip } from "antd";
-import * as XLSX from "xlsx"; // Đã import và sẽ được sử dụng bên dưới
+import * as XLSX from "xlsx";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -58,6 +60,7 @@ export default function ManageEvents() {
   const { user } = useSelector((state: RootState) => state.auth);
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
 
+  // --- LOGIC HELPER & KHÓA (GIỮ NGUYÊN) ---
   const toSlug = (str: string) => {
     if (!str) return "";
     return str
@@ -110,6 +113,10 @@ export default function ManageEvents() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
 
+  // State Dropdown Filter
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
   const [tempHeroState, setTempHeroState] = useState<Record<number, boolean>>(
     {}
   );
@@ -133,6 +140,20 @@ export default function ManageEvents() {
     return "HAPPENING";
   };
 
+  // --- CLICK OUTSIDE DROPDOWN ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFilterDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (isSAdmin) {
       dispatch(fetchAllEvents());
@@ -147,16 +168,15 @@ export default function ManageEvents() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
+  // --- FILTER LOGIC ---
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
       if (isSAdmin && event.status === "DRAFT") return false;
 
       if (activeTab === "ALL") return true;
-
       if (activeTab === "APPROVED") {
         return event.status === "PUBLISHED" || event.status === "APPROVED";
       }
-
       return event.status === activeTab;
     });
 
@@ -190,6 +210,7 @@ export default function ManageEvents() {
     return filteredAndSortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedData, currentPage]);
 
+  // --- ACTION HANDLERS (Giữ nguyên) ---
   const handleToggleHero = async (event: any) => {
     if (!isSAdmin) return;
     const isCurrentlyHero = tempHeroState.hasOwnProperty(event.eventId)
@@ -225,7 +246,6 @@ export default function ManageEvents() {
       }));
     }
   };
-
   const handleToggleSelected = async (event: any) => {
     if (!isSAdmin) return;
     const isCurrentlySelected = tempSelectedState.hasOwnProperty(event.eventId)
@@ -261,17 +281,13 @@ export default function ManageEvents() {
       }));
     }
   };
-
-  // --- HÀM XUẤT EXCEL CHÍNH THỨC ---
   const handleExportExcel = async () => {
     if (filteredAndSortedData.length === 0) {
       toast.warn("Không có dữ liệu để xuất!");
       return;
     }
-
     setIsExporting(true);
     try {
-      // 1. Chuẩn bị dữ liệu (Map dữ liệu raw thành dạng bảng đẹp hơn)
       const dataToExport = filteredAndSortedData.map((event) => ({
         "ID Sự kiện": event.eventId,
         "Tên sự kiện": event.eventName,
@@ -280,42 +296,35 @@ export default function ManageEvents() {
         "Ngày bắt đầu": new Date(event.startDate).toLocaleDateString("vi-VN"),
         "Giờ bắt đầu": new Date(event.startDate).toLocaleTimeString("vi-VN"),
         "Ngày kết thúc": new Date(event.endDate).toLocaleDateString("vi-VN"),
-        "Người tổ chức": event.organizerName || "N/A", 
+        "Người tổ chức": event.organizerName || "N/A",
         "Số lượng vé": event.totalTickets || 0,
-        "Lý do từ chối (nếu có)": event.reason || "",
+        "Lý do từ chối": event.reason || "",
       }));
-
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-
       const wscols = [
-        { wch: 10 }, 
-        { wch: 30 }, 
-        { wch: 15 }, 
-        { wch: 20 }, 
-        { wch: 15 }, 
-        { wch: 10 }, 
-        { wch: 15 }, 
-        { wch: 20 }, 
+        { wch: 10 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 15 },
+        { wch: 20 },
       ];
       worksheet["!cols"] = wscols;
-
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách sự kiện");
-
-      const fileName = `Danh_sach_su_kien_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-
+      XLSX.writeFile(
+        workbook,
+        `Danh_sach_su_kien_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
       toast.success("Xuất file Excel thành công!");
     } catch (error) {
-      console.error("Lỗi xuất file:", error);
       toast.error("Có lỗi xảy ra khi xuất file Excel.");
     } finally {
       setIsExporting(false);
     }
   };
-
   const handleConfirmAction = async () => {
     const { type, data } = confirmModal;
     if (!data) return;
@@ -351,6 +360,7 @@ export default function ManageEvents() {
     setConfirmModal({ isOpen: true, type, data: eventItem });
   };
 
+  // --- COMPONENTS ---
   const StatusBadge = ({
     status,
     startDate,
@@ -361,7 +371,6 @@ export default function ManageEvents() {
     endDate: string;
   }) => {
     const timeStatus = checkTimeStatus(startDate, endDate);
-
     if (status === "PENDING_APPROVAL")
       return (
         <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-blue-500/10 text-blue-400 border-blue-500/30 flex items-center gap-1.5">
@@ -380,7 +389,6 @@ export default function ManageEvents() {
           BẢN NHÁP
         </span>
       );
-
     if (status === "PUBLISHED" || status === "APPROVED") {
       if (timeStatus === "ENDED")
         return (
@@ -405,36 +413,75 @@ export default function ManageEvents() {
   };
 
   const TABS = [
-    { id: "ALL", label: "Tất cả" },
+    { id: "ALL", label: "Tất cả trạng thái" },
     { id: "DRAFT", label: "Bản nháp" },
     { id: "PENDING_APPROVAL", label: "Chờ duyệt" },
     { id: "APPROVED", label: "Đã công bố" },
     { id: "REJECTED", label: "Bị từ chối" },
   ];
-
   const visibleTabs = isSAdmin ? TABS.filter((t) => t.id !== "DRAFT") : TABS;
 
   return (
     <div className="min-h-screen pb-20 font-sans text-white">
-      <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 pt-4">
-        <div className="w-full xl:w-auto overflow-x-auto custom-scrollbar">
-          <div className="flex gap-1 p-1 bg-[#1a1a1a] border border-white/10 rounded-2xl w-max">
-            {visibleTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+      {/* --- HEADER --- */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
+        {/* LEFT SIDE: DROPDOWN FILTER STATUS (THAY THẾ TAB NGANG) */}
+        <div className="w-full sm:w-auto relative z-30" ref={filterDropdownRef}>
+          <div
+            onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+            className="cursor-pointer flex items-center justify-between gap-4 w-full sm:min-w-[260px] px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/10 hover:border-[#B5A65F]/50 transition-all shadow-lg group"
+          >
+            <div className="flex items-center gap-3">
+              <FaFilter className="text-[#B5A65F] shrink-0" />
+              <span className="text-sm font-bold text-gray-200 group-hover:text-white transition-colors">
+                {visibleTabs.find((t) => t.id === activeTab)?.label}
+              </span>
+            </div>
+            <FaChevronDown
+              className={`text-gray-500 transition-transform duration-300 ${
+                isFilterDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
           </div>
+
+          <AnimatePresence>
+            {isFilterDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute top-full left-0 mt-2 w-full bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+              >
+                {visibleTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setIsFilterDropdownOpen(false);
+                    }}
+                    className="px-4 py-3 hover:bg-white/5 cursor-pointer flex justify-between items-center text-sm border-b border-white/5 last:border-0 transition-colors"
+                  >
+                    <span
+                      className={
+                        activeTab === tab.id
+                          ? "text-[#B5A65F] font-bold"
+                          : "text-gray-400"
+                      }
+                    >
+                      {tab.label}
+                    </span>
+                    {activeTab === tab.id && (
+                      <FaCheck className="text-[#B5A65F] text-xs" />
+                    )}
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <div className="flex items-center gap-3 w-full xl:w-auto">
+
+        {/* RIGHT SIDE: ACTIONS */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           <button
             onClick={handleExportExcel}
             disabled={isExporting}
@@ -449,19 +496,20 @@ export default function ManageEvents() {
             ) : (
               <FaFileExcel />
             )}{" "}
-            {isExporting ? "Đang tạo file..." : "Xuất Excel"}
+            {isExporting ? "Đang tạo..." : "Xuất Excel"}
           </button>
 
           <div className="relative group w-full sm:w-72">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F]" />
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
             <input
               type="text"
               placeholder="Tìm kiếm sự kiện..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none"
+              className="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-600"
             />
           </div>
+
           {!isSAdmin &&
             (isChecking ? (
               <div className="px-6 py-3 bg-[#1a1a1a] border border-white/10 text-gray-400 font-bold text-sm rounded-2xl flex items-center gap-2 cursor-wait">
@@ -485,6 +533,7 @@ export default function ManageEvents() {
         </div>
       </div>
 
+      {/* --- GRID LIST --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
         {isLoading ? (
           <>
@@ -565,7 +614,6 @@ export default function ManageEvents() {
                     >
                       {event.eventName}
                     </h3>
-
                     <div className="space-y-2 text-sm text-gray-400 bg-[#1a1a1a]/50 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
                       <div className="flex items-center gap-3">
                         <FaMapMarkerAlt className="text-[#B5A65F]" />{" "}
@@ -603,7 +651,6 @@ export default function ManageEvents() {
                             <FaHourglassHalf className="text-blue-400 animate-spin-slow text-lg" />
                           )}
                         </div>
-
                         <div className="text-xs text-blue-300">
                           <span className="font-bold block mb-1 uppercase tracking-wide">
                             {isSAdmin
@@ -659,7 +706,6 @@ export default function ManageEvents() {
                           <div className="w-px h-4 bg-white/10 mx-1"></div>
                         </>
                       )}
-
                       {isSAdmin &&
                         event.status === "PENDING_APPROVAL" &&
                         !isExpired && (
@@ -678,7 +724,6 @@ export default function ManageEvents() {
                             </button>
                           </>
                         )}
-
                       {!isSAdmin && !isExpired && (
                         <>
                           {(event.status === "PUBLISHED" ||
@@ -715,7 +760,6 @@ export default function ManageEvents() {
                             )}
                         </>
                       )}
-
                       {!isChecking && !isRestricted && canDelete && (
                         <button
                           onClick={() => openModal("DELETE", event)}
@@ -734,52 +778,50 @@ export default function ManageEvents() {
         )}
       </div>
 
+      {/* --- PAGINATION & MODALS --- */}
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
-          {" "}
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
           >
             <FaChevronLeft />
-          </button>{" "}
+          </button>
           <span className="text-sm">
             Trang {currentPage} / {totalPages}
-          </span>{" "}
+          </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
           >
             <FaChevronRight />
-          </button>{" "}
+          </button>
         </div>
       )}
+
       {confirmModal.isOpen && confirmModal.type === "REJECT" ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          {" "}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-[#1a1a1a] border border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl"
           >
-            {" "}
             <h3 className="text-xl font-bold text-white mb-2">
               Từ chối sự kiện
-            </h3>{" "}
+            </h3>
             <p className="text-gray-400 text-sm mb-4">
               Vui lòng nhập lý do từ chối.
-            </p>{" "}
+            </p>
             <textarea
               className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-red-500 outline-none resize-none h-32"
               placeholder="Nhập lý do..."
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               autoFocus
-            />{" "}
+            />
             <div className="flex gap-3 mt-6 justify-end">
-              {" "}
               <button
                 onClick={() =>
                   setConfirmModal({ ...confirmModal, isOpen: false })
@@ -787,15 +829,15 @@ export default function ManageEvents() {
                 className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5"
               >
                 Hủy bỏ
-              </button>{" "}
+              </button>
               <button
                 onClick={handleConfirmAction}
                 className="px-6 py-2 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600"
               >
                 Xác nhận
-              </button>{" "}
-            </div>{" "}
-          </motion.div>{" "}
+              </button>
+            </div>
+          </motion.div>
         </div>
       ) : (
         <ConfirmModal

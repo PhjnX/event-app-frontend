@@ -8,7 +8,8 @@ import {
 } from "react-icons/fa";
 import { ROLES } from "@/constants";
 
-export interface MenuItem {
+// FIX: Xóa từ khóa 'export' vì interface này chỉ dùng nội bộ cho hằng số ADMIN_MENU bên dưới
+interface MenuItem {
   title: string;
   path: string;
   icon: React.ElementType;

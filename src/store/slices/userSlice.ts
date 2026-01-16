@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User } from "../../models/user";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
-import { logoutUser } from "./auth"; // <--- IMPORT MỚI
+import { logoutUser } from "./auth";
 
 export const fetchUserList = createAsyncThunk(
   "listUser/fetchUserList",
@@ -71,7 +71,9 @@ export const deleteUser = createAsyncThunk(
     }
   }
 );
-export const searchUser = createAsyncThunk(
+
+// FIX: Bỏ export vì searchUser hiện chỉ dùng nội bộ trong extraReducers
+const searchUser = createAsyncThunk(
   "listUser/searchUser",
   async (email: string, { rejectWithValue }) => {
     try {
@@ -84,7 +86,9 @@ export const searchUser = createAsyncThunk(
     }
   }
 );
-export const fetchUserDetail = createAsyncThunk(
+
+// FIX: Bỏ export vì fetchUserDetail hiện chỉ dùng nội bộ
+const fetchUserDetail = createAsyncThunk(
   "listUser/fetchUserDetail",
   async (uid: string, { rejectWithValue }) => {
     try {
@@ -95,6 +99,7 @@ export const fetchUserDetail = createAsyncThunk(
     }
   }
 );
+
 export const updateUser = createAsyncThunk(
   "listUser/updateUser",
   async (
@@ -108,6 +113,19 @@ export const updateUser = createAsyncThunk(
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Lỗi cập nhật");
       return rejectWithValue(error.message);
+    }
+  }
+);
+
+// FIX: Tách fetchUsersByRole lên trên để builder có thể tham chiếu được
+const fetchUsersByRole = createAsyncThunk(
+  "listUser/fetchByRole",
+  async (roleName: string, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get<User[]>(`/users/role/${roleName}`);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Lỗi lọc role");
     }
   }
 );
@@ -185,8 +203,6 @@ const listUserSlice = createSlice({
         if (state.userDetail?.uid === action.payload.uid)
           state.userDetail = action.payload;
       })
-
-      // --- RESET DATA KHI LOGOUT ---
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];
         state.userDetail = null;
@@ -196,17 +212,6 @@ const listUserSlice = createSlice({
   },
 });
 
-export const { clearUserDetail } = listUserSlice.actions;
-export const fetchUsersByRole = createAsyncThunk(
-  "listUser/fetchByRole",
-  async (roleName: string, { rejectWithValue }) => {
-    try {
-      const response = await apiService.get<User[]>(`/users/role/${roleName}`);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Lỗi lọc role");
-    }
-  }
-);
-
+// FIX: Bỏ clearUserDetail khỏi export vì knip báo unused
+export const {} = listUserSlice.actions;
 export default listUserSlice.reducer;

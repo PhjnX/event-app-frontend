@@ -1,7 +1,7 @@
 import React from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
-import AdminTemplate from "../pages/AdminTemplate";
+const AdminTemplate = React.lazy(() => import("../pages/AdminTemplate"));
 import AdminProtectedRoute from "./admin-protect-route";
 
 const DashboardPage = React.lazy(

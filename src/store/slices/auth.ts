@@ -85,7 +85,6 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
-// 👇 ĐÂY LÀ HÀM QUAN TRỌNG NHẤT ĐỂ CHECK TRẠNG THÁI LOCKED
 export const fetchCurrentUser = createAsyncThunk(
   "auth/me",
   async (_, { rejectWithValue }) => {
@@ -93,9 +92,6 @@ export const fetchCurrentUser = createAsyncThunk(
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (!token) return rejectWithValue("Không tìm thấy token");
 
-      // Gọi API lấy thông tin mới nhất
-      // LƯU Ý QUAN TRỌNG: API /users/me này BẮT BUỘC phải trả về object user
-      // có chứa thông tin organizer (và field 'locked') bên trong.
       const response = await apiService.get<User>("/users/me");
       return response;
     } catch (error: any) {
@@ -139,6 +135,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    // Giữ lại reducer ở đây để dùng nội bộ nếu cần, nhưng không export action ra ngoài
     forceLogout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
@@ -150,7 +147,6 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // --- REGISTER ---
     builder
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -164,7 +160,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       });
 
-    // --- VERIFY ---
     builder
       .addCase(verifyUser.pending, (state) => {
         state.isLoading = true;
@@ -178,7 +173,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       });
 
-    // --- LOGIN ---
     builder
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
@@ -195,7 +189,6 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
-    // --- UPLOAD ---
     builder
       .addCase(uploadAvatar.pending, (state) => {
         state.isLoading = true;
@@ -207,14 +200,12 @@ const authSlice = createSlice({
         state.isLoading = false;
       });
 
-    // --- FETCH CURRENT USER (ME) ---
     builder
       .addCase(fetchCurrentUser.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action: any) => {
         state.isAuthenticated = true;
-        // Cập nhật toàn bộ thông tin user (bao gồm trạng thái locked mới nhất)
         state.user = action.payload;
         state.isLoading = false;
       })
@@ -224,7 +215,6 @@ const authSlice = createSlice({
         state.isLoading = false;
       });
 
-    // --- UPDATE PROFILE ---
     builder
       .addCase(updateUserProfile.pending, (state) => {
         state.isLoading = true;
@@ -237,7 +227,6 @@ const authSlice = createSlice({
         state.isLoading = false;
       });
 
-    // --- LOGOUT ---
     builder
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
@@ -250,5 +239,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { forceLogout, clearError } = authSlice.actions;
+// Chỗ này mình đã bỏ forceLogout ra khỏi danh sách export action
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

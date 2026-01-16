@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
 
-export interface Post {
+// FIX: Xóa từ khóa 'export' vì interface Post chỉ dùng nội bộ trong file này
+interface Post {
   id: number;
   title: string;
   slug: string;
@@ -13,7 +14,6 @@ export interface Post {
   createdAt: string;
   authorName?: string;
 }
-
 
 export const fetchPublicPosts = createAsyncThunk(
   "news/fetchPublicPosts",
@@ -43,7 +43,6 @@ export const fetchPostBySlug = createAsyncThunk(
     }
   }
 );
-
 
 export const fetchPosts = createAsyncThunk(
   "news/fetchPosts",
@@ -119,16 +118,14 @@ export const deletePost = createAsyncThunk(
   }
 );
 
-
 export const uploadImage = async (file: File): Promise<string> => {
   const MAX_SIZE_MB = 5;
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-
   if (file.size > MAX_SIZE_BYTES) {
     const errorMsg = `Ảnh quá lớn! Vui lòng chọn ảnh dưới ${MAX_SIZE_MB}MB.`;
     toast.error(errorMsg);
-    throw new Error(errorMsg); 
+    throw new Error(errorMsg);
   }
 
   const formData = new FormData();
@@ -144,8 +141,6 @@ export const uploadImage = async (file: File): Promise<string> => {
       }
     );
 
-    console.log("Upload Res:", res);
-
     if (res.file && res.file.url) {
       return res.file.url;
     }
@@ -157,9 +152,6 @@ export const uploadImage = async (file: File): Promise<string> => {
 
     throw new Error("Không lấy được link ảnh (Cấu trúc không khớp)");
   } catch (error: any) {
-    console.error("Upload Error:", error);
-
- 
     const isClientValidationError = error.message.includes("Ảnh quá lớn!");
 
     if (!isClientValidationError) {
@@ -179,10 +171,10 @@ export const uploadImage = async (file: File): Promise<string> => {
         toast.error("Có lỗi xảy ra khi tải ảnh lên.");
       }
     }
-
     throw error;
   }
 };
+
 interface NewsState {
   data: Post[];
   totalElements: number;
@@ -218,7 +210,6 @@ const newsSlice = createSlice({
       .addCase(fetchPublicPosts.rejected, (state) => {
         state.loading = false;
       })
-
       .addCase(fetchPostBySlug.pending, (state) => {
         state.loading = true;
       })
@@ -226,7 +217,6 @@ const newsSlice = createSlice({
         state.loading = false;
         state.postDetail = action.payload;
       })
-
       .addCase(fetchPosts.pending, (state) => {
         state.loading = true;
       })
@@ -235,12 +225,9 @@ const newsSlice = createSlice({
         state.data = action.payload.content || action.payload || [];
         state.totalElements = action.payload.totalElements || 0;
       })
-
-      
       .addCase(deletePost.fulfilled, (state, action) => {
         state.data = state.data.filter((item) => item.id !== action.payload);
       })
-
       .addCase(fetchPostDetailAdmin.fulfilled, (state, action: any) => {
         state.postDetail = action.payload;
       });

@@ -17,17 +17,24 @@ import {
   FaClock,
   FaUsers,
   FaTicketAlt,
+  FaEye,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaSpinner,
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
   fetchEventRegistrations,
+  fetchRegisteredActivitiesInEvent, 
   approveRegistration,
   rejectRegistration,
   clearRegistrations,
+  clearUserActivities, 
 } from "../../../store/slices/eventSlice";
 
-const ITEMS_PER_PAGE = 8; 
+const ITEMS_PER_PAGE = 8;
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -71,13 +78,18 @@ export default function ManageRegistrations() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { registrations, isLoading } = useSelector(
+  const { registrations, userActivities, isLoading } = useSelector(
     (state: RootState) => state.events
   );
 
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedRegId, setSelectedRegId] = useState<number | null>(null);
   const [reason, setReason] = useState("");
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
+
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -148,6 +160,33 @@ export default function ManageRegistrations() {
     } catch (error: any) {
       toast.error(error || "Có lỗi xảy ra");
     }
+  };
+
+  const openDetailModal = async (item: any) => {
+    setSelectedRegistration(item);
+    setIsDetailModalOpen(true);
+    setIsDetailLoading(true);
+    dispatch(clearUserActivities()); 
+
+    try {
+      if (eventId && item.userId) {
+        await dispatch(
+          fetchRegisteredActivitiesInEvent({
+            eventId: Number(eventId),
+            userId: item.userId,
+          })
+        ).unwrap();
+      }
+    } catch (error) {
+      console.error("Không lấy được danh sách hoạt động", error);
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
+    dispatch(clearUserActivities());
   };
 
   return (
@@ -297,7 +336,7 @@ export default function ManageRegistrations() {
                       key={item.id}
                       className="bg-[#141414] hover:bg-[#1a1a1a] transition-all group shadow-sm border border-transparent hover:border-white/10"
                     >
-                      {/* USER */}
+                      {/* USER INFO */}
                       <td className="px-4 py-4 rounded-l-2xl border-l border-y border-white/5 group-hover:border-white/10">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-[#222] ring-1 ring-white/10 overflow-hidden shrink-0 shadow-lg">
@@ -324,7 +363,6 @@ export default function ManageRegistrations() {
                         </div>
                       </td>
 
-                      {/* CONTACT */}
                       <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2.5">
@@ -381,29 +419,35 @@ export default function ManageRegistrations() {
                       </td>
 
                       <td className="px-4 py-4 rounded-r-2xl border-r border-y border-white/5 group-hover:border-white/10 text-right">
-                        {item.status === "PENDING" ? (
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => handleApprove(item.id)}
-                              className="group/btn relative px-4 py-2 rounded-lg bg-linear-to-t from-emerald-900/50 to-emerald-800/20 border border-emerald-500/30 text-emerald-400 hover:text-white hover:border-emerald-400 transition-all shadow-lg hover:shadow-emerald-500/20"
-                            >
-                              <span className="flex items-center gap-1.5 text-xs font-bold uppercase">
-                                <FaCheck size={10} /> Duyệt
-                              </span>
-                            </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openDetailModal(item)}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-[#B5A65F]/10 border border-white/10 hover:border-[#B5A65F]/30 text-gray-400 hover:text-[#B5A65F] transition-all"
+                            title="Xem chi tiết hoạt động"
+                          >
+                            <FaEye size={14} />
+                          </button>
 
-                            <button
-                              onClick={() => openRejectModal(item.id)}
-                              className="px-3 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-colors"
-                            >
-                              <FaTimes size={12} />
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] uppercase font-bold text-gray-700 tracking-wider pr-2">
-                            Hoàn tất
-                          </span>
-                        )}
+                          {item.status === "PENDING" && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(item.id)}
+                                className="group/btn relative px-3 py-2 rounded-lg bg-emerald-900/20 hover:bg-emerald-900/40 border border-emerald-500/30 text-emerald-400 hover:text-white hover:border-emerald-400 transition-all"
+                                title="Duyệt"
+                              >
+                                <FaCheck size={12} />
+                              </button>
+
+                              <button
+                                onClick={() => openRejectModal(item.id)}
+                                className="px-3 py-2 rounded-lg bg-red-900/10 hover:bg-red-900/30 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-colors"
+                                title="Từ chối"
+                              >
+                                <FaTimes size={12} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -413,7 +457,6 @@ export default function ManageRegistrations() {
           </table>
         </div>
 
-        {/* PAGINATION */}
         {!isLoading && filteredData.length > 0 && (
           <div className="py-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest bg-[#1a1a1a] px-3 py-1 rounded-full border border-white/5">
@@ -513,6 +556,194 @@ export default function ManageRegistrations() {
                     Xác nhận
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isDetailModalOpen && selectedRegistration && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDetailModal}
+              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="bg-[#141414] px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#B5A65F]/20 flex items-center justify-center text-[#B5A65F]">
+                    <FaUser />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white uppercase tracking-wide">
+                      Thông tin đăng ký
+                    </h3>
+                    <p className="text-xs text-gray-500 font-mono">
+                      ID: #{selectedRegistration.id}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={closeDetailModal}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-[#141414] p-4 rounded-xl border border-white/5">
+                    <h4 className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3">
+                      Người tham gia
+                    </h4>
+                    <div className="flex items-center gap-3 mb-3">
+                      {selectedRegistration.avatarUrl ? (
+                        <img
+                          src={selectedRegistration.avatarUrl}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                          <FaUser className="text-gray-500" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-bold text-white">
+                          {selectedRegistration.username}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {selectedRegistration.email}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400 flex items-center gap-2">
+                      <FaPhone className="text-gray-600" />{" "}
+                      {selectedRegistration.phoneNumber || "Chưa cập nhật"}
+                    </div>
+                  </div>
+
+                  <div className="bg-[#141414] p-4 rounded-xl border border-white/5">
+                    <h4 className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3">
+                      Thông tin vé
+                    </h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-400">Mã vé:</span>
+                      <span className="text-xs font-mono font-bold text-[#B5A65F] bg-[#B5A65F]/10 px-2 py-0.5 rounded">
+                        {selectedRegistration.ticketCode || "---"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-400">
+                        Ngày đăng ký:
+                      </span>
+                      <span className="text-xs text-white">
+                        {selectedRegistration.registrationDate
+                          ? new Date(
+                              selectedRegistration.registrationDate
+                            ).toLocaleDateString("vi-VN")
+                          : "---"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Trạng thái:</span>
+                      <StatusBadge status={selectedRegistration.status} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phần 2: Danh sách Activity */}
+                <div>
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wide mb-4 flex items-center gap-2 border-l-4 border-[#B5A65F] pl-3">
+                    Hoạt động đã đăng ký
+                  </h4>
+
+                  {/* Loading State */}
+                  {isDetailLoading ? (
+                    <div className="text-center py-8">
+                      <FaSpinner className="animate-spin text-2xl text-[#B5A65F] mx-auto mb-2" />
+                      <p className="text-xs text-gray-500">
+                        Đang tải thông tin hoạt động...
+                      </p>
+                    </div>
+                  ) : !userActivities || userActivities.length === 0 ? (
+                    <div className="text-center py-8 bg-[#141414] rounded-xl border border-dashed border-white/10">
+                      <p className="text-gray-400 font-bold text-sm mb-1">
+                        Vé vào cửa tiêu chuẩn
+                      </p>
+                      <p className="text-gray-600 text-xs">
+                        Người dùng này chỉ đăng ký tham gia sự kiện chung, chưa
+                        đăng ký cụ thể Activity (hoặc sự kiện không có
+                        sub-activities).
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {userActivities.map((activity: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="bg-[#141414] p-4 rounded-xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#B5A65F]/30 transition-colors group"
+                        >
+                          <div className="flex-1">
+                            <h5 className="font-bold text-white text-sm mb-1 group-hover:text-[#B5A65F] transition-colors">
+                              {activity.name || "Tên hoạt động"}
+                            </h5>
+                            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                              {activity.startTime && (
+                                <span className="flex items-center gap-1">
+                                  <FaCalendarAlt />{" "}
+                                  {new Date(
+                                    activity.startTime
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              )}
+                              {activity.location && (
+                                <span className="flex items-center gap-1">
+                                  <FaMapMarkerAlt /> {activity.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {activity.cost !== undefined && (
+                            <div className="text-right shrink-0">
+                              <div className="text-[#B5A65F] font-bold font-mono text-sm flex items-center gap-1 justify-end">
+                                <FaMoneyBillWave />
+                                {activity.cost === 0
+                                  ? "Miễn phí"
+                                  : activity.cost.toLocaleString() + " đ"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer của Modal */}
+              <div className="bg-[#141414] p-4 border-t border-white/5 flex justify-end">
+                <button
+                  onClick={closeDetailModal}
+                  className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wide transition-all"
+                >
+                  Đóng
+                </button>
               </div>
             </motion.div>
           </div>

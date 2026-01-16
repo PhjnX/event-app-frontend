@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /my-tickets
+Disallow: /event/*/moments
+Disallow: /admin
+
+Sitemap: https://ems.webie.com.vn/sitemap.xml

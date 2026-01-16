@@ -14,6 +14,7 @@ const getBackendRootUrl = () => {
   return API_URL;
 };
 
+// Hàm xử lý link ảnh cho chuẩn
 const processImageUrl = (url: string | null | undefined) => {
   if (!url) return "";
   if (url.startsWith("http")) return url;
@@ -29,6 +30,8 @@ interface EventState {
   selectedEvents: Event[];
   registrations: any[];
   myRegistrations: any[];
+  // State lưu danh sách hoạt động khi xem chi tiết trong Admin
+  userActivities: any[];
   isLoading: boolean;
   error: string | null;
 }
@@ -39,9 +42,12 @@ const initialState: EventState = {
   selectedEvents: [],
   registrations: [],
   myRegistrations: [],
+  userActivities: [],
   isLoading: false,
   error: null,
 };
+
+// --- CÁC API CƠ BẢN (Public/User) ---
 
 export const fetchPublicEvents = createAsyncThunk(
   "events/fetchPublic",
@@ -53,6 +59,7 @@ export const fetchPublicEvents = createAsyncThunk(
     }
   }
 );
+
 export const fetchAllEvents = createAsyncThunk(
   "events/fetchAll",
   async (_, { rejectWithValue }) => {
@@ -63,6 +70,7 @@ export const fetchAllEvents = createAsyncThunk(
     }
   }
 );
+
 export const fetchMyEvents = createAsyncThunk(
   "events/fetchMine",
   async (_, { rejectWithValue }) => {
@@ -73,6 +81,7 @@ export const fetchMyEvents = createAsyncThunk(
     }
   }
 );
+
 export const fetchFeaturedEvents = createAsyncThunk(
   "events/fetchFeatured",
   async (_, { rejectWithValue }) => {
@@ -84,6 +93,7 @@ export const fetchFeaturedEvents = createAsyncThunk(
     }
   }
 );
+
 export const fetchSelectedEvents = createAsyncThunk(
   "events/fetchSelected",
   async (_, { rejectWithValue }) => {
@@ -95,6 +105,7 @@ export const fetchSelectedEvents = createAsyncThunk(
     }
   }
 );
+
 export const updateFeaturedEvents = createAsyncThunk(
   "events/updateFeatured",
   async (ids: number[], { rejectWithValue }) => {
@@ -106,6 +117,7 @@ export const updateFeaturedEvents = createAsyncThunk(
     }
   }
 );
+
 export const updateSelectedEvents = createAsyncThunk(
   "events/updateSelected",
   async (ids: number[], { rejectWithValue }) => {
@@ -117,6 +129,7 @@ export const updateSelectedEvents = createAsyncThunk(
     }
   }
 );
+
 export const uploadEventImage = createAsyncThunk(
   "events/uploadImage",
   async (file: File, { rejectWithValue }) => {
@@ -134,6 +147,10 @@ export const uploadEventImage = createAsyncThunk(
     }
   }
 );
+
+// --- CÁC API ĐĂNG KÝ SỰ KIỆN ---
+
+// 1. Đăng ký lần đầu (chưa có vé)
 export const registerForEvent = createAsyncThunk(
   "events/register",
   async (
@@ -151,9 +168,30 @@ export const registerForEvent = createAsyncThunk(
   }
 );
 
-// ============================================================
-// 2. FETCH MY REGISTRATIONS: XỬ LÝ DỮ LIỆU TẬP TRUNG
-// ============================================================
+// 2. Đăng ký thêm hoạt động (khi đã có vé) - API MỚI BẠN YÊU CẦU
+export const addActivitiesToEvent = createAsyncThunk(
+  "events/addActivities",
+  async (
+    payload: { eventId: number; activityIds: number[] },
+    { rejectWithValue }
+  ) => {
+    try {
+      // Gọi API: POST /api/events/{eventId}/add-activities
+      // Body gửi lên là danh sách activityIds
+      const response = await apiService.post(
+        `/events/${payload.eventId}/add-activities`,
+        payload.activityIds // Body là mảng ID hoặc object tùy backend, thường là list ID
+      );
+      return response;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || err.message || "Không thể thêm hoạt động"
+      );
+    }
+  }
+);
+
+// Lấy danh sách vé đã mua của tôi
 export const fetchMyRegistrations = createAsyncThunk(
   "events/fetchMyRegistrations",
   async (_, { rejectWithValue }) => {
@@ -163,7 +201,6 @@ export const fetchMyRegistrations = createAsyncThunk(
       const formattedData = Array.isArray(response)
         ? response.map((item: any) => {
             const evt = item.event || item;
-
             const rawImage =
               evt.bannerImageUrl || evt.bannerUrl || evt.image || "";
 
@@ -172,12 +209,9 @@ export const fetchMyRegistrations = createAsyncThunk(
               status: item.status,
               ticketCode: item.ticketCode,
               eventId: evt.eventId || evt.id,
-
               eventName: evt.eventName || "Sự kiện",
               eventSlug: evt.slug || evt.eventId?.toString() || "#",
-
               eventBanner: processImageUrl(rawImage),
-
               eventStartDate: evt.startDate,
               eventEndDate: evt.endDate,
               location: evt.location || "Online",
@@ -188,6 +222,27 @@ export const fetchMyRegistrations = createAsyncThunk(
       return formattedData;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// --- API ADMIN: QUẢN LÝ ---
+
+// Lấy hoạt động của user trong Admin (đã thêm param userId)
+export const fetchRegisteredActivitiesInEvent = createAsyncThunk(
+  "events/fetchRegisteredActivitiesInEvent",
+  async (
+    { eventId, userId }: { eventId: number; userId?: number },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await apiService.get<any[]>(
+        `/activities/by-event/${eventId}/registered`,
+        { params: { userId } }
+      );
+      return response;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
     }
   }
 );
@@ -205,6 +260,7 @@ export const fetchEventRegistrations = createAsyncThunk(
     }
   }
 );
+
 export const approveRegistration = createAsyncThunk(
   "events/approveRegistration",
   async (regId: number, { rejectWithValue }) => {
@@ -216,6 +272,7 @@ export const approveRegistration = createAsyncThunk(
     }
   }
 );
+
 export const rejectRegistration = createAsyncThunk(
   "events/rejectRegistration",
   async (
@@ -234,6 +291,8 @@ export const rejectRegistration = createAsyncThunk(
     }
   }
 );
+
+// CRUD Event cơ bản
 export const createEvent = createAsyncThunk(
   "events/create",
   async (data: Partial<Event>, { rejectWithValue }) => {
@@ -244,6 +303,7 @@ export const createEvent = createAsyncThunk(
     }
   }
 );
+
 export const updateEvent = createAsyncThunk(
   "events/update",
   async (
@@ -257,6 +317,7 @@ export const updateEvent = createAsyncThunk(
     }
   }
 );
+
 export const submitEventForApproval = createAsyncThunk(
   "events/submit",
   async (slug: string, { rejectWithValue }) => {
@@ -268,6 +329,7 @@ export const submitEventForApproval = createAsyncThunk(
     }
   }
 );
+
 export const approveEvent = createAsyncThunk(
   "events/approve",
   async (id: number, { rejectWithValue }) => {
@@ -279,6 +341,7 @@ export const approveEvent = createAsyncThunk(
     }
   }
 );
+
 export const rejectEvent = createAsyncThunk(
   "events/reject",
   async (
@@ -295,6 +358,7 @@ export const rejectEvent = createAsyncThunk(
     }
   }
 );
+
 export const deleteEvent = createAsyncThunk(
   "events/delete",
   async (slug: string, { rejectWithValue }) => {
@@ -314,27 +378,21 @@ const eventSlice = createSlice({
     clearRegistrations: (state) => {
       state.registrations = [];
       state.myRegistrations = [];
+      state.userActivities = [];
+    },
+    clearUserActivities: (state) => {
+      state.userActivities = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchMyRegistrations.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      // Fetch user data
       .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.myRegistrations = action.payload;
       })
-      .addCase(fetchMyRegistrations.rejected, (state, action) => {
-        state.isLoading = false;
-        state.myRegistrations = [];
-        state.error = action.payload as string;
-      })
-
+      // Fetch public events
       .addCase(fetchPublicEvents.fulfilled, (state, action) => {
         state.data = action.payload;
-        state.isLoading = false;
       })
       .addCase(fetchAllEvents.fulfilled, (state, action) => {
         state.data = action.payload;
@@ -348,32 +406,16 @@ const eventSlice = createSlice({
       .addCase(fetchSelectedEvents.fulfilled, (state, action) => {
         state.selectedEvents = action.payload;
       })
-      .addCase(createEvent.fulfilled, (state, action) => {
-        if (state.data) state.data.push(action.payload);
+
+      // Handle activity fetch for details
+      .addCase(fetchRegisteredActivitiesInEvent.fulfilled, (state, action) => {
+        state.userActivities = action.payload;
       })
-      .addCase(updateEvent.fulfilled, (state, action) => {
-        const index = state.data.findIndex(
-          (e) => e.eventId === action.payload.eventId
-        );
-        if (index !== -1) state.data[index] = action.payload;
+      .addCase(fetchRegisteredActivitiesInEvent.rejected, (state) => {
+        state.userActivities = [];
       })
-      .addCase(submitEventForApproval.fulfilled, (state, action) => {
-        const event = state.data.find((e) => e.slug === action.payload);
-        if (event) {
-          event.status = "PENDING_APPROVAL";
-        }
-      })
-      .addCase(approveEvent.fulfilled, (state, action) => {
-        const event = state.data.find((e) => e.eventId === action.payload);
-        if (event) event.status = "APPROVED";
-      })
-      .addCase(rejectEvent.fulfilled, (state, action) => {
-        const event = state.data.find((e) => e.eventId === action.payload);
-        if (event) event.status = "REJECTED";
-      })
-      .addCase(deleteEvent.fulfilled, (state, action) => {
-        state.data = state.data.filter((e) => e.slug !== action.payload);
-      })
+
+      // Handle admin registration list
       .addCase(fetchEventRegistrations.pending, (state) => {
         state.isLoading = true;
       })
@@ -385,19 +427,11 @@ const eventSlice = createSlice({
         state.isLoading = false;
         state.registrations = [];
       })
-      .addCase(approveRegistration.fulfilled, (state, action) => {
-        const regId = action.payload;
-        const item = state.registrations.find((r) => r.id === regId);
-        if (item) item.status = "APPROVED";
-      })
-      .addCase(rejectRegistration.fulfilled, (state, action) => {
-        const { registrationId } = action.payload;
-        const item = state.registrations.find((r) => r.id === registrationId);
-        if (item) item.status = "REJECTED";
-      })
+
+      // Auth logout cleanup
       .addCase(logoutUser.fulfilled, () => initialState);
   },
 });
 
-export const { clearRegistrations } = eventSlice.actions;
+export const { clearRegistrations, clearUserActivities } = eventSlice.actions;
 export default eventSlice.reducer;

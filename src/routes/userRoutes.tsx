@@ -1,6 +1,6 @@
 import React from "react";
 import type { RouteObject } from "react-router-dom";
-import HomeTemplate from "../pages/HomeTemplate";
+const HomeTemplate = React.lazy(() => import("../pages/HomeTemplate"));
 import ProtectedRoute from "./protect-routes";
 const NewsPage = React.lazy(() => import("../pages/HomeTemplate/NewsPage"));
 const EventPage = React.lazy(() => import("../pages/HomeTemplate/EventPage"));

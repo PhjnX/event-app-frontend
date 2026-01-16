@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
-// Đã xóa import toast để tránh thông báo trùng lặp
 import type { Activity, ActivityCategory } from "../../models/activity";
 import { logoutUser } from "./auth";
 
@@ -51,10 +50,8 @@ export const createActivity = createAsyncThunk(
   async (data: any, { rejectWithValue }) => {
     try {
       const response = await apiService.post<Activity>("/activities", data);
-      // Đã xóa toast.success ở đây để Component tự xử lý
       return response;
     } catch (err: any) {
-      // Đã xóa toast.error ở đây, Component có thể catch lỗi này để hiện toast
       return rejectWithValue(err.message);
     }
   }
@@ -68,7 +65,6 @@ export const updateActivity = createAsyncThunk(
         `/activities/${id}`,
         data
       );
-      // Đã xóa toast.success
       return response;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -81,7 +77,6 @@ export const deleteActivity = createAsyncThunk(
   async (id: number, { rejectWithValue }) => {
     try {
       await apiService.delete(`/activities/${id}`);
-      // Đã xóa toast.success
       return id;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -93,13 +88,13 @@ const activitySlice = createSlice({
   name: "activities",
   initialState,
   reducers: {
+    // FIX: Giữ lại logic xóa dữ liệu ở đây nhưng không export action ra ngoài
     clearActivities: (state) => {
       state.data = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      // --- Fetch By Event ---
       .addCase(fetchActivitiesByEvent.pending, (state) => {
         state.isLoading = true;
       })
@@ -112,22 +107,18 @@ const activitySlice = createSlice({
         state.error = action.payload;
       })
 
-      // --- Fetch Categories ---
       .addCase(fetchActivityCategories.fulfilled, (state, action) => {
         state.categories = action.payload;
       })
 
-      // --- Create ---
       .addCase(createActivity.fulfilled, (state, action) => {
         state.data.push(action.payload);
-        // Sắp xếp lại timeline sau khi thêm mới để UI không bị nhảy loạn
         state.data.sort(
           (a, b) =>
             new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
         );
       })
 
-      // --- Update ---
       .addCase(updateActivity.fulfilled, (state, action) => {
         const index = state.data.findIndex(
           (a) => a.activityId === action.payload.activityId
@@ -137,12 +128,10 @@ const activitySlice = createSlice({
         }
       })
 
-      // --- Delete ---
       .addCase(deleteActivity.fulfilled, (state, action) => {
         state.data = state.data.filter((a) => a.activityId !== action.payload);
       })
 
-      // --- Logout ---
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];
         state.categories = [];
@@ -152,5 +141,6 @@ const activitySlice = createSlice({
   },
 });
 
-export const { clearActivities } = activitySlice.actions;
+// FIX: Bỏ clearActivities khỏi danh sách export để dọn sạch lỗi knip
+export const {} = activitySlice.actions;
 export default activitySlice.reducer;

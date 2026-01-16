@@ -5,7 +5,8 @@ import axios, {
 } from "axios";
 import { STORAGE_KEYS } from "../constants";
 
-export const baseURL =
+// FIX: Xóa từ khóa 'export' vì baseURL chỉ dùng nội bộ để tạo instance axios ở dưới
+const baseURL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://ems-backend-jkjx.onrender.com/api";
 

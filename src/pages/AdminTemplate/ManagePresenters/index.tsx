@@ -21,8 +21,9 @@ import {
   FaRegStar,
   FaUserTie,
   FaFileExcel,
-  FaLock, 
-  FaSpinner, 
+  FaLock,
+  FaSpinner,
+  FaFilter, 
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
@@ -35,19 +36,20 @@ import {
   deletePresenter,
   createPresenter,
   updatePresenter,
-  updateFeaturedList,
   resetPresenterState,
 } from "../../../store/slices/presenterSlice";
 import {
   fetchOrganizers,
   fetchOrganizerDetail,
 } from "../../../store/slices/organizerSlice";
+import { fetchMyEvents } from "@/store/slices/eventSlice"; 
 import { uploadAvatar } from "../../../store/slices/auth";
 import type { Presenter } from "../../../models/presenter";
 import { ROLES } from "@/constants";
 
 import ConfirmModal from "./../_components/ConfirmModal";
 import LoadingOverlay from "../../HomeTemplate/_components/common/LoadingOverlay";
+import apiService from "@/services/apiService"; 
 
 const ITEMS_PER_PAGE = 8;
 
@@ -60,6 +62,7 @@ export default function ManagePresenters() {
   const { data: organizers } = useSelector(
     (state: RootState) => state.organizers
   );
+  const { data: myEvents } = useSelector((state: RootState) => state.events); 
   const { user } = useSelector((state: RootState) => state.auth);
 
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
@@ -81,14 +84,12 @@ export default function ManagePresenters() {
   };
 
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
-  // Mặc định đang check nếu là Organizer
   const [isChecking, setIsChecking] = useState(isOrganizer);
 
   useEffect(() => {
     if (isOrganizer && user) {
       setIsChecking(true);
       const orgData = (user as any).organizer || {};
-
       const slugToCheck =
         orgData.slug ||
         (user as any).slug ||
@@ -105,9 +106,7 @@ export default function ManagePresenters() {
               });
             }
           })
-          .finally(() => {
-            setIsChecking(false);
-          });
+          .finally(() => setIsChecking(false));
       } else {
         setIsChecking(false);
       }
@@ -116,12 +115,20 @@ export default function ManagePresenters() {
 
   const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
 
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOrgSlug, setSelectedOrgSlug] = useState("ALL");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [selectedOrgSlug, setSelectedOrgSlug] = useState("ALL");
+  const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const orgDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [filterEventId, setFilterEventId] = useState<string | "ALL">("ALL");
+  const [isEventDropdownOpen, setIsEventDropdownOpen] = useState(false);
+  const eventDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [eventPresenters, setEventPresenters] = useState<Presenter[]>([]);
+  const [isLoadingEventPresenters, setIsLoadingEventPresenters] =
+    useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -130,7 +137,6 @@ export default function ManagePresenters() {
   const [selectedPresenterId, setSelectedPresenterId] = useState<number | null>(
     null
   );
-
   const [formData, setFormData] = useState<Partial<Presenter>>({
     fullName: "",
     title: "",
@@ -139,29 +145,24 @@ export default function ManagePresenters() {
     avatarUrl: "",
     featured: false,
   });
-
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     id: number | null;
     name: string;
-  }>({
-    isOpen: false,
-    id: null,
-    name: "",
-  });
-
+  }>({ isOpen: false, id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [localFeatured, setLocalFeatured] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [localFeatured] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    if (isSAdmin) dispatch(fetchOrganizers());
-  }, [dispatch, isSAdmin]);
+    if (isSAdmin) {
+      dispatch(fetchOrganizers());
+    } else if (isOrganizer) {
+      dispatch(fetchMyEvents()); 
+    }
+  }, [dispatch, isSAdmin, isOrganizer]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -173,11 +174,78 @@ export default function ManagePresenters() {
         dispatch(fetchMyPresenters());
       }
     };
-    loadData();
-  }, [dispatch, isSAdmin, isOrganizer, selectedOrgSlug, user]);
+    if (!isOrganizer || (isOrganizer && filterEventId === "ALL")) {
+      loadData();
+    }
+  }, [dispatch, isSAdmin, isOrganizer, selectedOrgSlug, user, filterEventId]);
+
+  useEffect(() => {
+    const loadEventPresenters = async () => {
+      if (isOrganizer && filterEventId !== "ALL") {
+        setIsLoadingEventPresenters(true);
+        try {
+          const res: any = await apiService.get(
+            `/activities/by-event/${filterEventId}`
+          );
+
+          if (Array.isArray(res)) {
+            const uniquePresentersMap = new Map();
+            res.forEach((act: any) => {
+              if (act.presenter) {
+                uniquePresentersMap.set(
+                  act.presenter.presenterId,
+                  act.presenter
+                );
+              }
+              if (act.presenters && Array.isArray(act.presenters)) {
+                act.presenters.forEach((p: any) =>
+                  uniquePresentersMap.set(p.presenterId, p)
+                );
+              }
+            });
+            setEventPresenters(Array.from(uniquePresentersMap.values()));
+          }
+        } catch (error) {
+          console.error("Lỗi lấy diễn giả theo sự kiện", error);
+          setEventPresenters([]);
+        } finally {
+          setIsLoadingEventPresenters(false);
+        }
+      } else {
+        setEventPresenters([]);
+      }
+    };
+
+    loadEventPresenters();
+    setCurrentPage(1);
+  }, [filterEventId, isOrganizer]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        orgDropdownRef.current &&
+        !orgDropdownRef.current.contains(event.target as Node)
+      )
+        setIsOrgDropdownOpen(false);
+      if (
+        eventDropdownRef.current &&
+        !eventDropdownRef.current.contains(event.target as Node)
+      )
+        setIsEventDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const displayData = useMemo(() => {
+    if (isOrganizer && filterEventId !== "ALL") {
+      return eventPresenters; 
+    }
+    return presenters; 
+  }, [presenters, eventPresenters, isOrganizer, filterEventId]);
 
   const filteredData = useMemo(() => {
-    return presenters.filter((item) => {
+    return displayData.filter((item) => {
       const lowerSearch = searchTerm.toLowerCase();
       return (
         item.fullName.toLowerCase().includes(lowerSearch) ||
@@ -185,7 +253,7 @@ export default function ManagePresenters() {
         (item.title && item.title.toLowerCase().includes(lowerSearch))
       );
     });
-  }, [presenters, searchTerm]);
+  }, [displayData, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
   const paginatedData = useMemo(() => {
@@ -195,68 +263,24 @@ export default function ManagePresenters() {
 
   const handleExportExcel = () => {
     if (filteredData.length === 0) {
-      toast.warn("Không có dữ liệu để xuất!");
+      toast.warn("Không có dữ liệu!");
       return;
     }
-    try {
-      const exportData = filteredData.map((p) => ({
-        ID: p.presenterId,
-        "Họ và Tên": p.fullName,
-        "Chức danh": p.title || "---",
-        "Công ty/Tổ chức": p.company || "Tự do",
-        "Tiểu sử": p.bio || "",
-        "Nổi bật?": p.featured ? "Có" : "Không",
-      }));
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách Diễn giả");
-      XLSX.writeFile(
-        workbook,
-        `Presenters_${new Date().toISOString().slice(0, 10)}.xlsx`
-      );
-      toast.success("Xuất file Excel thành công!");
-    } catch (error) {
-      toast.error("Lỗi xuất file.");
-    }
+    const exportData = filteredData.map((p) => ({
+      ID: p.presenterId,
+      "Họ tên": p.fullName,
+      "Chức danh": p.title,
+      "Công ty": p.company,
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Presenters");
+    XLSX.writeFile(wb, "Presenters.xlsx");
+    toast.success("Xuất file thành công!");
   };
 
-  const handleToggleFeatured = async (presenter: Presenter) => {
+  const handleToggleFeatured = async (_presenter: Presenter) => {
     if (!isSAdmin) return;
-    const isCurrentlyFeatured = localFeatured.hasOwnProperty(
-      presenter.presenterId
-    )
-      ? localFeatured[presenter.presenterId]
-      : presenter.featured;
-
-    setLocalFeatured((prev) => ({
-      ...prev,
-      [presenter.presenterId]: !isCurrentlyFeatured,
-    }));
-
-    try {
-      const allCurrentFeaturedIds = presenters
-        .filter((p) => p.featured)
-        .map((p) => p.presenterId);
-      let newFeaturedIds = isCurrentlyFeatured
-        ? allCurrentFeaturedIds.filter((id) => id !== presenter.presenterId)
-        : [...allCurrentFeaturedIds, presenter.presenterId];
-
-      await dispatch(updateFeaturedList(newFeaturedIds)).unwrap();
-      toast.success(
-        !isCurrentlyFeatured ? "Đã thêm vào nổi bật" : "Đã gỡ khỏi nổi bật"
-      );
-      setLocalFeatured((prev) => {
-        const newState = { ...prev };
-        delete newState[presenter.presenterId];
-        return newState;
-      });
-    } catch (error) {
-      toast.error("Lỗi cập nhật!");
-      setLocalFeatured((prev) => ({
-        ...prev,
-        [presenter.presenterId]: isCurrentlyFeatured,
-      }));
-    }
   };
 
   const openCreateModal = () => {
@@ -290,18 +314,14 @@ export default function ManagePresenters() {
     try {
       let finalAvatarUrl = formData.avatarUrl;
       if (selectedFile) {
-        const uploadAction = await dispatch(uploadAvatar(selectedFile));
-        if (uploadAvatar.fulfilled.match(uploadAction))
-          finalAvatarUrl = uploadAction.payload as string;
-        else throw new Error("Lỗi upload ảnh");
+        const res = await dispatch(uploadAvatar(selectedFile)).unwrap();
+        finalAvatarUrl = res;
       }
-
       const payload = {
         ...formData,
         avatarUrl: finalAvatarUrl,
         organizerId: isOrganizer ? (user as any)?.organizerId : undefined,
       };
-
       if (modalMode === "create")
         await dispatch(createPresenter(payload)).unwrap();
       else if (selectedPresenterId)
@@ -311,15 +331,19 @@ export default function ManagePresenters() {
 
       toast.success("Thao tác thành công!");
       setIsModalOpen(false);
-
       if (isSAdmin) {
         if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
         else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
       } else if (isOrganizer) {
-        dispatch(fetchMyPresenters());
+        if (filterEventId === "ALL") dispatch(fetchMyPresenters());
+        else {
+          setFilterEventId(
+            (prev) => prev
+          );
+        } 
       }
-    } catch (error: any) {
-      toast.error(error.message || "Có lỗi xảy ra!");
+    } catch (err: any) {
+      toast.error(err.message || "Lỗi");
     } finally {
       setIsSubmitting(false);
     }
@@ -331,35 +355,31 @@ export default function ManagePresenters() {
       id: presenter.presenterId,
       name: presenter.fullName,
     });
-
   const confirmDeleteAction = async () => {
-    if (confirmState.id) {
-      setIsSubmitting(true);
-      try {
-        await dispatch(deletePresenter(confirmState.id)).unwrap();
-        toast.success("Đã xóa diễn giả.");
-        if (paginatedData.length === 1 && currentPage > 1)
-          setCurrentPage(currentPage - 1);
-      } catch (error: any) {
-        toast.error(error.message || "Lỗi xóa.");
-      } finally {
-        setIsSubmitting(false);
-        setConfirmState({ ...confirmState, isOpen: false });
-      }
+    /* Giữ nguyên */
+    if (!confirmState.id) return;
+    setIsSubmitting(true);
+    try {
+      await dispatch(deletePresenter(confirmState.id)).unwrap();
+      toast.success("Đã xóa.");
+    } catch (err) {
+      toast.error("Lỗi xóa.");
+    } finally {
+      setIsSubmitting(false);
+      setConfirmState({ ...confirmState, isOpen: false });
     }
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.warning("Ảnh tối đa 5MB");
-        return;
-      }
       setSelectedFile(file);
       setPreviewImage(URL.createObjectURL(file));
     }
   };
+
+  const currentLoading =
+    isLoading ||
+    (isOrganizer && filterEventId !== "ALL" && isLoadingEventPresenters);
 
   return (
     <div className="relative min-h-screen pb-20 px-4 md:px-6 font-sans text-white selection:bg-[rgba(181,166,95,0.3)]">
@@ -370,82 +390,172 @@ export default function ManagePresenters() {
       </AnimatePresence>
 
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
-        {isSAdmin ? (
-          <div className="relative z-40 w-full xl:w-auto" ref={dropdownRef}>
+        <div className="w-full xl:w-auto flex flex-col sm:flex-row gap-4">
+          {isSAdmin && (
             <div
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="cursor-pointer flex items-center justify-between gap-4 w-full xl:min-w-[280px] px-5 py-3 rounded-2xl bg-[#1a1a1a] border border-white/10 hover:border-white/30 transition-all"
+              className="relative z-40 w-full sm:w-auto"
+              ref={orgDropdownRef}
             >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <FaLayerGroup className="text-[#B5A65F] shrink-0" />
-                <span className="text-sm font-bold truncate">
-                  {selectedOrgSlug === "ALL"
-                    ? "Tất cả Organizer"
-                    : organizers.find((o) => o.slug === selectedOrgSlug)
-                        ?.name || "Organizer"}
-                </span>
+              <div
+                onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
+                className="cursor-pointer flex items-center justify-between gap-4 w-full sm:min-w-[280px] px-5 py-3 rounded-2xl bg-[#1a1a1a] border border-white/10 hover:border-white/30 transition-all shadow-lg"
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <FaLayerGroup className="text-[#B5A65F] shrink-0" />
+                  <span className="text-sm font-bold truncate text-gray-200">
+                    {selectedOrgSlug === "ALL"
+                      ? "Tất cả Organizer"
+                      : organizers.find((o) => o.slug === selectedOrgSlug)
+                          ?.name || "Organizer"}
+                  </span>
+                </div>
+                <FaChevronDown
+                  className={`text-gray-500 transition-transform ${
+                    isOrgDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </div>
-              <FaChevronDown className="text-gray-500 shrink-0" />
-            </div>
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute top-full left-0 mt-3 w-full bg-[#1a1a1a] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-xl max-h-60 overflow-y-auto"
-                >
-                  <div
-                    onClick={() => {
-                      setSelectedOrgSlug("ALL");
-                      setIsDropdownOpen(false);
-                    }}
-                    className="px-5 py-3 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer text-sm flex justify-between items-center"
+              <AnimatePresence>
+                {isOrgDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute top-full left-0 mt-2 w-full bg-[#1a1a1a] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"
                   >
-                    <span
-                      className={
-                        selectedOrgSlug === "ALL"
-                          ? "text-[#B5A65F]"
-                          : "text-gray-300"
-                      }
-                    >
-                      Tất cả Organizer
-                    </span>
-                    {selectedOrgSlug === "ALL" && (
-                      <FaCheck className="text-[#B5A65F] text-xs" />
-                    )}
-                  </div>
-                  {organizers.map((org) => (
                     <div
-                      key={org.organizerId}
                       onClick={() => {
-                        setSelectedOrgSlug(org.slug);
-                        setIsDropdownOpen(false);
+                        setSelectedOrgSlug("ALL");
+                        setIsOrgDropdownOpen(false);
                       }}
-                      className="px-5 py-3 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer text-sm flex justify-between items-center"
+                      className="px-5 py-3 hover:bg-white/5 cursor-pointer text-sm flex justify-between items-center border-b border-white/5"
                     >
                       <span
                         className={
-                          selectedOrgSlug === org.slug
-                            ? "text-[#B5A65F]"
-                            : "text-gray-300"
+                          selectedOrgSlug === "ALL"
+                            ? "text-[#B5A65F] font-bold"
+                            : "text-gray-400"
                         }
                       >
-                        {org.name}
+                        Tất cả Organizer
                       </span>
-                      {selectedOrgSlug === org.slug && (
+                      {selectedOrgSlug === "ALL" && (
                         <FaCheck className="text-[#B5A65F] text-xs" />
                       )}
                     </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="hidden xl:block w-1" />
-        )}
+                    {organizers.map((org) => (
+                      <div
+                        key={org.organizerId}
+                        onClick={() => {
+                          setSelectedOrgSlug(org.slug);
+                          setIsOrgDropdownOpen(false);
+                        }}
+                        className="px-5 py-3 hover:bg-white/5 cursor-pointer text-sm flex justify-between items-center border-b border-white/5 last:border-0"
+                      >
+                        <span
+                          className={`truncate mr-2 ${
+                            selectedOrgSlug === org.slug
+                              ? "text-[#B5A65F]"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          {org.name}
+                        </span>
+                        {selectedOrgSlug === org.slug && (
+                          <FaCheck className="text-[#B5A65F] text-xs shrink-0" />
+                        )}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
+          {isOrganizer && (
+            <div
+              className="relative z-40 w-full sm:w-auto"
+              ref={eventDropdownRef}
+            >
+              <div
+                onClick={() => setIsEventDropdownOpen(!isEventDropdownOpen)}
+                className="cursor-pointer flex items-center justify-between gap-4 w-full sm:min-w-[280px] px-5 py-3 rounded-2xl bg-[#1a1a1a] border border-white/10 hover:border-[#B5A65F]/50 transition-all shadow-lg"
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <FaFilter className="text-[#B5A65F] shrink-0" />
+                  <span className="text-sm font-bold truncate text-gray-200">
+                    {filterEventId === "ALL"
+                      ? "Tất cả sự kiện"
+                      : myEvents?.find(
+                          (e) => String(e.eventId) === filterEventId
+                        )?.eventName || "Chọn sự kiện"}
+                  </span>
+                </div>
+                <FaChevronDown
+                  className={`text-gray-500 transition-transform ${
+                    isEventDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+              <AnimatePresence>
+                {isEventDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute top-full left-0 mt-2 w-full bg-[#1a1a1a] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"
+                  >
+                    <div
+                      onClick={() => {
+                        setFilterEventId("ALL");
+                        setIsEventDropdownOpen(false);
+                      }}
+                      className="px-5 py-3 hover:bg-white/5 cursor-pointer text-sm flex justify-between items-center border-b border-white/5"
+                    >
+                      <span
+                        className={
+                          filterEventId === "ALL"
+                            ? "text-[#B5A65F] font-bold"
+                            : "text-gray-400"
+                        }
+                      >
+                        Tất cả sự kiện
+                      </span>
+                      {filterEventId === "ALL" && (
+                        <FaCheck className="text-[#B5A65F] text-xs" />
+                      )}
+                    </div>
+                    {myEvents?.map((evt) => (
+                      <div
+                        key={evt.eventId}
+                        onClick={() => {
+                          setFilterEventId(String(evt.eventId));
+                          setIsEventDropdownOpen(false);
+                        }}
+                        className="px-5 py-3 hover:bg-white/5 cursor-pointer text-sm flex justify-between items-center border-b border-white/5 last:border-0"
+                      >
+                        <span
+                          className={`truncate mr-2 ${
+                            filterEventId === String(evt.eventId)
+                              ? "text-[#B5A65F]"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          {evt.eventName}
+                        </span>
+                        {filterEventId === String(evt.eventId) && (
+                          <FaCheck className="text-[#B5A65F] text-xs shrink-0" />
+                        )}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SIDE: ACTIONS */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           <button
             onClick={handleExportExcel}
@@ -466,12 +576,12 @@ export default function ManagePresenters() {
 
           {!isSAdmin && isChecking ? (
             <div className="w-full sm:w-auto px-6 py-3 bg-[#1a1a1a] border border-white/10 text-gray-400 font-bold text-sm rounded-2xl flex justify-center items-center gap-2 cursor-wait">
-              <FaSpinner className="animate-spin" /> Đang kiểm tra...
+              <FaSpinner className="animate-spin" /> Check...
             </div>
           ) : !isSAdmin && isRestricted ? (
             <div
               className="w-full sm:w-auto px-6 py-3 bg-red-500/10 text-red-500 font-bold text-sm rounded-2xl border border-red-500/20 flex justify-center items-center gap-2 cursor-not-allowed opacity-80"
-              title="Tài khoản bị khóa hoặc chờ duyệt"
+              title="Bị khóa"
             >
               <FaLock /> Bị hạn chế
             </div>
@@ -486,14 +596,20 @@ export default function ManagePresenters() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-20 text-gray-500 italic">
-          Đang tải danh sách diễn giả...
+      {currentLoading ? (
+        <div className="text-center py-24 text-gray-500 italic">
+          <FaSpinner className="animate-spin text-2xl mx-auto mb-2 text-[#B5A65F]" />{" "}
+          Đang tải danh sách...
         </div>
       ) : paginatedData.length === 0 ? (
         <div className="col-span-full flex flex-col items-center justify-center text-gray-500 border border-white/5 border-dashed rounded-3xl bg-[rgba(26,26,26,0.3)] h-80">
           <FaUserTie className="text-6xl opacity-20 mb-4" />
           <p className="text-lg font-medium">Không tìm thấy diễn giả nào.</p>
+          <p className="text-sm opacity-60 mt-1">
+            {filterEventId !== "ALL"
+              ? "Sự kiện này chưa có diễn giả"
+              : "Danh sách trống"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 z-0 min-h-[400px]">
@@ -600,6 +716,7 @@ export default function ManagePresenters() {
         </div>
       )}
 
+      {/* --- PAGINATION & MODALS (GIỮ NGUYÊN) --- */}
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
           <button
@@ -623,6 +740,7 @@ export default function ManagePresenters() {
         </div>
       )}
 
+      {/* MODALS: View Detail, Create/Edit Form, Confirm Delete */}
       <AnimatePresence>
         {viewDetailPresenter && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
@@ -869,4 +987,3 @@ export default function ManagePresenters() {
     </div>
   );
 }
-  

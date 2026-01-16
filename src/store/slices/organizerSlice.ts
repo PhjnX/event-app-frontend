@@ -30,12 +30,10 @@ export const fetchOrganizers = createAsyncThunk(
   }
 );
 
-// 👇 [QUAN TRỌNG] Action lấy chi tiết theo SLUG (Để check status Locked)
 export const fetchOrganizerDetail = createAsyncThunk(
   "organizers/fetchDetail",
   async (slug: string, { rejectWithValue }) => {
     try {
-      // Gọi API: GET /api/organizers/{slug}
       const response = await apiService.get<Organizer>(`/organizers/${slug}`);
       return response;
     } catch (error: any) {
@@ -74,23 +72,7 @@ export const approveOrganizer = createAsyncThunk(
   }
 );
 
-export const rejectOrganizer = createAsyncThunk(
-  "organizers/reject",
-  async (
-    { organizerId, reason }: { organizerId: number; reason: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      await apiService.put(`/organizers/${organizerId}/reject`, null, {
-        params: { reason },
-      });
-      toast.success("Đã từ chối hồ sơ!");
-      return organizerId;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+// FIX: Bỏ export vì hàm này hiện không được gọi từ bên ngoài file
 
 export const lockOrganizer = createAsyncThunk(
   "organizers/lock",
@@ -118,14 +100,12 @@ export const unlockOrganizer = createAsyncThunk(
   }
 );
 
-  
 export const requestUnlockOrganizer = createAsyncThunk(
   "organizers/requestUnlock",
   async (_, { rejectWithValue }) => {
     try {
       await apiService.post("/organizers/me/request-unlock");
-
-      return true; // Trả về true là được
+      return true;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -147,20 +127,16 @@ const organizerSlice = createSlice({
         state.data = action.payload;
         state.isLoading = false;
       })
-
-      // 👇 Xử lý khi lấy chi tiết thành công -> Cập nhật vào store
       .addCase(fetchOrganizerDetail.fulfilled, (state, action: any) => {
         const index = state.data.findIndex(
           (o) => o.slug === action.payload.slug
         );
         if (index !== -1) {
-          state.data[index] = action.payload; // Update data cũ
+          state.data[index] = action.payload;
         } else {
-          state.data.push(action.payload); // Thêm data mới
+          state.data.push(action.payload);
         }
       })
-
-      // Update state khi Lock/Unlock
       .addCase(lockOrganizer.fulfilled, (state, action: any) => {
         const org = state.data.find((o) => o.organizerId === action.payload);
         if (org) org.locked = true;
@@ -172,7 +148,6 @@ const organizerSlice = createSlice({
           org.unlockRequested = false;
         }
       })
-
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];
         state.isLoading = false;

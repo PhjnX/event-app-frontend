@@ -12,9 +12,7 @@ export default defineConfig({
 
     sitemap({
       hostname: "https://ems.webie.com.vn",
-
       dynamicRoutes: ["/about", "/value", "/events", "/news"],
-
       robots: [
         {
           userAgent: "*",
@@ -32,7 +30,9 @@ export default defineConfig({
     }),
   ],
 
-  server: { port: 3000 },
+  server: {
+    port: 3000,
+  },
 
   resolve: {
     alias: {
@@ -47,11 +47,21 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("framer-motion")) return "vendor-motion";
-            if (id.includes("react-icons")) return "vendor-icons";
-            if (id.includes("xlsx")) return "vendor-excel";
-
+            if (id.includes("recharts") || id.includes("d3")) {
+              return "vendor-charts";
+            }
+            if (id.includes("framer-motion")) {
+              return "vendor-motion";
+            }
+            if (id.includes("react-icons")) {
+              return "vendor-icons";
+            }
+            if (id.includes("xlsx")) {
+              return "vendor-excel";
+            }
+            if (id.includes("@editorjs")) {
+              return "vendor-editor";
+            }
             if (
               id.includes("antd") ||
               id.includes("@ant-design") ||
