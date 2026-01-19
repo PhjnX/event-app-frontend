@@ -22,7 +22,6 @@ import {
   FaCalendarAlt,
   FaSpinner,
   FaCheckCircle,
-  FaTimesCircle,
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "@/store";
@@ -52,7 +51,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   };
 
   const labels: Record<string, string> = {
-    PENDING: "Chờ xử lý",
+    PENDING: "Chờ duyệt",
     APPROVED: "Đã duyệt",
     CONFIRMED: "Đã xác nhận",
     REJECTED: "Từ chối",
@@ -60,8 +59,8 @@ const StatusBadge = ({ status }: { status: string }) => {
   };
 
   return (
-    <div
-      className={`px-3 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1. 5 uppercase tracking-widest ${
+    <span
+      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1. 5 uppercase tracking-wider ${
         styles[status] || "text-gray-400 border-gray-700"
       }`}
     >
@@ -69,13 +68,11 @@ const StatusBadge = ({ status }: { status: string }) => {
         className={`w-1.5 h-1.5 rounded-full ${
           status === "PENDING" ? "animate-pulse" : ""
         } bg-current`}
-      ></span>
+      />
       {labels[status] || status}
-    </div>
+    </span>
   );
 };
-
-// Badge cho trạng thái check-in của activity
 
 export default function ManageRegistrations() {
   const { eventId } = useParams();
@@ -166,7 +163,6 @@ export default function ManageRegistrations() {
     }
   };
 
-  // ✅ Sử dụng API mới
   const openDetailModal = async (item: any) => {
     setIsDetailModalOpen(true);
     dispatch(clearRegistrationDetail());
@@ -228,7 +224,7 @@ export default function ManageRegistrations() {
               </span>
             </div>
 
-            <div className="relative overflow-hidden group px-6 py-4 rounded-2xl bg-linear-to-br from-[#1f1a0b] to-[#141414] border border-[#B5A65F]/30 min-w-[140px]">
+            <div className="relative overflow-hidden group px-6 py-4 rounded-2xl bg-gradient-to-br from-[#1f1a0b] to-[#141414] border border-[#B5A65F]/30 min-w-[140px]">
               <div className="absolute top-0 right-0 p-3 text-[#B5A65F] opacity-10 group-hover:opacity-30 transition-opacity">
                 <FaClock size={40} />
               </div>
@@ -260,7 +256,7 @@ export default function ManageRegistrations() {
                     ${
                       filterStatus === status
                         ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                        : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                        : "text-gray-400 hover: text-gray-200 hover:bg-white/5"
                     }
                   `}
                 >
@@ -365,7 +361,7 @@ export default function ManageRegistrations() {
 
                       {/* CONTACT */}
                       <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
-                        <div className="space-y-1.5">
+                        <div className="space-y-1. 5">
                           <div className="flex items-center gap-2. 5">
                             <div className="w-6 h-6 rounded-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 text-[10px]">
                               <FaEnvelope />
@@ -498,10 +494,10 @@ export default function ManageRegistrations() {
         )}
       </div>
 
-      {/* Reject Modal */}
+      {/* ========== REJECT MODAL ========== */}
       <AnimatePresence>
         {isRejectModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -510,9 +506,9 @@ export default function ManageRegistrations() {
               className="absolute inset-0 bg-black/90 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
               className="relative bg-[#0a0a0a] border border-red-500/20 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(239,68,68,0.1)] overflow-hidden"
             >
               <div className="bg-red-500/10 px-6 py-4 border-b border-red-500/20 flex items-center justify-between">
@@ -568,32 +564,35 @@ export default function ManageRegistrations() {
         )}
       </AnimatePresence>
 
-      {/* ✅ Detail Modal - Sử dụng API mới */}
+      {/* ========== DETAIL MODAL - ĐÃ FIX CÁCH TOP ========== */}
       <AnimatePresence>
         {isDetailModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:py-12">
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeDetailModal}
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/95 backdrop-blur-md"
             />
 
+            {/* Modal Content */}
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 30 }}
-              className="relative bg-linear-to-b from-[#111] to-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] my-auto"
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-2xl max-h-[calc(100vh-64px)] sm:max-h-[calc(100vh-96px)] bg-gradient-to-b from-[#131313] to-[#0a0a0a] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col"
             >
               {/* Header */}
-              <div className="relative px-6 py-5 border-b border-white/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B5A65F] to-[#8a7b3d] flex items-center justify-center text-black shadow-lg shadow-[#B5A65F]/20">
-                    <FaTicketAlt size={20} />
+              <div className="relative px-5 sm:px-6 py-4 sm:py-5 border-b border-white/5 bg-[#0f0f0f] shrink-0">
+                <div className="flex items-center gap-3 sm:gap-4 pr-12">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#B5A65F] to-[#8a7b3d] flex items-center justify-center text-black shadow-lg shadow-[#B5A65F]/20 shrink-0">
+                    <FaTicketAlt size={18} />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">
+                  <div className="min-w-0">
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">
                       Thông tin đăng ký
                     </h3>
                     <p className="text-xs text-gray-500 font-mono">
@@ -604,29 +603,29 @@ export default function ManageRegistrations() {
 
                 <button
                   onClick={closeDetailModal}
-                  className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all"
+                  className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white/5 hover: bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all"
                 >
-                  <FaTimes />
+                  <FaTimes size={16} />
                 </button>
               </div>
 
-              {/* Content */}
-              <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+              {/* Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar">
                 {isDetailLoading ? (
                   <div className="flex flex-col items-center justify-center py-16">
-                    <div className="w-16 h-16 rounded-full bg-[#B5A65F]/10 flex items-center justify-center mb-4">
-                      <FaSpinner className="animate-spin text-2xl text-[#B5A65F]" />
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#B5A65F]/10 flex items-center justify-center mb-4 animate-pulse">
+                      <FaSpinner className="animate-spin text-xl sm:text-2xl text-[#B5A65F]" />
                     </div>
                     <p className="text-sm text-gray-500">
                       Đang tải thông tin...
                     </p>
                   </div>
                 ) : selectedRegistrationDetail ? (
-                  <>
+                  <div className="space-y-5 sm:space-y-6">
                     {/* User & Ticket Cards */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* User Card */}
-                      <div className="bg-[#161616] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors">
+                      <div className="bg-[#161616] rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/5 hover:border-white/10 transition-colors">
                         <div className="flex items-center gap-2 mb-4">
                           <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
                             <FaUser className="text-blue-400 text-xs" />
@@ -636,8 +635,8 @@ export default function ManageRegistrations() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="relative shrink-0">
                             {selectedRegistrationDetail.avatarUrl ? (
                               <OptimizedImage
                                 src={selectedRegistrationDetail.avatarUrl}
@@ -646,18 +645,18 @@ export default function ManageRegistrations() {
                                 }
                                 width={56}
                                 height={56}
-                                className="w-14 h-14 rounded-xl ring-2 ring-white/10"
+                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl ring-2 ring-white/10"
                               />
                             ) : (
-                              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-white/10">
-                                <FaUser className="text-gray-500 text-xl" />
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-white/10">
+                                <FaUser className="text-gray-500 text-lg sm:text-xl" />
                               </div>
                             )}
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#161616]"></div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-500 border-2 border-[#161616]" />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-white text-base truncate">
+                            <h4 className="font-bold text-white text-sm sm:text-base truncate">
                               {selectedRegistrationDetail.username}
                             </h4>
                             <p className="text-xs text-gray-400 truncate flex items-center gap-1.5 mt-1">
@@ -674,7 +673,7 @@ export default function ManageRegistrations() {
                       </div>
 
                       {/* Ticket Card */}
-                      <div className="bg-[#161616] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors">
+                      <div className="bg-[#161616] rounded-xl sm: rounded-2xl p-4 sm:p-5 border border-white/5 hover:border-white/10 transition-colors">
                         <div className="flex items-center gap-2 mb-4">
                           <div className="w-6 h-6 rounded-lg bg-[#B5A65F]/20 flex items-center justify-center">
                             <FaQrcode className="text-[#B5A65F] text-xs" />
@@ -686,11 +685,11 @@ export default function ManageRegistrations() {
 
                         <div className="space-y-3">
                           {/* Ticket Code */}
-                          <div className="bg-[#0d0d0d] rounded-xl px-4 py-3 border border-dashed border-[#B5A65F]/30">
+                          <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2. 5 sm:py-3 border border-dashed border-[#B5A65F]/30">
                             <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
                               Mã vé
                             </p>
-                            <p className="text-[#B5A65F] font-mono text-sm font-bold break-all">
+                            <p className="text-[#B5A65F] font-mono text-xs sm:text-sm font-bold break-all">
                               {selectedRegistrationDetail.ticketCode || "---"}
                             </p>
                           </div>
@@ -701,7 +700,7 @@ export default function ManageRegistrations() {
                               <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
                                 Ngày ĐK
                               </p>
-                              <p className="text-white text-sm font-medium">
+                              <p className="text-white text-xs sm:text-sm font-medium">
                                 {selectedRegistrationDetail.registrationDate
                                   ? new Date(
                                       selectedRegistrationDetail.registrationDate,
@@ -726,11 +725,11 @@ export default function ManageRegistrations() {
                             </span>
                             {selectedRegistrationDetail.eventCheckInStatus ===
                             "CHECKED_IN" ? (
-                              <span className="inline-flex items-center gap-1. 5 text-xs font-bold text-green-400 bg-green-500/10 px-3 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1. 5 text-[10px] sm:text-xs font-bold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
                                 <FaCheckCircle /> Đã check-in
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-white/5 px-3 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-500 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
                                 <FaClock /> Chưa check-in
                               </span>
                             )}
@@ -742,49 +741,49 @@ export default function ManageRegistrations() {
                     {/* Activities Section */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-6 bg-gradient-to-b from-[#B5A65F] to-transparent rounded-full"></div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wide">
+                        <div className="w-1 h-5 sm:h-6 bg-gradient-to-b from-[#B5A65F] to-transparent rounded-full" />
+                        <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wide">
                           Hoạt động đã đăng ký
                         </h4>
-                        <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] sm:text-xs text-[#B5A65F] bg-[#B5A65F]/10 px-2 py-0.5 rounded-full font-bold">
                           {selectedRegistrationDetail.activities?.length || 0}
                         </span>
                       </div>
 
                       {!selectedRegistrationDetail.activities ||
                       selectedRegistrationDetail.activities.length === 0 ? (
-                        <div className="text-center py-10 bg-[#161616] rounded-2xl border border-dashed border-white/10">
-                          <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                            <FaTicketAlt className="text-gray-600 text-xl" />
+                        <div className="text-center py-8 sm:py-10 bg-[#161616] rounded-xl sm:rounded-2xl border border-dashed border-white/10">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                            <FaTicketAlt className="text-gray-600 text-lg sm:text-xl" />
                           </div>
                           <p className="text-gray-400 font-medium text-sm">
                             Vé vào cửa tiêu chuẩn
                           </p>
-                          <p className="text-gray-600 text-xs mt-1 max-w-xs mx-auto">
+                          <p className="text-gray-600 text-xs mt-1 max-w-xs mx-auto px-4">
                             Người dùng chỉ đăng ký tham gia sự kiện chung
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2. 5 sm:space-y-3">
                           {selectedRegistrationDetail.activities.map(
                             (activity, idx) => (
                               <div
                                 key={activity.activityId || idx}
-                                className="group bg-[#161616] rounded-2xl p-4 border border-white/5 hover:border-[#B5A65F]/20 transition-all hover:shadow-lg hover:shadow-[#B5A65F]/5"
+                                className="group bg-[#161616] rounded-xl sm:rounded-2xl p-3. 5 sm:p-4 border border-white/5 hover:border-[#B5A65F]/20 transition-all"
                               >
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                   {/* Left - Info */}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="w-6 h-6 rounded-lg bg-[#B5A65F]/10 flex items-center justify-center text-[#B5A65F] text-xs font-bold">
+                                      <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-[#B5A65F]/10 flex items-center justify-center text-[#B5A65F] text-[10px] sm:text-xs font-bold shrink-0">
                                         {idx + 1}
                                       </span>
-                                      <h5 className="font-bold text-white text-sm group-hover:text-[#B5A65F] transition-colors truncate">
+                                      <h5 className="font-bold text-white text-xs sm:text-sm group-hover:text-[#B5A65F] transition-colors truncate">
                                         {activity.activityName || "Hoạt động"}
                                       </h5>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                                    <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[10px] sm:text-xs text-gray-500 pl-7 sm:pl-8">
                                       {activity.startTime && (
                                         <span className="flex items-center gap-1.5">
                                           <FaCalendarAlt className="text-gray-600" />
@@ -798,7 +797,7 @@ export default function ManageRegistrations() {
                                           })}
                                           {activity.endTime && (
                                             <span className="text-gray-600">
-                                              {" - "}
+                                              {" → "}
                                               {new Date(
                                                 activity.endTime,
                                               ).toLocaleTimeString("vi-VN", {
@@ -819,17 +818,17 @@ export default function ManageRegistrations() {
                                   </div>
 
                                   {/* Right - Status */}
-                                  <div className="flex flex-col items-end gap-2 shrink-0">
+                                  <div className="flex items-center sm:flex-col gap-2 sm:items-end pl-7 sm:pl-0 shrink-0">
                                     <StatusBadge
                                       status={activity.activityStatus}
                                     />
                                     {activity.activityCheckInStatus ===
                                     "CHECKED_IN" ? (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-md border border-green-500/20">
                                         <FaCheckCircle /> Đã check-in
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-medium text-gray-500 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-medium text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/10">
                                         <FaClock /> Chưa check-in
                                       </span>
                                     )}
@@ -841,11 +840,11 @@ export default function ManageRegistrations() {
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16">
-                    <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-                      <FaTimes className="text-2xl text-red-400" />
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                      <FaTimes className="text-xl sm:text-2xl text-red-400" />
                     </div>
                     <p className="text-sm text-gray-500">
                       Không thể tải thông tin
@@ -855,10 +854,10 @@ export default function ManageRegistrations() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-white/5 bg-[#0d0d0d]">
+              <div className="px-5 sm:px-6 py-4 border-t border-white/5 bg-[#0a0a0a] shrink-0">
                 <button
                   onClick={closeDetailModal}
-                  className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover: border-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all"
+                  className="w-full py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover: border-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                 >
                   Đóng
                 </button>
