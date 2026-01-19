@@ -76,20 +76,6 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 // Badge cho trạng thái check-in của activity
-const ActivityCheckInBadge = ({ status }: { status: string }) => {
-  if (status === "CHECKED_IN") {
-    return (
-      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
-        <FaCheckCircle /> Đã check-in
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded border border-gray-500/20">
-      <FaTimesCircle /> Chưa check-in
-    </span>
-  );
-};
 
 export default function ManageRegistrations() {
   const { eventId } = useParams();
@@ -598,7 +584,7 @@ export default function ManageRegistrations() {
               initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
-              className="relative bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+              className="relative bg-linear-to-b from-[#111] to-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] my-auto"
             >
               {/* Header */}
               <div className="relative px-6 py-5 border-b border-white/5">
