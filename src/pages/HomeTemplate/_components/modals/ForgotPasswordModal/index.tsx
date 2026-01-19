@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { modalVariants } from "@/constants/motions";
-import LogoApp from "@/assets/images/Logo_EMS.png";
+import LogoApp from "@/assets/images/Logo_EMS.webp";
 import apiService from "../../../../../services/apiService";
 
 interface ForgotPasswordModalProps {

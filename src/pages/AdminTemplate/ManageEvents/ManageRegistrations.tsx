@@ -20,9 +20,12 @@ import {
   FaEye,
   FaMapMarkerAlt,
   FaCalendarAlt,
-  FaSpinner,
   FaCheckCircle,
+  FaRegCalendarCheck,
+  FaUserCheck,
+  FaIdCard,
 } from "react-icons/fa";
+import { HiSparkles } from "react-icons/hi2";
 
 import type { AppDispatch, RootState } from "@/store";
 import {
@@ -38,38 +41,50 @@ import OptimizedImage from "@/components/ui/OptimizedImage";
 const ITEMS_PER_PAGE = 8;
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const styles: Record<string, string> = {
-    PENDING:
-      "bg-yellow-500/10 text-yellow-400 border-yellow-500/20 ring-yellow-500/20",
-    APPROVED:
-      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 ring-emerald-500/20",
-    CONFIRMED:
-      "bg-green-500/10 text-green-400 border-green-500/20 ring-green-500/20",
-    REJECTED: "bg-red-500/10 text-red-400 border-red-500/20 ring-red-500/20",
-    CHECKED_IN:
-      "bg-purple-500/10 text-purple-400 border-purple-500/20 ring-purple-500/20",
+  const config: Record<string, { bg: string; text: string; label: string }> = {
+    PENDING: {
+      bg: "bg-amber-500/10 border-amber-500/30",
+      text: "text-amber-400",
+      label: "Chờ duyệt",
+    },
+    APPROVED: {
+      bg: "bg-emerald-500/10 border-emerald-500/30",
+      text: "text-emerald-400",
+      label: "Đã duyệt",
+    },
+    CONFIRMED: {
+      bg: "bg-green-500/10 border-green-500/30",
+      text: "text-green-400",
+      label: "Xác nhận",
+    },
+    REJECTED: {
+      bg: "bg-red-500/10 border-red-500/30",
+      text: "text-red-400",
+      label: "Từ chối",
+    },
+    CHECKED_IN: {
+      bg: "bg-violet-500/10 border-violet-500/30",
+      text: "text-violet-400",
+      label: "Đã Check-in",
+    },
   };
 
-  const labels: Record<string, string> = {
-    PENDING: "Chờ duyệt",
-    APPROVED: "Đã duyệt",
-    CONFIRMED: "Đã xác nhận",
-    REJECTED: "Từ chối",
-    CHECKED_IN: "Đã Check-in",
+  const { bg, text, label } = config[status] || {
+    bg: "bg-gray-500/10 border-gray-500/30",
+    text: "text-gray-400",
+    label: status,
   };
 
   return (
     <span
-      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1. 5 uppercase tracking-wider ${
-        styles[status] || "text-gray-400 border-gray-700"
-      }`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border ${bg} ${text} uppercase tracking-wider`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${
+        className={`w-1.5 h-1.5 rounded-full bg-current ${
           status === "PENDING" ? "animate-pulse" : ""
-        } bg-current`}
+        }`}
       />
-      {labels[status] || status}
+      {label}
     </span>
   );
 };
@@ -256,7 +271,7 @@ export default function ManageRegistrations() {
                     ${
                       filterStatus === status
                         ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                        : "text-gray-400 hover: text-gray-200 hover:bg-white/5"
+                        : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
                     }
                   `}
                 >
@@ -361,7 +376,7 @@ export default function ManageRegistrations() {
 
                       {/* CONTACT */}
                       <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
-                        <div className="space-y-1. 5">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-2. 5">
                             <div className="w-6 h-6 rounded-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 text-[10px]">
                               <FaEnvelope />
@@ -564,303 +579,381 @@ export default function ManageRegistrations() {
         )}
       </AnimatePresence>
 
-      {/* ========== DETAIL MODAL - ĐÃ FIX CÁCH TOP ========== */}
+      {/* ========== NEW PREMIUM DETAIL MODAL ========== */}
       <AnimatePresence>
         {isDetailModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:py-12">
-            {/* Backdrop */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
+            {/* Backdrop với blur effect */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeDetailModal}
-              className="absolute inset-0 bg-black/95 backdrop-blur-md"
+              className="absolute inset-0 bg-black/95 backdrop-blur-xl"
             />
 
-            {/* Modal Content */}
+            {/* Modal */}
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 40 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-2xl max-h-[calc(100vh-64px)] sm:max-h-[calc(100vh-96px)] bg-gradient-to-b from-[#131313] to-[#0a0a0a] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col"
+              exit={{ scale: 0.9, opacity: 0, y: 50 }}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              className="relative w-full max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[calc(100vh-64px)] overflow-hidden"
             >
-              {/* Header */}
-              <div className="relative px-5 sm:px-6 py-4 sm:py-5 border-b border-white/5 bg-[#0f0f0f] shrink-0">
-                <div className="flex items-center gap-3 sm:gap-4 pr-12">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#B5A65F] to-[#8a7b3d] flex items-center justify-center text-black shadow-lg shadow-[#B5A65F]/20 shrink-0">
-                    <FaTicketAlt size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">
-                      Thông tin đăng ký
-                    </h3>
-                    <p className="text-xs text-gray-500 font-mono">
-                      ID: #{selectedRegistrationDetail?.id || "---"}
-                    </p>
+              {/* Glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#B5A65F]/20 via-transparent to-[#B5A65F]/20 rounded-3xl blur-xl opacity-50" />
+
+              {/* Main container */}
+              <div className="relative bg-[#0c0c0c] border border-white/10 rounded-3xl shadow-2xl flex flex-col max-h-[calc(100vh-64px)]">
+                {/* ===== HEADER ===== */}
+                <div className="relative overflow-hidden shrink-0">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#B5A65F]/10 via-transparent to-purple-500/5" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#B5A65F]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                  <div className="relative px-4 py-4 sm:px-6 sm:py-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        {/* Icon với animation */}
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-[#B5A65F] rounded-2xl blur-lg opacity-30 animate-pulse" />
+                          <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#B5A65F] to-[#8a7b3d] flex items-center justify-center shadow-xl">
+                            <FaIdCard className="text-black text-lg sm:text-xl" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-white">
+                              Chi tiết đăng ký
+                            </h3>
+                            <HiSparkles className="text-[#B5A65F] animate-pulse" />
+                          </div>
+                          <p className="text-sm text-gray-500 font-mono">
+                            Registration #
+                            {selectedRegistrationDetail?.id || "---"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Close button */}
+                      <button
+                        onClick={closeDetailModal}
+                        className="w-10 h-10 rounded-xl bg-white/5 hover: bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center text-gray-400 hover:text-white transition-all hover:rotate-90 duration-300"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={closeDetailModal}
-                  className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white/5 hover: bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all"
-                >
-                  <FaTimes size={16} />
-                </button>
-              </div>
-
-              {/* Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar">
-                {isDetailLoading ? (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#B5A65F]/10 flex items-center justify-center mb-4 animate-pulse">
-                      <FaSpinner className="animate-spin text-xl sm:text-2xl text-[#B5A65F]" />
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      Đang tải thông tin...
-                    </p>
-                  </div>
-                ) : selectedRegistrationDetail ? (
-                  <div className="space-y-5 sm:space-y-6">
-                    {/* User & Ticket Cards */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {/* User Card */}
-                      <div className="bg-[#161616] rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/5 hover:border-white/10 transition-colors">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                            <FaUser className="text-blue-400 text-xs" />
-                          </div>
-                          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
-                            Người tham gia
-                          </span>
+                {/* ===== CONTENT ===== */}
+                <div className="flex-1 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6 custom-scrollbar">
+                  {isDetailLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full border-4 border-[#B5A65F]/20 border-t-[#B5A65F] animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <FaTicketAlt className="text-[#B5A65F] text-xl" />
                         </div>
-
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="relative shrink-0">
-                            {selectedRegistrationDetail.avatarUrl ? (
-                              <OptimizedImage
-                                src={selectedRegistrationDetail.avatarUrl}
-                                alt={
-                                  selectedRegistrationDetail.username || "User"
-                                }
-                                width={56}
-                                height={56}
-                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl ring-2 ring-white/10"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-white/10">
-                                <FaUser className="text-gray-500 text-lg sm:text-xl" />
+                      </div>
+                      <p className="mt-4 text-gray-500 font-medium">
+                        Đang tải thông tin...
+                      </p>
+                    </div>
+                  ) : selectedRegistrationDetail ? (
+                    <div className="space-y-4 sm:space-y-6">
+                      {/* ===== USER & TICKET SECTION ===== */}
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        {/* User Card */}
+                        <div className="group">
+                          <div className="h-full bg-gradient-to-br from-[#141414] to-[#0f0f0f] rounded-2xl p-4 sm:p-5 border border-white/5 hover:border-[#B5A65F]/20 transition-all duration-300">
+                            <div className="flex items-center gap-2 mb-5">
+                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                <FaUserCheck className="text-blue-400 text-sm" />
                               </div>
-                            )}
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-500 border-2 border-[#161616]" />
-                          </div>
+                              <span className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+                                Thông tin người đăng ký
+                              </span>
+                            </div>
 
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-white text-sm sm:text-base truncate">
-                              {selectedRegistrationDetail.username}
-                            </h4>
-                            <p className="text-xs text-gray-400 truncate flex items-center gap-1.5 mt-1">
-                              <FaEnvelope className="text-gray-600 shrink-0" />
-                              {selectedRegistrationDetail.email}
-                            </p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
-                              <FaPhone className="text-gray-600 shrink-0" />
-                              {selectedRegistrationDetail.phoneNumber ||
-                                "Chưa cập nhật"}
-                            </p>
+                            <div className="flex items-center gap-5">
+                              {/* Avatar */}
+                              <div className="relative shrink-0">
+                                <div className="absolute -inset-1 bg-gradient-to-br from-[#B5A65F] to-purple-500 rounded-2xl opacity-30 blur group-hover:opacity-50 transition-opacity" />
+                                {selectedRegistrationDetail.avatarUrl ? (
+                                  <OptimizedImage
+                                    src={selectedRegistrationDetail.avatarUrl}
+                                    alt={
+                                      selectedRegistrationDetail.username ||
+                                      "User"
+                                    }
+                                    width={80}
+                                    height={80}
+                                    className="relative w-20 h-20 rounded-2xl ring-2 ring-white/10"
+                                  />
+                                ) : (
+                                  <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-white/10">
+                                    <FaUser className="text-gray-500 text-2xl" />
+                                  </div>
+                                )}
+                                {/* Online indicator */}
+                                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-4 border-[#141414] flex items-center justify-center">
+                                  <FaCheck className="text-white text-[8px]" />
+                                </div>
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0 space-y-2">
+                                <h4 className="text-xl font-bold text-white truncate group-hover:text-[#B5A65F] transition-colors">
+                                  {selectedRegistrationDetail.username}
+                                </h4>
+
+                                <div className="flex items-center gap-2 text-gray-400">
+                                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
+                                    <FaEnvelope className="text-xs" />
+                                  </div>
+                                  <span className="text-sm truncate">
+                                    {selectedRegistrationDetail.email}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-gray-500">
+                                  <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
+                                    <FaPhone className="text-xs" />
+                                  </div>
+                                  <span className="text-sm font-mono">
+                                    {selectedRegistrationDetail.phoneNumber ||
+                                      "Chưa cập nhật"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Ticket Card */}
+                        <div>
+                          <div className="h-full bg-gradient-to-br from-[#1a1510] to-[#0f0f0f] rounded-2xl p-4 sm:p-5 border border-[#B5A65F]/20 relative overflow-hidden">
+                            {/* Decorative */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#B5A65F]/5 rounded-full blur-2xl" />
+
+                            <div className="relative">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-[#B5A65F]/10 flex items-center justify-center">
+                                  <FaQrcode className="text-[#B5A65F] text-sm" />
+                                </div>
+                                <span className="text-xs text-[#B5A65F]/80 uppercase font-bold tracking-widest">
+                                  Mã vé
+                                </span>
+                              </div>
+
+                              {/* Ticket Code */}
+                              <div className="bg-black/30 rounded-xl p-3 sm:p-4 border border-dashed border-[#B5A65F]/30 mb-4">
+                                <p className="text-[#B5A65F] font-mono text-[10px] sm:text-xs font-bold break-all text-center leading-relaxed">
+                                  {selectedRegistrationDetail.ticketCode ||
+                                    "---"}
+                                </p>
+                              </div>
+
+                              {/* Status & Date */}
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-[9px] text-gray-600 uppercase mb-1.5">
+                                    Trạng thái
+                                  </p>
+                                  <StatusBadge
+                                    status={selectedRegistrationDetail.status}
+                                  />
+                                </div>
+                                <div className="sm:text-right">
+                                  <p className="text-[9px] text-gray-600 uppercase mb-1.5">
+                                    Ngày ĐK
+                                  </p>
+                                  <p className="text-white text-xs sm:text-sm font-medium">
+                                    {selectedRegistrationDetail.registrationDate
+                                      ? new Date(
+                                          selectedRegistrationDetail.registrationDate,
+                                        ).toLocaleDateString("vi-VN")
+                                      : "---"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Ticket Card */}
-                      <div className="bg-[#161616] rounded-xl sm: rounded-2xl p-4 sm:p-5 border border-white/5 hover:border-white/10 transition-colors">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-6 h-6 rounded-lg bg-[#B5A65F]/20 flex items-center justify-center">
-                            <FaQrcode className="text-[#B5A65F] text-xs" />
+                      {/* ===== CHECK-IN STATUS ===== */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-[#141414] rounded-xl p-4 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
+                            <FaRegCalendarCheck className="text-violet-400" />
                           </div>
-                          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
-                            Thông tin vé
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white">
+                              Trạng thái Check-in sự kiện
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Xác nhận tham gia tại sự kiện
+                            </p>
+                          </div>
+                        </div>
+
+                        {selectedRegistrationDetail.eventCheckInStatus ===
+                        "CHECKED_IN" ? (
+                          <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-xl border border-emerald-500/20">
+                            <FaCheckCircle />
+                            <span className="text-sm font-bold">
+                              Đã check-in
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 bg-white/5 text-gray-400 px-4 py-2 rounded-xl border border-white/10">
+                            <FaClock />
+                            <span className="text-sm font-medium">
+                              Chưa check-in
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ===== ACTIVITIES SECTION ===== */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-8 bg-gradient-to-b from-[#B5A65F] to-[#B5A65F]/20 rounded-full" />
+                            <h4 className="text-base font-bold text-white uppercase tracking-wide">
+                              Hoạt động đã đăng ký
+                            </h4>
+                          </div>
+                          <span className="text-sm font-bold text-[#B5A65F] bg-[#B5A65F]/10 px-3 py-1 rounded-full">
+                            {selectedRegistrationDetail.activities?.length || 0}{" "}
+                            hoạt động
                           </span>
                         </div>
 
-                        <div className="space-y-3">
-                          {/* Ticket Code */}
-                          <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2. 5 sm:py-3 border border-dashed border-[#B5A65F]/30">
-                            <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
-                              Mã vé
-                            </p>
-                            <p className="text-[#B5A65F] font-mono text-xs sm:text-sm font-bold break-all">
-                              {selectedRegistrationDetail.ticketCode || "---"}
-                            </p>
-                          </div>
-
-                          {/* Info Grid */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
-                                Ngày ĐK
-                              </p>
-                              <p className="text-white text-xs sm:text-sm font-medium">
-                                {selectedRegistrationDetail.registrationDate
-                                  ? new Date(
-                                      selectedRegistrationDetail.registrationDate,
-                                    ).toLocaleDateString("vi-VN")
-                                  : "---"}
-                              </p>
+                        {!selectedRegistrationDetail.activities ||
+                        selectedRegistrationDetail.activities.length === 0 ? (
+                          <div className="text-center py-12 bg-[#141414] rounded-2xl border-2 border-dashed border-white/10">
+                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                              <FaTicketAlt className="text-gray-600 text-2xl" />
                             </div>
-                            <div>
-                              <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
-                                Trạng thái
-                              </p>
-                              <StatusBadge
-                                status={selectedRegistrationDetail.status}
-                              />
-                            </div>
+                            <p className="text-gray-300 font-bold text-base mb-1">
+                              Vé vào cửa tiêu chuẩn
+                            </p>
+                            <p className="text-gray-600 text-sm max-w-sm mx-auto">
+                              Người dùng đăng ký tham gia sự kiện chung, chưa
+                              chọn hoạt động cụ thể
+                            </p>
                           </div>
-
-                          {/* Event Check-in */}
-                          <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                            <span className="text-xs text-gray-500">
-                              Check-in sự kiện
-                            </span>
-                            {selectedRegistrationDetail.eventCheckInStatus ===
-                            "CHECKED_IN" ? (
-                              <span className="inline-flex items-center gap-1. 5 text-[10px] sm:text-xs font-bold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
-                                <FaCheckCircle /> Đã check-in
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-500 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
-                                <FaClock /> Chưa check-in
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Activities Section */}
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-1 h-5 sm:h-6 bg-gradient-to-b from-[#B5A65F] to-transparent rounded-full" />
-                        <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wide">
-                          Hoạt động đã đăng ký
-                        </h4>
-                        <span className="text-[10px] sm:text-xs text-[#B5A65F] bg-[#B5A65F]/10 px-2 py-0.5 rounded-full font-bold">
-                          {selectedRegistrationDetail.activities?.length || 0}
-                        </span>
-                      </div>
-
-                      {!selectedRegistrationDetail.activities ||
-                      selectedRegistrationDetail.activities.length === 0 ? (
-                        <div className="text-center py-8 sm:py-10 bg-[#161616] rounded-xl sm:rounded-2xl border border-dashed border-white/10">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                            <FaTicketAlt className="text-gray-600 text-lg sm:text-xl" />
-                          </div>
-                          <p className="text-gray-400 font-medium text-sm">
-                            Vé vào cửa tiêu chuẩn
-                          </p>
-                          <p className="text-gray-600 text-xs mt-1 max-w-xs mx-auto px-4">
-                            Người dùng chỉ đăng ký tham gia sự kiện chung
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2. 5 sm:space-y-3">
-                          {selectedRegistrationDetail.activities.map(
-                            (activity, idx) => (
-                              <div
-                                key={activity.activityId || idx}
-                                className="group bg-[#161616] rounded-xl sm:rounded-2xl p-3. 5 sm:p-4 border border-white/5 hover:border-[#B5A65F]/20 transition-all"
-                              >
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                  {/* Left - Info */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-[#B5A65F]/10 flex items-center justify-center text-[#B5A65F] text-[10px] sm:text-xs font-bold shrink-0">
-                                        {idx + 1}
-                                      </span>
-                                      <h5 className="font-bold text-white text-xs sm:text-sm group-hover:text-[#B5A65F] transition-colors truncate">
-                                        {activity.activityName || "Hoạt động"}
-                                      </h5>
+                        ) : (
+                          <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                            {selectedRegistrationDetail.activities.map(
+                              (activity, idx) => (
+                                <motion.div
+                                  key={activity.activityId || idx}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 }}
+                                  className="group bg-[#141414] hover:bg-[#181818] rounded-2xl p-4 border border-white/5 hover:border-[#B5A65F]/20 transition-all duration-300"
+                                >
+                                  <div className="flex items-start gap-4">
+                                    {/* Number */}
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B5A65F]/20 to-[#B5A65F]/5 flex items-center justify-center text-[#B5A65F] font-bold shrink-0 group-hover:from-[#B5A65F]/30 group-hover:to-[#B5A65F]/10 transition-all">
+                                      {idx + 1}
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[10px] sm:text-xs text-gray-500 pl-7 sm:pl-8">
-                                      {activity.startTime && (
-                                        <span className="flex items-center gap-1.5">
-                                          <FaCalendarAlt className="text-gray-600" />
-                                          {new Date(
-                                            activity.startTime,
-                                          ).toLocaleString("vi-VN", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })}
-                                          {activity.endTime && (
-                                            <span className="text-gray-600">
-                                              {" → "}
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-bold text-white text-base mb-2 group-hover:text-[#B5A65F] transition-colors">
+                                        {activity.activityName || "Hoạt động"}
+                                      </h5>
+
+                                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                                        {activity.startTime && (
+                                          <div className="flex items-center gap-2">
+                                            <FaCalendarAlt className="text-gray-600" />
+                                            <span>
                                               {new Date(
-                                                activity.endTime,
-                                              ).toLocaleTimeString("vi-VN", {
+                                                activity.startTime,
+                                              ).toLocaleString("vi-VN", {
+                                                day: "2-digit",
+                                                month: "2-digit",
                                                 hour: "2-digit",
                                                 minute: "2-digit",
                                               })}
+                                              {activity.endTime && (
+                                                <span className="text-gray-600">
+                                                  {" → "}
+                                                  {new Date(
+                                                    activity.endTime,
+                                                  ).toLocaleTimeString(
+                                                    "vi-VN",
+                                                    {
+                                                      hour: "2-digit",
+                                                      minute: "2-digit",
+                                                    },
+                                                  )}
+                                                </span>
+                                              )}
                                             </span>
-                                          )}
+                                          </div>
+                                        )}
+                                        {activity.roomOrVenue && (
+                                          <div className="flex items-center gap-2">
+                                            <FaMapMarkerAlt className="text-gray-600" />
+                                            <span>{activity.roomOrVenue}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Status */}
+                                    <div className="flex flex-col items-end gap-2 shrink-0">
+                                      <StatusBadge
+                                        status={activity.activityStatus}
+                                      />
+                                      {activity.activityCheckInStatus ===
+                                      "CHECKED_IN" ? (
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                                          <FaCheckCircle /> Đã check-in
                                         </span>
-                                      )}
-                                      {activity.roomOrVenue && (
-                                        <span className="flex items-center gap-1.5">
-                                          <FaMapMarkerAlt className="text-gray-600" />
-                                          {activity.roomOrVenue}
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                                          <FaClock /> Chưa check-in
                                         </span>
                                       )}
                                     </div>
                                   </div>
-
-                                  {/* Right - Status */}
-                                  <div className="flex items-center sm:flex-col gap-2 sm:items-end pl-7 sm:pl-0 shrink-0">
-                                    <StatusBadge
-                                      status={activity.activityStatus}
-                                    />
-                                    {activity.activityCheckInStatus ===
-                                    "CHECKED_IN" ? (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-md border border-green-500/20">
-                                        <FaCheckCircle /> Đã check-in
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-medium text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/10">
-                                        <FaClock /> Chưa check-in
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ),
-                          )}
-                        </div>
-                      )}
+                                </motion.div>
+                              ),
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-                      <FaTimes className="text-xl sm:text-2xl text-red-400" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                        <FaTimes className="text-3xl text-red-400" />
+                      </div>
+                      <p className="text-gray-400 font-medium">
+                        Không thể tải thông tin
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      Không thể tải thông tin
-                    </p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Footer */}
-              <div className="px-5 sm:px-6 py-4 border-t border-white/5 bg-[#0a0a0a] shrink-0">
-                <button
-                  onClick={closeDetailModal}
-                  className="w-full py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover: border-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
-                >
-                  Đóng
-                </button>
+                {/* ===== FOOTER ===== */}
+                <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-white/5 bg-[#080808] shrink-0">
+                  <button
+                    onClick={closeDetailModal}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-white/5 to-white/10 hover:from-white/10 hover:to-white/15 border border-white/10 hover:border-white/20 text-white text-sm font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
+                  >
+                    Đóng
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

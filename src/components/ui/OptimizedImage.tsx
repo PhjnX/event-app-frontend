@@ -7,10 +7,13 @@ interface OptimizedImageProps {
   width: number;
   height: number;
   className?: string;
-  imgClassName?: string; // ✅ THÊM PROP NÀY
+  imgClassName?: string;
   priority?: boolean;
   fallback?: string;
   onClick?: () => void;
+  enableHover?: boolean;
+  aspectRatio?: string;
+  objectFit?: "cover" | "contain" | "fill" | "none"; 
 }
 
 export default function OptimizedImage({
@@ -19,26 +22,25 @@ export default function OptimizedImage({
   width,
   height,
   className = "",
-  imgClassName = "", // ✅ THÊM DEFAULT VALUE
+  imgClassName = "",
   priority = false,
   fallback = "",
   onClick,
+  enableHover = false,
+  aspectRatio, 
+  objectFit = "cover", // ✅ DEFAULT là cover
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Tối ưu URL
   const optimizedSrc = optimizeImageUrl(src, width, height);
-
-  // Nếu lỗi hoặc không có src, dùng fallback
   const finalSrc = hasError || !optimizedSrc ? fallback : optimizedSrc;
 
-  // Nếu không có src và không có fallback
   if (!finalSrc) {
     return (
       <div
         className={`bg-zinc-800 flex items-center justify-center ${className}`}
-        style={{ aspectRatio: `${width}/${height}` }}
+        style={{ aspectRatio: aspectRatio || `${width}/${height}` }}
       >
         <span className="text-zinc-600 text-sm">No Image</span>
       </div>
@@ -48,10 +50,9 @@ export default function OptimizedImage({
   return (
     <div
       className={`relative overflow-hidden bg-zinc-800 ${className}`}
-      style={{ aspectRatio: `${width}/${height}` }}
+      style={{ aspectRatio: aspectRatio || `${width}/${height}` }} 
       onClick={onClick}
     >
-      {/* Skeleton loading */}
       {!isLoaded && (
         <div
           className="absolute inset-0"
@@ -59,7 +60,7 @@ export default function OptimizedImage({
             background:
               "linear-gradient(90deg, #27272a 0%, #3f3f46 50%, #27272a 100%)",
             backgroundSize: "200% 100%",
-            animation: "shimmer 1. 5s infinite",
+            animation: "shimmer 1.5s infinite",
           }}
         />
       )}
@@ -71,14 +72,17 @@ export default function OptimizedImage({
         height={height}
         loading={priority ? "eager" : "lazy"}
         decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "low"}
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={`
-          w-full h-full object-cover
+          w-full h-full
           transition-opacity duration-300
           ${isLoaded ? "opacity-100" : "opacity-0"}
+          ${enableHover ? "group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" : ""}
           ${imgClassName}
         `}
+        style={{ objectFit }} 
       />
     </div>
   );

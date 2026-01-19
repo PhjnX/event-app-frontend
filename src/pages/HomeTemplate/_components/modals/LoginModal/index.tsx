@@ -9,7 +9,7 @@ import { loginUser, clearError } from "../../../../../store/slices/auth";
 import { modalVariants } from "@/constants/motions";
 
 import GoogleLogo from "@/assets/images/google-color.svg";
-import LogoApp from "@/assets/images/Logo_EMS.png";
+import LogoApp from "@/assets/images/Logo_EMS.webp";
 
 const GOOGLE_LOGIN_URL =
   "https://ems-backend-jkjx.onrender.com/oauth2/authorization/google";
@@ -30,12 +30,12 @@ export default function LoginModal({
   const dispatch = useDispatch<AppDispatch>();
 
   const { isLoading, error, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && isOpen) onClose();

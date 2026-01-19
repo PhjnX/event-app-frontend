@@ -7,10 +7,10 @@ import {
   FaRocket,
 } from "react-icons/fa";
 
-import valueImage1 from "@/assets/images/value_1.jpg";
-import valueImage2 from "@/assets/images/value_2.jpg";
-import valueImage3 from "@/assets/images/value_3.jpg";
-import valueImage4 from "@/assets/images/value_4.jpg";
+import valueImage1 from "@/assets/images/value_1.webp";
+import valueImage2 from "@/assets/images/value_2.webp";
+import valueImage3 from "@/assets/images/value_3.webp";
+import valueImage4 from "@/assets/images/value_4.webp";
 
 interface ValueItem {
   id: number;

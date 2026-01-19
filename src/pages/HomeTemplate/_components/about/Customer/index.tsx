@@ -1,14 +1,14 @@
 import { motion, type Variants } from "framer-motion";
 
-import c1 from "../../../../../assets/images/Customer_1.jpg";
-import c2 from "../../../../../assets/images/Customer_2.jpg";
-import c3 from "../../../../../assets/images/Customer_3.jpg";
-import c4 from "../../../../../assets/images/Customer_4.jpg";
-import c5 from "../../../../../assets/images/Customer_5.jpg";
-import c6 from "../../../../../assets/images/Customer_6.jpg";
-import c7 from "../../../../../assets/images/Customer_7.jpg";
-import c8 from "../../../../../assets/images/Customer_8.jpg";
-import c9 from "../../../../../assets/images/Customer_9.jpg";
+import c1 from "../../../../../assets/images/partner_1.webp";
+import c2 from "../../../../../assets/images/partner_2.webp";
+import c3 from "../../../../../assets/images/partner_3.webp";
+import c4 from "../../../../../assets/images/partner_4.webp";
+import c5 from "../../../../../assets/images/partner_5.webp";
+import c6 from "../../../../../assets/images/partner_6.webp";
+import c7 from "../../../../../assets/images/partner_7.webp";
+import c8 from "../../../../../assets/images/partner_8.webp";
+import c9 from "../../../../../assets/images/partner_9.webp";
 
 interface Partner {
   id: number;

@@ -13,7 +13,7 @@ import {
   FaPaperPlane,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import logoImage from "../../../../../assets/images/Logo_EMS.png";
+import logoImage from "../../../../../assets/images/Logo_EMS.webp";
 import { toast } from "react-toastify";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -39,7 +39,7 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { isAuthenticated, user } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -363,7 +363,7 @@ export default function Header() {
                     </NavLink>
                   </li>
                 );
-              }
+              },
             )}
 
             <div className="w-3/4 h-px bg-linear-to-r from-transparent via-white/10 to-transparent my-2"></div>

@@ -8,9 +8,9 @@ import {
   FaArrowRight,
   FaArrowLeft,
 } from "react-icons/fa";
-import CEO from "@/assets/images/CEO.jpg";
-import CTO1 from "@/assets/images/CTO_1.png";
-import CTO2 from "@/assets/images/CTO_2.png";
+import CEO from "@/assets/images/CEO.webp";
+import CTO1 from "@/assets/images/CTO_1.webp";
+import CTO2 from "@/assets/images/CTO_2.webp";
 
 interface TeamMember {
   id: number;

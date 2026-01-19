@@ -8,7 +8,7 @@ import { loginUser } from "@/store/slices/auth";
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
 
-import logoImage from "@/assets/images/Logo_EMS.png";
+import logoImage from "@/assets/images/Logo_EMS.webp";
 import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen";
 import ConfirmModal from "@/pages/AdminTemplate/_components/ConfirmModal";
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const location = useLocation();
 
   const { isLoading, error, isAuthenticated, user } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   const [formData, setFormData] = useState({ email: "", password: "" });

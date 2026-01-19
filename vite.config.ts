@@ -9,7 +9,6 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-
     sitemap({
       hostname: "https://ems.webie.com.vn",
       dynamicRoutes: ["/about", "/value", "/events", "/news"],
@@ -21,7 +20,6 @@ export default defineConfig({
         },
       ],
     }),
-
     visualizer({
       open: false,
       filename: "stats.html",
@@ -62,9 +60,42 @@ export default defineConfig({
           "vendor-excel": ["xlsx"],
         },
 
-        chunkFileNames: "assets/[name]-[hash].js",
-        entryFileNames: "assets/[name]-[hash].js",
-        assetFileNames: "assets/[name]-[hash].[ext]",
+        chunkFileNames: "assets/js/[name]-[hash].js",
+        entryFileNames: "assets/js/[name]-[hash].js",
+
+        assetFileNames: (assetInfo) => {
+          if (!assetInfo.names || assetInfo.names.length === 0) {
+            return `assets/[name]-[hash][extname]`;
+          }
+
+          const name = assetInfo.names[0];
+          const ext = path.extname(name).slice(1).toLowerCase();
+
+          if (
+            [
+              "png",
+              "jpg",
+              "jpeg",
+              "svg",
+              "gif",
+              "webp",
+              "avif",
+              "ico",
+            ].includes(ext)
+          ) {
+            return `assets/img/[name]-[hash][extname]`;
+          }
+
+          if (["woff", "woff2", "eot", "ttf", "otf"].includes(ext)) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+
+          if (ext === "css") {
+            return `assets/css/[name]-[hash][extname]`;
+          }
+
+          return `assets/[name]-[hash][extname]`;
+        },
       },
     },
   },

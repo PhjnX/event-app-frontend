@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaHandshake, FaArrowRight } from "react-icons/fa";
 import OrganizerRegModal from "./OrganizerRegModal";
-import webieBg from "@/assets/images/webie_background.png";
+import webieBg from "@/assets/images/webie_background.webp";
 
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";

@@ -8,7 +8,8 @@ import {
   FaMapMarkerAlt,
 } from "react-icons/fa";
 import OrganizerRegModal from "../../common/OrganizerRegModal";
-
+import OptimizedImage from "@/components/ui/OptimizedImage";
+import EventContact from "@/assets/images/event_contact.webp";
 const BackgroundDecoration = () => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <div className="absolute inset-0 bg-[#0a0a0a]"></div>
@@ -168,11 +169,19 @@ export default function RegistrationSection() {
               transition={{ delay: 0.5 }}
               className="mt-8 rounded-xl overflow-hidden h-40 border border-white/10 relative group"
             >
-              <img
-                src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=2670&auto=format&fit=crop"
-                alt="Event"
-                className="w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
-              />
+              <div className="group relative overflow-hidden">
+                <OptimizedImage
+                  src={EventContact}
+                  alt="Event"
+                  width={1200}
+                  height={400}
+                  aspectRatio="21/9" 
+                  objectFit="cover" 
+                  imgClassName="opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
+                  className="rounded-xl"
+                  priority={false}
+                />
+              </div>
               <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
               <div className="absolute bottom-4 left-5">
                 <p className="text-[#D8C97B] text-[10px] font-bold uppercase tracking-widest">

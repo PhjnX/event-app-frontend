@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { ADMIN_MENU } from "@/config/adminMenu";
-import logoImage from "@/assets/images/Logo_EMS.png";
+import logoImage from "@/assets/images/Logo_EMS.webp";
 import { ROLES } from "@/constants";
 import { FaCrown, FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 
@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN;
 
   const filteredMenu = ADMIN_MENU.filter((item) =>
-    user?.role ? item.roles.includes(user.role) : false
+    user?.role ? item.roles.includes(user.role) : false,
   );
 
   return (

@@ -72,11 +72,11 @@ export default function PartnersSection() {
     <section className="relative py-24 text-white font-noto overflow-hidden bg-grid-pattern">
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
-          initial={{ y: 20, scale: 0.9 }} 
+          initial={{ y: 20, scale: 0.9 }}
           whileInView={{ y: 0, scale: 1 }}
           viewport={{ once: true }}
           transition={{
-            type: "spring", 
+            type: "spring",
             stiffness: 100,
             damping: 10,
           }}

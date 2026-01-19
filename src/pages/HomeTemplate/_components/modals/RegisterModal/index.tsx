@@ -20,7 +20,7 @@ import {
 } from "../../../../../store/slices/auth";
 import { modalVariants } from "@/constants/motions";
 
-import LogoApp from "@/assets/images/Logo_EMS.png";
+import LogoApp from "@/assets/images/Logo_EMS.webp";
 
 interface RegisterModalProps {
   isOpen: boolean;

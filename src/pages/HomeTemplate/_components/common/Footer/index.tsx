@@ -9,7 +9,7 @@ import {
   FaChevronDown,
 } from "react-icons/fa";
 import { motion, type Variants } from "framer-motion";
-import logoImage from "@/assets/images/Logo_EMS.png";
+import logoImage from "@/assets/images/Logo_EMS.webp";
 
 interface FooterLink {
   label: string;
@@ -261,7 +261,7 @@ export default function Footer() {
                 >
                   {text}
                 </a>
-              )
+              ),
             )}
           </div>
         </motion.div>
