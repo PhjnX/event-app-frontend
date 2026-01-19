@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import banner from "../../../../../assets/images/banner.jpg";
+import banner from "../../../../../assets/images/banner.webp";
 
 const HERO_IMAGE = banner;
 

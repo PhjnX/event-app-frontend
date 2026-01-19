@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
-import bgValue from "../../../../../assets/images/background-value.png";
+import bgValue from "../../../../../assets/images/background-value.webp";
 
 const textVariants: Variants = {
   hidden: { opacity: 0, scale: 0.8, filter: "blur(20px)" },

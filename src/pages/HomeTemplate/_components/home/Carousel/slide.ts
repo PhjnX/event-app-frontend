@@ -1,9 +1,9 @@
-import Banner1 from "@/assets/images/Banner_1.jpg";
-import Banner2 from "@/assets/images/Banner_2.jpg";
-import Banner3 from "@/assets/images/Banner_3.jpg";
-import IPhoneMockup from "@/assets/images/ems-iphone.png";
-import IPadMockup from "@/assets/images/ems-ipad.png";
-import LaptopMockup from "@/assets/images/ems-laptop.png";
+import Banner1 from "@/assets/images/Banner_1.webp";
+import Banner2 from "@/assets/images/Banner_2.webp";
+import Banner3 from "@/assets/images/Banner_3.webp";
+import IPhoneMockup from "@/assets/images/ems-iphone.webp";
+import IPadMockup from "@/assets/images/ems-ipad.webp";
+import LaptopMockup from "@/assets/images/ems-laptop.webp";
 
 export interface Slide {
   id: number;

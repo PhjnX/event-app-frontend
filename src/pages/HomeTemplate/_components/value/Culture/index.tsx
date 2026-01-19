@@ -7,11 +7,11 @@ import {
   type Variants,
 } from "framer-motion";
 
-import cultureImage1 from "@/assets/images/culture_1.jpg";
-import cultureImage2 from "@/assets/images/culture_2.jpg";
+import cultureImage1 from "@/assets/images/culture_1.webp";
+import cultureImage2 from "@/assets/images/culture_2.webp";
 import cultureImage3 from "@/assets/images/culture_3.jpg";
-import cultureImage4 from "@/assets/images/culture_4.jpg";
-import cultureImage6 from "@/assets/images/culture_6.jpg";
+import cultureImage4 from "@/assets/images/culture_4.webp";
+import cultureImage6 from "@/assets/images/culture_6.webp";
 
 const CULTURE_IMAGES = [
   cultureImage1,

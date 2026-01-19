@@ -1,9 +1,9 @@
 import { FaUsers, FaLightbulb, FaRocket } from "react-icons/fa";
 import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";
 
-import teamMember from "@/assets/images/webie_team.jpg";
+import teamMember from "@/assets/images/webie_team.webp";
 import CEO from "@/assets/images/CEO.jpg";
-import Event from "@/assets/images/EventJoin.jpg";
+import Event from "@/assets/images/EventJoin.webp";
 
 export const SLIDE_DATA: AboutSlide[] = [
   {
