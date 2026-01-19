@@ -12,7 +12,7 @@ import {
   MoreHorizontal,
   MapPin,
   Calendar,
-  Newspaper, 
+  Newspaper,
   FileText,
 } from "lucide-react";
 import {
@@ -31,6 +31,7 @@ import {
 } from "recharts";
 
 import NumberTicker from "@/components/magicui/number-ticker";
+import OptimizedImage from "@/components/ui/OptimizedImage"; 
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -39,7 +40,7 @@ import {
 } from "../../../store/slices/eventSlice";
 import { fetchUserList } from "@/store/slices/userSlice";
 import { fetchPresenters } from "@/store/slices/presenterSlice";
-import { fetchPublicPosts } from "@/store/slices/newsSlice"; 
+import { fetchPublicPosts } from "@/store/slices/newsSlice";
 import { ROLES } from "@/constants";
 
 const THEME = {
@@ -49,10 +50,10 @@ const THEME = {
 };
 
 const COLORS = {
-  green: { hex: "#10b981", bg: "rgba(16, 185, 129, 0.1)" }, 
-  gold: { hex: "#B5A65F", bg: "rgba(181, 166, 95, 0.1)" }, 
+  green: { hex: "#10b981", bg: "rgba(16, 185, 129, 0.1)" },
+  gold: { hex: "#B5A65F", bg: "rgba(181, 166, 95, 0.1)" },
   purple: { hex: "#8b5cf6", bg: "rgba(139, 92, 246, 0.1)" },
-  blue: { hex: "#3b82f6", bg: "rgba(59, 130, 246, 0.1)" }, 
+  blue: { hex: "#3b82f6", bg: "rgba(59, 130, 246, 0.1)" },
 };
 
 const getMonthlyEventStats = (events: any[]) => {
@@ -107,7 +108,7 @@ const getStatusStats = (events: any[]) => {
     { name: "Sắp diễn ra", value: upcoming, color: "#3b82f6" },
     { name: "Đang diễn ra", value: ongoing, color: "#10b981" },
     { name: "Đã kết thúc", value: ended, color: "#64748b" },
-    { name: "Chờ duyệt", value: pending, color: "#f97316" }, 
+    { name: "Chờ duyệt", value: pending, color: "#f97316" },
   ].filter((item) => item.value > 0);
 };
 
@@ -127,7 +128,7 @@ const MiniStatCard = ({
       <div>
         <div className="flex items-center gap-2 mb-1">
           <div
-            className="p-1.5 rounded-md"
+            className="p-1. 5 rounded-md"
             style={{ backgroundColor: colorObj.bg }}
           >
             <Icon size={16} color={colorObj.hex} />
@@ -195,7 +196,13 @@ const ListItem = ({ data, type, onClick }: any) => {
     >
       <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700 flex items-center justify-center">
         {img ? (
-          <img src={img} alt="" className="w-full h-full object-cover" />
+          <OptimizedImage
+            src={img}
+            alt={title || ""}
+            width={40}
+            height={40}
+            className="w-full h-full rounded-full"
+          />
         ) : (
           <div className="text-xs font-bold text-zinc-500">
             {icon ? icon : title?.charAt(0)?.toUpperCase()}
@@ -220,17 +227,17 @@ export default function RealDataDashboard() {
 
   const { user } = useSelector((state: RootState) => state.auth);
   const { data: allEvents = [] } = useSelector(
-    (state: RootState) => state.events || {}
+    (state: RootState) => state.events || {},
   );
   const { data: users = [] } = useSelector(
-    (state: RootState) => state.listUser || {}
+    (state: RootState) => state.listUser || {},
   );
   const { data: presenters = [] } = useSelector(
-    (state: RootState) => state.presenters || {}
+    (state: RootState) => state.presenters || {},
   );
   const { data: news = [] } = useSelector(
-    (state: RootState) => state.news || {}
-  ); 
+    (state: RootState) => state.news || {},
+  );
 
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
   const isOrganizer =
@@ -251,21 +258,21 @@ export default function RealDataDashboard() {
 
   const monthlyStats = useMemo(
     () => getMonthlyEventStats(dataSource),
-    [dataSource]
+    [dataSource],
   );
   const statusData = useMemo(() => getStatusStats(dataSource), [dataSource]);
 
   const usersWave = useMemo(
     () => users.map((_, i) => ({ value: (i % 10) + 5 })).slice(0, 20),
-    [users]
+    [users],
   );
   const newsWave = useMemo(
     () => news.map((_, i) => ({ value: (i % 8) + 2 })).slice(0, 20),
-    [news]
+    [news],
   );
   const presenterWave = useMemo(
     () => presenters.map((_, i) => ({ value: (i % 5) + 3 })).slice(0, 20),
-    [presenters]
+    [presenters],
   );
 
   const upcomingEvents = useMemo(() => {
@@ -273,7 +280,7 @@ export default function RealDataDashboard() {
       .filter((e: any) => new Date(e.startDate) >= new Date())
       .sort(
         (a: any, b: any) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
       )
       .slice(0, 5);
   }, [dataSource]);
@@ -283,14 +290,14 @@ export default function RealDataDashboard() {
     const q = searchQuery.toLowerCase();
     return {
       events: dataSource.filter((e: any) =>
-        (e.eventName || "").toLowerCase().includes(q)
+        (e.eventName || "").toLowerCase().includes(q),
       ),
       news: isSAdmin
         ? news.filter((n: any) => (n.title || "").toLowerCase().includes(q))
         : [],
       users: isSAdmin
         ? users.filter((u: any) =>
-            (u.fullName || u.username || "").toLowerCase().includes(q)
+            (u.fullName || u.username || "").toLowerCase().includes(q),
           )
         : [],
     };
@@ -298,7 +305,7 @@ export default function RealDataDashboard() {
 
   const handleNavigate = (
     type: "event" | "news" | "user",
-    id: string | number
+    id: string | number,
   ) => {
     if (!id) {
       console.error("Missing ID for navigation", type);
@@ -326,7 +333,7 @@ export default function RealDataDashboard() {
             <p className="text-xs text-zinc-500">Real-time Data Overview</p>
           </div>
           <div
-            className={`flex-1 max-w-xl mx-auto ${THEME.cardBg} border ${THEME.border} rounded-full flex items-center px-4 py-2.5 shadow-xl`}
+            className={`flex-1 max-w-xl mx-auto ${THEME.cardBg} border ${THEME.border} rounded-full flex items-center px-4 py-2. 5 shadow-xl`}
           >
             <Search className="w-5 h-5 text-zinc-500 mr-3" />
             <input
@@ -444,7 +451,7 @@ export default function RealDataDashboard() {
               animate={{ opacity: 1 }}
               className="space-y-6"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid md: grid-cols-2 lg:grid-cols-4 gap-6">
                 <MiniStatCard
                   title="Total Events"
                   value={dataSource.length}
@@ -585,7 +592,7 @@ export default function RealDataDashboard() {
                           {statusData.map((item, i) => (
                             <div
                               key={i}
-                              className="flex items-center gap-1.5 text-xs text-zinc-400"
+                              className="flex items-center gap-1. 5 text-xs text-zinc-400"
                             >
                               <div
                                 className="w-2 h-2 rounded-full"
@@ -625,10 +632,13 @@ export default function RealDataDashboard() {
                           >
                             <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700">
                               {e.bannerImageUrl ? (
-                                <img
+                                <OptimizedImage
                                   src={e.bannerImageUrl}
-                                  alt=""
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                  alt={e.eventName}
+                                  width={40}
+                                  height={40}
+                                  className="w-full h-full"
+                                  imgClassName="group-hover:scale-110 transition-transform"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500 font-bold">
@@ -643,7 +653,7 @@ export default function RealDataDashboard() {
                               <p className="text-[10px] text-zinc-500 flex items-center gap-1">
                                 <Calendar size={10} />{" "}
                                 {new Date(e.startDate).toLocaleDateString(
-                                  "vi-VN"
+                                  "vi-VN",
                                 )}
                               </p>
                             </div>

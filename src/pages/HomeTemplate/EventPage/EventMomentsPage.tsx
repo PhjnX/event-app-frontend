@@ -23,6 +23,7 @@ import axiosClient from "@/services/apiService";
 import type { RootState, AppDispatch } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import { STORAGE_KEYS } from "@/constants";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 // --- TYPES ---
 interface Moment {
@@ -77,7 +78,6 @@ const getErrorMessage = (error: any) => {
   if (typeof error?.response?.data === "string") return error.response.data;
   return "Có lỗi xảy ra, vui lòng thử lại.";
 };
-
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
@@ -225,10 +225,12 @@ const MomentCard: React.FC<MomentCardProps> = ({
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-[#D4AF37]/20 rounded-full blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity" />
-            <img
+            <OptimizedImage
               src={moment.userAvatar}
-              alt="avatar"
-              className="w-10 h-10 rounded-full object-cover border border-white/10 relative z-10"
+              alt={moment.username}
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-full relative z-10"
             />
           </div>
           <div className="flex flex-col">
@@ -286,10 +288,12 @@ const MomentCard: React.FC<MomentCardProps> = ({
         {hasImage && (
           <div className="relative overflow-hidden group/img cursor-pointer">
             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/img:opacity-100 transition-opacity z-10 pointer-events-none" />
-            <img
+            <OptimizedImage
               src={moment.imageUrl}
               alt="post"
-              className="w-full h-auto object-cover max-h-[500px]"
+              width={600}
+              height={400}
+              className="w-full max-h-[500px]"
             />
           </div>
         )}
@@ -305,7 +309,6 @@ const MomentCard: React.FC<MomentCardProps> = ({
     </motion.div>
   );
 };
-
 
 export default function EventMomentsPage() {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -349,7 +352,7 @@ export default function EventMomentsPage() {
     const initialize = async () => {
       setIsInitializing(true);
       const foundInRedux = myRegistrations.find(
-        (item: any) => item.eventSlug === eventSlug
+        (item: any) => item.eventSlug === eventSlug,
       );
 
       let foundBanner = null;
@@ -430,7 +433,7 @@ export default function EventMomentsPage() {
         const res: any = await momentApi.getMoments(
           realEventId,
           reset ? 0 : page,
-          10
+          10,
         );
         const content = res.data?.content || res.content || [];
         const isLast = res.data?.last ?? res.last ?? true;
@@ -625,14 +628,12 @@ export default function EventMomentsPage() {
                 >
                   <div className="flex gap-5 items-start">
                     <div className="shrink-0 hidden md:block">
-                      <img
+                      <OptimizedImage
                         src={currentUserAvatar}
                         alt="Me"
-                        className={`w-14 h-14 rounded-full border-2 object-cover ${
-                          isInputFocused
-                            ? "border-[#D4AF37]"
-                            : "border-white/10"
-                        } transition-colors`}
+                        width={56}
+                        height={56}
+                        className={`w-14 h-14 rounded-full ${isInputFocused ? "border-2 border-[#D4AF37]" : "border-2 border-white/10"} transition-colors`}
                       />
                     </div>
 

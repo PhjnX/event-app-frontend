@@ -27,12 +27,13 @@ import {
 import type { AppDispatch, RootState } from "../../../store";
 import {
   fetchEventRegistrations,
-  fetchRegisteredActivitiesInEvent, 
+  fetchRegisteredActivitiesInEvent,
   approveRegistration,
   rejectRegistration,
   clearRegistrations,
-  clearUserActivities, 
+  clearUserActivities,
 } from "../../../store/slices/eventSlice";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -79,7 +80,7 @@ export default function ManageRegistrations() {
   const dispatch = useDispatch<AppDispatch>();
 
   const { registrations, userActivities, isLoading } = useSelector(
-    (state: RootState) => state.events
+    (state: RootState) => state.events,
   );
 
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -153,7 +154,7 @@ export default function ManageRegistrations() {
     }
     try {
       await dispatch(
-        rejectRegistration({ registrationId: selectedRegId, reason })
+        rejectRegistration({ registrationId: selectedRegId, reason }),
       ).unwrap();
       toast.success("Đã từ chối vé!");
       setIsRejectModalOpen(false);
@@ -166,7 +167,7 @@ export default function ManageRegistrations() {
     setSelectedRegistration(item);
     setIsDetailModalOpen(true);
     setIsDetailLoading(true);
-    dispatch(clearUserActivities()); 
+    dispatch(clearUserActivities());
 
     try {
       if (eventId && item.userId) {
@@ -174,7 +175,7 @@ export default function ManageRegistrations() {
           fetchRegisteredActivitiesInEvent({
             eventId: Number(eventId),
             userId: item.userId,
-          })
+          }),
         ).unwrap();
       }
     } catch (error) {
@@ -269,7 +270,7 @@ export default function ManageRegistrations() {
                 >
                   {status === "ALL" ? "Tất cả" : status}
                 </button>
-              )
+              ),
             )}
           </div>
 
@@ -341,10 +342,12 @@ export default function ManageRegistrations() {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-[#222] ring-1 ring-white/10 overflow-hidden shrink-0 shadow-lg">
                             {item.avatarUrl ? (
-                              <img
+                              <OptimizedImage
                                 src={item.avatarUrl}
-                                alt=""
-                                className="w-full h-full object-cover"
+                                alt={item.username || "User"}
+                                width={48}
+                                height={48}
+                                className="w-full h-full"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-600">
@@ -402,7 +405,7 @@ export default function ManageRegistrations() {
                             <FaClock size={10} />
                             {item.registrationDate
                               ? new Date(
-                                  item.registrationDate
+                                  item.registrationDate,
                                 ).toLocaleDateString("vi-VN")
                               : "---"}
                           </div>
@@ -610,9 +613,12 @@ export default function ManageRegistrations() {
                     </h4>
                     <div className="flex items-center gap-3 mb-3">
                       {selectedRegistration.avatarUrl ? (
-                        <img
+                        <OptimizedImage
                           src={selectedRegistration.avatarUrl}
-                          className="w-10 h-10 rounded-full object-cover"
+                          alt={selectedRegistration.username || "User"}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
@@ -651,7 +657,7 @@ export default function ManageRegistrations() {
                       <span className="text-xs text-white">
                         {selectedRegistration.registrationDate
                           ? new Date(
-                              selectedRegistration.registrationDate
+                              selectedRegistration.registrationDate,
                             ).toLocaleDateString("vi-VN")
                           : "---"}
                       </span>
@@ -704,7 +710,7 @@ export default function ManageRegistrations() {
                                 <span className="flex items-center gap-1">
                                   <FaCalendarAlt />{" "}
                                   {new Date(
-                                    activity.startTime
+                                    activity.startTime,
                                   ).toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",

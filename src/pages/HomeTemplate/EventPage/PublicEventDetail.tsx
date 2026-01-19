@@ -31,6 +31,7 @@ import LoadingScreen from "../_components/common/LoadingSrceen";
 import type { Event } from "@/models/event";
 import type { Activity } from "@/models/activity";
 import type { Presenter } from "@/models/presenter";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export default function PublicEventDetail() {
   const { slug } = useParams();
@@ -45,7 +46,7 @@ export default function PublicEventDetail() {
 
   const [selectedActivityIds, setSelectedActivityIds] = useState<number[]>([]);
   const [registeredActivityIds, setRegisteredActivityIds] = useState<number[]>(
-    []
+    [],
   );
 
   // State để quản lý animation rung lắc khi click vào thẻ hết chỗ
@@ -64,19 +65,19 @@ export default function PublicEventDetail() {
 
         if (eventRes.eventId) {
           const actRes = await apiService.get<Activity[]>(
-            `/activities/by-event/${eventRes.eventId}`
+            `/activities/by-event/${eventRes.eventId}`,
           );
 
           const sortedActs = actRes.sort(
             (a, b) =>
-              new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+              new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
           );
           setActivities(sortedActs);
 
           if (user) {
             try {
               const myRegisteredActs = await apiService.get<Activity[]>(
-                `/activities/by-event/${eventRes.eventId}/registered`
+                `/activities/by-event/${eventRes.eventId}/registered`,
               );
               const myRegisteredIds = myRegisteredActs.map((a) => a.activityId);
               setRegisteredActivityIds(myRegisteredIds);
@@ -89,8 +90,8 @@ export default function PublicEventDetail() {
             new Map(
               actRes
                 .filter((a) => a.presenter)
-                .map((a) => [a.presenter.presenterId, a.presenter])
-            ).values()
+                .map((a) => [a.presenter.presenterId, a.presenter]),
+            ).values(),
           );
           setPresenters(uniquePresenters);
         }
@@ -129,7 +130,7 @@ export default function PublicEventDetail() {
     setSelectedActivityIds((prev) =>
       prev.includes(activityId)
         ? prev.filter((id) => id !== activityId)
-        : [...prev, activityId]
+        : [...prev, activityId],
     );
   };
 
@@ -145,7 +146,7 @@ export default function PublicEventDetail() {
           addActivitiesToEvent({
             eventId: event.eventId,
             activityIds: selectedActivityIds,
-          })
+          }),
         ).unwrap();
         toast.success("🎉 Đã bổ sung hoạt động thành công!");
       } else {
@@ -153,7 +154,7 @@ export default function PublicEventDetail() {
           registerForEvent({
             eventId: event.eventId,
             activityIds: selectedActivityIds,
-          })
+          }),
         ).unwrap();
         toast.success("🎉 Đăng ký sự kiện thành công!");
       }
@@ -223,10 +224,13 @@ export default function PublicEventDetail() {
             style={{ scale: scaleImage }}
             className="mt-12 relative h-[300px] md:h-[500px] rounded-4xl overflow-hidden border border-white/10"
           >
-            <img
+            <OptimizedImage
               src={event.bannerImageUrl}
-              className="w-full h-full object-cover"
-              alt=""
+              alt={event.eventName}
+              width={1200}
+              height={500}
+              priority={true}
+              className="w-full h-full"
             />
             <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-transparent to-transparent opacity-80" />
           </motion.div>
@@ -256,10 +260,10 @@ export default function PublicEventDetail() {
               <div className="flex flex-col gap-6">
                 {activities.map((act: any) => {
                   const isSelected = selectedActivityIds.includes(
-                    act.activityId
+                    act.activityId,
                   );
                   const isRegistered = registeredActivityIds.includes(
-                    act.activityId
+                    act.activityId,
                   );
                   const isFull = checkIsFull(act);
                   const isUnlimited =
@@ -390,9 +394,12 @@ export default function PublicEventDetail() {
                         )}
                         {act.presenter && (
                           <div className="flex items-center gap-3 mt-1 opacity-60">
-                            <img
+                            <OptimizedImage
                               src={act.presenter.avatarUrl}
-                              className="w-6 h-6 rounded-full object-cover border border-white/10"
+                              alt={act.presenter.fullName}
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 rounded-full"
                             />
                             <span className="text-[10px] uppercase font-bold text-gray-400">
                               {act.presenter.fullName}
@@ -431,10 +438,13 @@ export default function PublicEventDetail() {
                     key={p.presenterId}
                     className="group relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/5 hover:border-[#B5A65F]/50 transition-all"
                   >
-                    <img
+                    <OptimizedImage
                       src={p.avatarUrl}
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-                      alt=""
+                      alt={p.fullName}
+                      width={200}
+                      height={200}
+                      className="w-full h-full"
+                      imgClassName="opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                     />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
                       <p className="text-sm font-bold text-white truncate">
@@ -547,8 +557,8 @@ export default function PublicEventDetail() {
                     {isRegistering
                       ? "Đang xử lý..."
                       : hasJoinedEvent
-                      ? "XÁC NHẬN THÊM"
-                      : "XÁC NHẬN ĐĂNG KÝ"}
+                        ? "XÁC NHẬN THÊM"
+                        : "XÁC NHẬN ĐĂNG KÝ"}
                   </button>
 
                   <p className="text-center text-[9px] text-gray-400 mt-6 font-medium uppercase tracking-wide opacity-50">

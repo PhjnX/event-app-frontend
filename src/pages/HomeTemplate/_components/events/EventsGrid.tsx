@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FaCalendarAlt, FaArrowRight, FaRegSadTear } from "react-icons/fa";
 import type { AppDispatch, RootState } from "../../../../store";
 import { fetchSelectedEvents } from "../../../../store/slices/eventSlice";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ensureUTC = (isoString: string) =>
   isoString && !isoString.endsWith("Z") ? `${isoString}Z` : isoString;
@@ -26,7 +27,7 @@ const EventSkeleton = () => (
 export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
   const dispatch = useDispatch<AppDispatch>();
   const { selectedEvents, isLoading, error } = useSelector(
-    (state: RootState) => state.events
+    (state: RootState) => state.events,
   );
 
   useEffect(() => {
@@ -34,7 +35,9 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
   }, [dispatch]);
 
   const filteredEvents = selectedEvents.filter((e) =>
-    (e.eventName || "").toLowerCase().includes((searchTerm || "").toLowerCase())
+    (e.eventName || "")
+      .toLowerCase()
+      .includes((searchTerm || "").toLowerCase()),
   );
 
   return (
@@ -96,13 +99,14 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                 >
                   {/* Banner Image & Overlay */}
                   <div className="absolute inset-0">
-                    <img
-                      src={
-                        event.bannerImageUrl ||
-                        "https://via.placeholder.com/400x600"
-                      }
+                    <OptimizedImage
+                      src={event.bannerImageUrl}
                       alt={event.eventName}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      width={400}
+                      height={450}
+                      className="w-full h-full"
+                      imgClassName="transition-transform duration-700 group-hover:scale-110"
+                      fallback="https://via.placeholder.com/400x600"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.8)] to-[rgba(0,0,0,0)] opacity-90 group-hover:opacity-80 transition-opacity" />
                   </div>

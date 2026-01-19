@@ -24,12 +24,11 @@ import {
   FaCalendarAlt,
   FaRegStar,
   FaHourglassHalf,
-  FaFilter, // Icon filter cho dropdown
-  FaChevronDown, // Icon mũi tên dropdown
+  FaFilter,
+  FaChevronDown,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { Skeleton, Tooltip } from "antd";
 import * as XLSX from "xlsx";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -48,14 +47,78 @@ import {
 
 import { fetchOrganizerDetail } from "../../../store/slices/organizerSlice";
 import { ROLES } from "@/constants";
-import ConfirmModal from "./../_components/ConfirmModal";
+import ConfirmModal from "../_components/ConfirmModal";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ITEMS_PER_PAGE = 8;
+
+
+const Skeleton = ({ className = "" }: { className?: string }) => (
+  <div
+    className={`animate-pulse bg-linear-to-r from-gray-800 via-gray-700 to-gray-800 bg-size-[200%_100%] rounded-3xl ${className}`}
+    style={{
+      animation: "shimmer 1. 5s infinite",
+    }}
+  />
+);
+
+const Tooltip = ({
+  children,
+  title,
+}: {
+  children: React.ReactNode;
+  title: string;
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [, setPosition] = useState({ x: 0, y: 0 });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    }
+    setIsVisible(true);
+  };
+
+  return (
+    <div
+      ref={triggerRef}
+      className="relative inline-block"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            transition={{ duration: 0.15 }}
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap z-50 border border-white/10"
+          >
+            {title}
+            {/* Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+              <div className="border-4 border-transparent border-t-gray-900" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ============== MAIN COMPONENT ==============
 
 export default function ManageEvents() {
   const dispatch = useDispatch<AppDispatch>();
   const { data, featuredEvents, selectedEvents, isLoading } = useSelector(
-    (state: RootState) => state.events
+    (state: RootState) => state.events,
   );
   const { user } = useSelector((state: RootState) => state.auth);
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
@@ -118,7 +181,7 @@ export default function ManageEvents() {
   const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   const [tempHeroState, setTempHeroState] = useState<Record<number, boolean>>(
-    {}
+    {},
   );
   const [tempSelectedState, setTempSelectedState] = useState<
     Record<number, boolean>
@@ -182,7 +245,7 @@ export default function ManageEvents() {
 
     if (searchTerm) {
       result = result.filter((e) =>
-        e.eventName.toLowerCase().includes(searchTerm.toLowerCase())
+        e.eventName.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -210,7 +273,6 @@ export default function ManageEvents() {
     return filteredAndSortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedData, currentPage]);
 
-  // --- ACTION HANDLERS (Giữ nguyên) ---
   const handleToggleHero = async (event: any) => {
     if (!isSAdmin) return;
     const isCurrentlyHero = tempHeroState.hasOwnProperty(event.eventId)
@@ -246,6 +308,7 @@ export default function ManageEvents() {
       }));
     }
   };
+
   const handleToggleSelected = async (event: any) => {
     if (!isSAdmin) return;
     const isCurrentlySelected = tempSelectedState.hasOwnProperty(event.eventId)
@@ -281,6 +344,7 @@ export default function ManageEvents() {
       }));
     }
   };
+
   const handleExportExcel = async () => {
     if (filteredAndSortedData.length === 0) {
       toast.warn("Không có dữ liệu để xuất!");
@@ -316,7 +380,7 @@ export default function ManageEvents() {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách sự kiện");
       XLSX.writeFile(
         workbook,
-        `Danh_sach_su_kien_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `Danh_sach_su_kien_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
       toast.success("Xuất file Excel thành công!");
     } catch (error) {
@@ -325,6 +389,7 @@ export default function ManageEvents() {
       setIsExporting(false);
     }
   };
+
   const handleConfirmAction = async () => {
     const { type, data } = confirmModal;
     if (!data) return;
@@ -341,7 +406,7 @@ export default function ManageEvents() {
           return;
         }
         await dispatch(
-          rejectEvent({ eventId: data.eventId, reason: rejectionReason })
+          rejectEvent({ eventId: data.eventId, reason: rejectionReason }),
         ).unwrap();
         toast.success("Đã từ chối!");
         setRejectionReason("");
@@ -355,12 +420,12 @@ export default function ManageEvents() {
       setConfirmModal({ isOpen: false, type: null, data: null });
     }
   };
+
   const openModal = (type: any, eventItem: any) => {
     if (type === "REJECT") setRejectionReason("");
     setConfirmModal({ isOpen: true, type, data: eventItem });
   };
 
-  // --- COMPONENTS ---
   const StatusBadge = ({
     status,
     startDate,
@@ -404,7 +469,7 @@ export default function ManageEvents() {
         );
       return (
         <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-green-500/10 text-green-400 border-green-500/30 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />{" "}
+          <span className="w-1. 5 h-1.5 rounded-full bg-green-500 animate-pulse" />{" "}
           ĐANG DIỄN RA
         </span>
       );
@@ -423,9 +488,7 @@ export default function ManageEvents() {
 
   return (
     <div className="min-h-screen pb-20 font-sans text-white">
-      {/* --- HEADER --- */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
-        {/* LEFT SIDE: DROPDOWN FILTER STATUS (THAY THẾ TAB NGANG) */}
         <div className="w-full sm:w-auto relative z-30" ref={filterDropdownRef}>
           <div
             onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
@@ -480,7 +543,6 @@ export default function ManageEvents() {
           </AnimatePresence>
         </div>
 
-        {/* RIGHT SIDE: ACTIONS */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           <button
             onClick={handleExportExcel}
@@ -533,18 +595,25 @@ export default function ManageEvents() {
         </div>
       </div>
 
-      {/* --- GRID LIST --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
         {isLoading ? (
           <>
-            {" "}
             {[...Array(4)].map((_, i) => (
-              <Skeleton.Image
+              <div
                 key={i}
-                active
-                className="w-full! h-64! rounded-3xl"
-              />
-            ))}{" "}
+                className="bg-[#1a1a1a] rounded-3xl overflow-hidden border border-white/5"
+              >
+                <Skeleton className="w-full h-64" />
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-8 w-3/4 rounded-lg" />
+                  <Skeleton className="h-20 w-full rounded-xl" />
+                  <div className="flex justify-between pt-4">
+                    <Skeleton className="h-6 w-20 rounded-lg" />
+                    <Skeleton className="h-9 w-32 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </>
         ) : (
           <AnimatePresence mode="popLayout">
@@ -557,7 +626,7 @@ export default function ManageEvents() {
                 : selectedEvents.some((e) => e.eventId === event.eventId);
               const timeStatus = checkTimeStatus(
                 event.startDate,
-                event.endDate
+                event.endDate,
               );
               const isExpired = timeStatus === "ENDED";
               const canDelete =
@@ -588,10 +657,13 @@ export default function ManageEvents() {
                   className={`group relative flex flex-col bg-[#1a1a1a] rounded-3xl border overflow-hidden transition-all ${borderClass}`}
                 >
                   <div className="relative h-64 w-full bg-black">
-                    <img
+                    <OptimizedImage
                       src={event.bannerImageUrl}
                       alt={event.eventName}
-                      className={`w-full h-full object-cover transition-all ${
+                      width={600}
+                      height={256}
+                      className="w-full h-full"
+                      imgClassName={`transition-all ${
                         isExpired
                           ? "grayscale opacity-40"
                           : "opacity-80 group-hover:opacity-100"
@@ -623,7 +695,7 @@ export default function ManageEvents() {
                         <FaCalendarAlt className="text-[#B5A65F]" />{" "}
                         <span>
                           {new Date(event.startDate).toLocaleDateString(
-                            "vi-VN"
+                            "vi-VN",
                           )}
                         </span>
                       </div>
@@ -637,7 +709,7 @@ export default function ManageEvents() {
                             Yêu cầu bị từ chối
                           </span>
                           <span className="text-gray-300">Lý do: </span>
-                          {event.reason || "Vi phạm chính sách cộng đồng."}
+                          {event.reason || "Vi phạm chính sách cộng đồng. "}
                         </div>
                       </div>
                     )}
@@ -658,7 +730,7 @@ export default function ManageEvents() {
                               : "Đang chờ phê duyệt"}
                           </span>
                           {isSAdmin
-                            ? "Sự kiện này đang chờ bạn kiểm duyệt. Vui lòng kiểm tra."
+                            ? "Sự kiện này đang chờ bạn kiểm duyệt.  Vui lòng kiểm tra."
                             : "Sự kiện đang được Admin xem xét. Vui lòng chờ."}
                         </div>
                       </div>
@@ -850,12 +922,19 @@ export default function ManageEvents() {
             confirmModal.type === "APPROVE"
               ? `Duyệt sự kiện này?`
               : confirmModal.type === "SEND"
-              ? "Bạn có chắc chắn muốn gửi yêu cầu duyệt sự kiện này?"
-              : "Xóa sự kiện này?"
+                ? "Bạn có chắc chắn muốn gửi yêu cầu duyệt sự kiện này?"
+                : "Xóa sự kiện này?"
           }
           confirmText="Đồng ý"
         />
       )}
+
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 }

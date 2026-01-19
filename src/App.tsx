@@ -4,9 +4,6 @@ import { useDispatch } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { ConfigProvider, theme } from "antd";
-import viVN from "antd/locale/vi_VN";
-
 import RenderRoutes from "./routes";
 import type { AppDispatch } from "./store";
 import { fetchCurrentUser } from "./store/slices/auth";
@@ -39,7 +36,7 @@ function AuthHandler() {
 
     if (!isJwtToken(rawToken)) {
       console.error(
-        "❌ [LỖI TOKEN] Backend trả về Token không phải JWT (AccessToken)."
+        "❌ [LỖI TOKEN] Backend trả về Token không phải JWT (AccessToken).",
       );
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
 
@@ -49,7 +46,7 @@ function AuthHandler() {
           <br />
           Server trả về sai loại Token.
         </div>,
-        { autoClose: 8000 }
+        { autoClose: 8000 },
       );
       return;
     }
@@ -140,38 +137,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ConfigProvider
-      locale={viVN}
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: "#D8C97B",
-          colorBgBase: "#000000",
-          colorBgContainer: "#141414",
-          colorTextBase: "#ffffff",
-          borderRadius: 8,
-          fontFamily: "'Inter', sans-serif",
-        },
-        components: {
-          Card: {
-            headerFontSize: 16,
-          },
-          Table: {
-            headerBg: "#1f1f1f",
-            headerColor: "#9CA3AF",
-            rowHoverBg: "#333333",
-          },
-          Button: {
-            fontWeight: 600,
-          },
-        },
-      }}
-    >
-      <Suspense fallback={<LoadingScreen />}>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </Suspense>
-    </ConfigProvider>
+    <Suspense fallback={<LoadingScreen />}>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </Suspense>
   );
 }

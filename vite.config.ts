@@ -23,7 +23,7 @@ export default defineConfig({
     }),
 
     visualizer({
-      open: true,
+      open: false, 
       filename: "stats.html",
       gzipSize: true,
       brotliSize: true,
@@ -42,7 +42,13 @@ export default defineConfig({
 
   build: {
     sourcemap: false,
+
     chunkSizeWarningLimit: 1000,
+
+    minify: "esbuild",
+
+    target: "es2020",
+
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -50,28 +56,53 @@ export default defineConfig({
             if (id.includes("recharts") || id.includes("d3")) {
               return "vendor-charts";
             }
+
             if (id.includes("framer-motion")) {
               return "vendor-motion";
             }
+
             if (id.includes("react-icons")) {
               return "vendor-icons";
             }
+
             if (id.includes("xlsx")) {
               return "vendor-excel";
             }
+
             if (id.includes("@editorjs")) {
               return "vendor-editor";
             }
+
             if (
-              id.includes("antd") ||
-              id.includes("@ant-design") ||
-              id.includes("rc-")
+              id.includes("react") ||
+              id.includes("react-dom") ||
+              id.includes("react-router")
             ) {
-              return "vendor-antd";
+              return "vendor-react";
             }
+
+            if (id.includes("@reduxjs") || id.includes("react-redux")) {
+              return "vendor-redux";
+            }
+
+            return "vendor";
           }
         },
+
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
       },
     },
+  },
+
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@reduxjs/toolkit",
+      "react-redux",
+    ],
   },
 });

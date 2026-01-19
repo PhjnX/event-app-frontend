@@ -5,6 +5,7 @@ import {
   FaUserTie,
   FaClock,
 } from "react-icons/fa";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export interface Event {
   eventId: number;
@@ -21,7 +22,7 @@ export interface Event {
 const formatDate = (dateString: string) => {
   if (!dateString) return { day: "--", month: "---", time: "--:--" };
   const date = new Date(
-    dateString.endsWith("Z") ? dateString : dateString + "Z"
+    dateString.endsWith("Z") ? dateString : dateString + "Z",
   );
   return {
     day: date.getDate(),
@@ -52,13 +53,14 @@ const EventCard = ({
           {/* Banner Image */}
           <div className="relative h-48 md:h-56 overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-t from-[#121212] via-[rgba(18,18,18,0)] to-[rgba(18,18,18,0)] z-10 opacity-80"></div>
-            <img
-              src={
-                event.bannerImageUrl ||
-                "https://via.placeholder.com/600x400?text=Event+Image"
-              }
+            <OptimizedImage
+              src={event.bannerImageUrl}
               alt={event.eventName}
-              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000 ease-out"
+              width={420}
+              height={224}
+              className="w-full h-full"
+              imgClassName="transform group-hover:scale-110 transition-transform duration-1000 ease-out"
+              fallback="https://via.placeholder.com/600x400?text=Event+Image"
             />
             {/* Date Badge */}
             <div className="absolute top-3 right-3 md:top-4 md:right-4 z-20 bg-[rgba(0,0,0,0.6)] backdrop-blur-md border border-[#B5A65F] rounded-lg p-2 text-center min-w-[50px] md:min-w-[60px] shadow-lg">

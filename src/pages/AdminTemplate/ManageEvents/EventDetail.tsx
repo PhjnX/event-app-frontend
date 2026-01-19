@@ -38,6 +38,7 @@ import type { Activity } from "../../../models/activity";
 import LoadingScreen from "@/pages/HomeTemplate/_components/common/LoadingSrceen";
 import ConfirmModal from "./../_components/ConfirmModal";
 import { ROLES } from "@/constants";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const parseDateTimeToInput = (isoString: string) => {
   if (!isoString) return { date: "", time: "" };
@@ -105,7 +106,7 @@ export default function EventDetail() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState<number | null>(
-    null
+    null,
   );
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -116,10 +117,10 @@ export default function EventDetail() {
   }>({ isOpen: false, id: null });
 
   const { data: activities, categories } = useSelector(
-    (state: RootState) => state.activities
+    (state: RootState) => state.activities,
   );
   const { data: presenters } = useSelector(
-    (state: RootState) => state.presenters
+    (state: RootState) => state.presenters,
   );
 
   const [actForm, setActForm] = useState({
@@ -246,8 +247,8 @@ export default function EventDetail() {
     if (actStart < eventStart) {
       toast.warn(
         `Hoạt động không được bắt đầu trước sự kiện! (Sự kiện bắt đầu lúc: ${formatDisplayTime(
-          event.startDate
-        )} ${formatShortDate(event.startDate)})`
+          event.startDate,
+        )} ${formatShortDate(event.startDate)})`,
       );
       return;
     }
@@ -255,8 +256,8 @@ export default function EventDetail() {
     if (actEnd > eventEnd) {
       toast.warn(
         `Hoạt động không được kết thúc sau sự kiện! (Sự kiện kết thúc lúc: ${formatDisplayTime(
-          event.endDate
-        )} ${formatShortDate(event.endDate)})`
+          event.endDate,
+        )} ${formatShortDate(event.endDate)})`,
       );
       return;
     }
@@ -279,7 +280,7 @@ export default function EventDetail() {
 
       if (isEditMode && editingActivityId) {
         await dispatch(
-          updateActivity({ id: editingActivityId, data: payload as any })
+          updateActivity({ id: editingActivityId, data: payload as any }),
         ).unwrap();
         toast.success("Cập nhật thành công!");
       } else {
@@ -327,7 +328,7 @@ export default function EventDetail() {
   const groupedActivities = useMemo(() => {
     const sorted = [...activities].sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     );
     const groups: { [key: string]: Activity[] } = {};
     sorted.forEach((act) => {
@@ -366,10 +367,14 @@ export default function EventDetail() {
       <div className="relative h-[50vh] min-h-[400px] w-full group overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-[rgba(5,5,5,0.6)] to-[rgba(5,5,5,0)] z-10" />
-          <img
+          <OptimizedImage
             src={event.bannerImageUrl}
             alt={event.eventName}
-            className="w-full h-full object-cover transition-transform duration-2000 ease-out group-hover:scale-105"
+            width={1920}
+            height={800}
+            priority={true} 
+            className="w-full h-full"
+            imgClassName="transition-transform duration-2000 ease-out group-hover:scale-105"
           />
         </div>
 
@@ -823,7 +828,8 @@ export default function EventDetail() {
                         <option value={0}>+ Thêm diễn giả</option>
                         {presenters
                           .filter(
-                            (p) => !actForm.presenterIds.includes(p.presenterId)
+                            (p) =>
+                              !actForm.presenterIds.includes(p.presenterId),
                           )
                           .map((p) => (
                             <option key={p.presenterId} value={p.presenterId}>
@@ -834,7 +840,7 @@ export default function EventDetail() {
                       <div className="flex flex-wrap gap-2 mt-3 min-h-[30px]">
                         {actForm.presenterIds.map((id) => {
                           const p = presenters.find(
-                            (x) => x.presenterId === id
+                            (x) => x.presenterId === id,
                           );
                           return (
                             p && (

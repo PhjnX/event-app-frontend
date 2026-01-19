@@ -18,6 +18,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { type AppDispatch, type RootState } from "../../../store";
 import { fetchPublicPosts } from "../../../store/slices/newsSlice";
+import OptimizedImage from "@/components/ui/OptimizedImage";
+import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 const useScrollProgress = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -27,7 +29,7 @@ const useScrollProgress = () => {
       const scrollHeight = document.body.scrollHeight - window.innerHeight;
       if (scrollHeight)
         setScrollProgress(
-          Number((currentScroll / scrollHeight).toFixed(2)) * 100
+          Number((currentScroll / scrollHeight).toFixed(2)) * 100,
         );
     };
     window.addEventListener("scroll", updateScroll);
@@ -51,7 +53,7 @@ const RevealOnScroll: React.FC<{
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -115,10 +117,13 @@ const NewsCard: React.FC<{ post: any; index: number; label?: string }> = ({
     className="group flex flex-col h-full bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D8C97B]/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
   >
     <div className="relative aspect-video overflow-hidden">
-      <img
+      <OptimizedImage
         src={post.thumbnailUrl}
         alt={post.title}
-        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        width={400}
+        height={225}
+        className="w-full h-full"
+        imgClassName="transition-transform duration-700 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
       <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/10">
@@ -187,7 +192,9 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
             className={`absolute inset-0 bg-cover bg-center transition-transform duration-[10s] ease-linear ${
               index === current ? "scale-105" : "scale-100"
             }`}
-            style={{ backgroundImage: `url(${p.thumbnailUrl})` }}
+            style={{
+              backgroundImage: `url(${optimizeImageUrl(p.thumbnailUrl, 1920, 1080)})`, // ✅ TỐI ƯU
+            }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-black/50 to-black/30"></div>
           <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/20 to-transparent"></div>
@@ -320,9 +327,7 @@ const ExploreMasonry: React.FC<{ posts: any[] }> = ({ posts }) => {
   );
 };
 
-// ============================================================================
-// MAIN PAGE
-// ============================================================================
+
 export default function NewsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
@@ -332,24 +337,20 @@ export default function NewsPage() {
     dispatch(fetchPublicPosts({ page: 0, size: 50 }));
   }, [dispatch]);
 
-  // Logic Smart Fill: Tự bù bài nếu thiếu
   const { heroPosts, weeklyHighlights, explorePosts } = useMemo(() => {
     if (!data || data.length === 0)
       return { heroPosts: [], weeklyHighlights: [], explorePosts: [] };
 
     const allPosts = [...data];
 
-    // 1. Hero: 3 bài đầu
     const hero = allPosts.slice(0, 3);
 
-    // 2. Weekly: 4 bài tiếp theo (Tự bù nếu thiếu)
     let weekly = allPosts.slice(3, 7);
     if (weekly.length < 4) {
       const filler = [...allPosts];
       weekly = [...weekly, ...filler].slice(0, 4);
     }
 
-    // 3. Explore: Còn lại (Tự hiển thị tất cả nếu rỗng)
     let explore = allPosts.slice(7);
     if (explore.length === 0) explore = allPosts;
 
@@ -359,9 +360,7 @@ export default function NewsPage() {
   const isEmpty = !loading && (!data || data.length === 0);
 
   return (
-    // THÊM CLASS font-noto VÀO ĐÂY
     <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden selection:bg-[#D8C97B] selection:text-black font-noto">
-      {/* Progress Bar */}
       <div
         className="fixed top-0 left-0 h-[3px] bg-linear-to-r from-[#D8C97B] to-[#FFF5C1] z-50 transition-all duration-300 ease-out shadow-[0_0_10px_#D8C97B]"
         style={{ width: `${scrollProgress}%` }}

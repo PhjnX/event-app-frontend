@@ -212,6 +212,5 @@ const listUserSlice = createSlice({
   },
 });
 
-// FIX: Bỏ clearUserDetail khỏi export vì knip báo unused
 export const {} = listUserSlice.actions;
 export default listUserSlice.reducer;

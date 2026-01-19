@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import apiService from "@/services/apiService";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const DEFAULT_AVATAR =
   "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
@@ -31,7 +32,7 @@ export default function FeaturedPresenters() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-6xl font-black text-white mt-2 uppercase tracking-wide">
-            KHÁCH MỜI {" "}
+            KHÁCH MỜI{" "}
             <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
               NỔI BẬT
             </span>
@@ -60,10 +61,13 @@ export default function FeaturedPresenters() {
               >
                 <div className="relative mb-6 inline-block">
                   <div className="absolute inset-0 bg-[rgba(216,201,123,1)] rounded-full blur-[10px] opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
-                  <img
-                    src={p.avatarUrl || DEFAULT_AVATAR}
-                    onError={(e: any) => (e.target.src = DEFAULT_AVATAR)}
-                    className="relative w-32 h-32 mx-auto rounded-full object-cover border-2 border-[rgba(255,255,255,0.1)] group-hover:border-[#D8C97B] transition-colors duration-300"
+                  <OptimizedImage
+                    src={p.avatarUrl}
+                    alt={p.fullName}
+                    width={128}
+                    height={128}
+                    className="relative w-32 h-32 mx-auto rounded-full border-2 border-[rgba(255,255,255,0.1)] group-hover:border-[#D8C97B] transition-colors duration-300"
+                    fallback={DEFAULT_AVATAR}
                   />
                 </div>
 

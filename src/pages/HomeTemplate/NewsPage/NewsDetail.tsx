@@ -27,6 +27,7 @@ import {
   Tag,
   MapPin,
 } from "lucide-react";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const styles = `
   @keyframes zoomSlow {
@@ -162,10 +163,12 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
             return (
               <figure key={block.id} className="my-10 w-full group">
                 <div className="overflow-hidden rounded-xl shadow-sm border border-gray-100 bg-gray-50 text-center">
-                  <img
+                  <OptimizedImage
                     src={block.data.file.url}
-                    alt={block.data.caption}
-                    className="w-auto max-w-full max-h-[80vh] object-contain mx-auto"
+                    alt={block.data.caption || "Image"}
+                    width={800}
+                    height={600}
+                    className="w-auto max-w-full max-h-[80vh] mx-auto"
                   />
                 </div>
                 {block.data.caption && (
@@ -204,7 +207,6 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
     </div>
   );
 };
-
 
 const RightSidebar = ({
   relatedPosts,
@@ -252,10 +254,13 @@ const RightSidebar = ({
                 className="group cursor-pointer flex gap-4 items-start"
               >
                 <div className="w-20 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                  <img
+                  <OptimizedImage
                     src={post.thumbnailUrl}
-                    alt="thumb"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    alt={post.title}
+                    width={80}
+                    height={64}
+                    className="w-full h-full"
+                    imgClassName="group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
                 <div>
@@ -282,14 +287,14 @@ const RightSidebar = ({
             to={`/event/${upcomingEvent.slug || upcomingEvent.eventId}`}
             className="block w-full h-full"
           >
-            <img
-              src={
-                upcomingEvent.bannerImageUrl ||
-                upcomingEvent.thumbnailUrl ||
-                "https://via.placeholder.com/600x800"
-              }
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              alt="Event"
+            <OptimizedImage
+              src={upcomingEvent.bannerImageUrl || upcomingEvent.thumbnailUrl}
+              alt={upcomingEvent.eventName || "Event"}
+              width={400}
+              height={533}
+              className="w-full h-full"
+              imgClassName="transition-transform duration-700 group-hover:scale-110"
+              fallback="https://via.placeholder.com/600x800"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
               <div className="bg-[#B5A65F] w-fit px-2 py-1 rounded text-[10px] font-black uppercase mb-2 text-black">
@@ -363,12 +368,12 @@ const NewsDetail = () => {
 
     const now = new Date();
     const upcoming = eventsList.filter(
-      (e: any) => new Date(e.startDate) >= now
+      (e: any) => new Date(e.startDate) >= now,
     );
 
     upcoming.sort(
       (a: any, b: any) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
     );
 
     return upcoming.length > 0
@@ -391,10 +396,14 @@ const NewsDetail = () => {
 
         <header className="relative w-full h-[60vh] min-h-[500px] overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <img
+            <OptimizedImage
               src={postDetail.thumbnailUrl}
-              alt="Banner"
-              className="w-full h-full object-cover animate-zoom-slow origin-center"
+              alt={postDetail.title}
+              width={1920}
+              height={800}
+              priority={true}
+              className="w-full h-full"
+              imgClassName="animate-zoom-slow origin-center"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-black/30"></div>
           </div>
@@ -412,7 +421,7 @@ const NewsDetail = () => {
 
           <div className="absolute bottom-0 left-0 w-full px-6 pb-16 z-20">
             <div className="max-w-4xl mx-auto text-center animate-fade-up">
-                  <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-8 drop-shadow-xl font-noto">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-8 drop-shadow-xl font-noto">
                 {postDetail.title}
               </h1>
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-300 animate-fade-up-delay">
