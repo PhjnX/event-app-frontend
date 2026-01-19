@@ -14,7 +14,6 @@ const getBackendRootUrl = () => {
   return API_URL;
 };
 
-// Hàm xử lý link ảnh cho chuẩn
 const processImageUrl = (url: string | null | undefined) => {
   if (!url) return "";
   if (url.startsWith("http")) return url;
@@ -24,15 +23,41 @@ const processImageUrl = (url: string | null | undefined) => {
   return `${root}${cleanPath}`;
 };
 
+// ===== INTERFACES =====
+interface Activity {
+  activityId: number;
+  activityName: string;
+  startTime: string;
+  endTime: string;
+  roomOrVenue: string;
+  activityStatus: string;
+  activityCheckInStatus: string;
+}
+
+interface RegistrationDetail {
+  id: number;
+  ticketCode: string;
+  status: string;
+  registrationDate: string;
+  eventCheckInStatus: string;
+  userId: number;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  avatarUrl: string;
+  activities: Activity[];
+}
+
 interface EventState {
   data: Event[];
   featuredEvents: Event[];
   selectedEvents: Event[];
   registrations: any[];
   myRegistrations: any[];
-  // State lưu danh sách hoạt động khi xem chi tiết trong Admin
-  userActivities: any[];
+  // ✅ Thay đổi:  Lưu chi tiết registration (bao gồm activities)
+  selectedRegistrationDetail: RegistrationDetail | null;
   isLoading: boolean;
+  isDetailLoading: boolean;
   error: string | null;
 }
 
@@ -42,8 +67,9 @@ const initialState: EventState = {
   selectedEvents: [],
   registrations: [],
   myRegistrations: [],
-  userActivities: [],
+  selectedRegistrationDetail: null,
   isLoading: false,
+  isDetailLoading: false,
   error: null,
 };
 
@@ -57,7 +83,7 @@ export const fetchPublicEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchAllEvents = createAsyncThunk(
@@ -68,7 +94,7 @@ export const fetchAllEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchMyEvents = createAsyncThunk(
@@ -79,7 +105,7 @@ export const fetchMyEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchFeaturedEvents = createAsyncThunk(
@@ -91,7 +117,7 @@ export const fetchFeaturedEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchSelectedEvents = createAsyncThunk(
@@ -103,7 +129,7 @@ export const fetchSelectedEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const updateFeaturedEvents = createAsyncThunk(
@@ -115,7 +141,7 @@ export const updateFeaturedEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const updateSelectedEvents = createAsyncThunk(
@@ -127,7 +153,7 @@ export const updateSelectedEvents = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const uploadEventImage = createAsyncThunk(
@@ -142,56 +168,53 @@ export const uploadEventImage = createAsyncThunk(
       return response;
     } catch (err: any) {
       return rejectWithValue(
-        err.response?.data?.message || err.message || "Lỗi upload ảnh"
+        err.response?.data?.message || err.message || "Lỗi upload ảnh",
       );
     }
-  }
+  },
 );
 
 // --- CÁC API ĐĂNG KÝ SỰ KIỆN ---
 
-// 1. Đăng ký lần đầu (chưa có vé)
 export const registerForEvent = createAsyncThunk(
   "events/register",
   async (
     payload: { eventId: number; activityIds: number[] },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.post("/events/register", payload);
       return response;
     } catch (err: any) {
       return rejectWithValue(
-        err.response?.data?.message || err.message || "Đăng ký thất bại"
+        err.response?.data?.message || err.message || "Đăng ký thất bại",
       );
     }
-  }
+  },
 );
 
-// 2. Đăng ký thêm hoạt động (khi đã có vé) - API MỚI BẠN YÊU CẦU
 export const addActivitiesToEvent = createAsyncThunk(
   "events/addActivities",
   async (
     payload: { eventId: number; activityIds: number[] },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
-      // Gọi API: POST /api/events/{eventId}/add-activities
-      // Body gửi lên là danh sách activityIds
       const response = await apiService.post(
         `/events/${payload.eventId}/add-activities`,
-        payload.activityIds // Body là mảng ID hoặc object tùy backend, thường là list ID
+        payload.activityIds,
       );
       return response;
     } catch (err: any) {
       return rejectWithValue(
-        err.response?.data?.message || err.message || "Không thể thêm hoạt động"
+        err.response?.data?.message ||
+          err.message ||
+          "Không thể thêm hoạt động",
       );
     }
-  }
+  },
 );
 
-// Lấy danh sách vé đã mua của tôi
 export const fetchMyRegistrations = createAsyncThunk(
   "events/fetchMyRegistrations",
   async (_, { rejectWithValue }) => {
@@ -223,28 +246,24 @@ export const fetchMyRegistrations = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
-// --- API ADMIN: QUẢN LÝ ---
+// --- API ADMIN:  QUẢN LÝ ---
 
-// Lấy hoạt động của user trong Admin (đã thêm param userId)
-export const fetchRegisteredActivitiesInEvent = createAsyncThunk(
-  "events/fetchRegisteredActivitiesInEvent",
-  async (
-    { eventId, userId }: { eventId: number; userId?: number },
-    { rejectWithValue }
-  ) => {
+// ✅ API MỚI:  Lấy chi tiết registration (bao gồm activities)
+export const fetchRegistrationDetail = createAsyncThunk(
+  "events/fetchRegistrationDetail",
+  async (registrationId: number, { rejectWithValue }) => {
     try {
-      const response = await apiService.get<any[]>(
-        `/activities/by-event/${eventId}/registered`,
-        { params: { userId } }
+      const response = await apiService.get<RegistrationDetail>(
+        `/events/registrations/${registrationId}/detail`,
       );
       return response;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchEventRegistrations = createAsyncThunk(
@@ -252,13 +271,13 @@ export const fetchEventRegistrations = createAsyncThunk(
   async (eventId: number, { rejectWithValue }) => {
     try {
       const response = await apiService.get<any[]>(
-        `/events/${eventId}/registrations`
+        `/events/${eventId}/registrations`,
       );
       return response;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const approveRegistration = createAsyncThunk(
@@ -270,26 +289,26 @@ export const approveRegistration = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const rejectRegistration = createAsyncThunk(
   "events/rejectRegistration",
   async (
     { registrationId, reason }: { registrationId: number; reason: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       await apiService.put(
         `/events/registrations/${registrationId}/reject`,
         null,
-        { params: { reason } }
+        { params: { reason } },
       );
       return { registrationId, reason };
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // CRUD Event cơ bản
@@ -301,21 +320,21 @@ export const createEvent = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
 export const updateEvent = createAsyncThunk(
   "events/update",
   async (
     { slug, data }: { slug: string; data: Partial<Event> },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       return await apiService.put<Event>(`/events/${slug}`, data);
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const submitEventForApproval = createAsyncThunk(
@@ -327,7 +346,7 @@ export const submitEventForApproval = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
 export const approveEvent = createAsyncThunk(
@@ -339,14 +358,14 @@ export const approveEvent = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const rejectEvent = createAsyncThunk(
   "events/reject",
   async (
     { eventId, reason }: { eventId: number; reason: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       await apiService.put(`/events/${eventId}/reject`, null, {
@@ -356,7 +375,7 @@ export const rejectEvent = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const deleteEvent = createAsyncThunk(
@@ -368,7 +387,7 @@ export const deleteEvent = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 const eventSlice = createSlice({
@@ -378,10 +397,10 @@ const eventSlice = createSlice({
     clearRegistrations: (state) => {
       state.registrations = [];
       state.myRegistrations = [];
-      state.userActivities = [];
+      state.selectedRegistrationDetail = null;
     },
-    clearUserActivities: (state) => {
-      state.userActivities = [];
+    clearRegistrationDetail: (state) => {
+      state.selectedRegistrationDetail = null;
     },
   },
   extraReducers: (builder) => {
@@ -407,12 +426,18 @@ const eventSlice = createSlice({
         state.selectedEvents = action.payload;
       })
 
-      // Handle activity fetch for details
-      .addCase(fetchRegisteredActivitiesInEvent.fulfilled, (state, action) => {
-        state.userActivities = action.payload;
+      // ✅ Handle registration detail (API mới)
+      .addCase(fetchRegistrationDetail.pending, (state) => {
+        state.isDetailLoading = true;
+        state.selectedRegistrationDetail = null;
       })
-      .addCase(fetchRegisteredActivitiesInEvent.rejected, (state) => {
-        state.userActivities = [];
+      .addCase(fetchRegistrationDetail.fulfilled, (state, action) => {
+        state.isDetailLoading = false;
+        state.selectedRegistrationDetail = action.payload;
+      })
+      .addCase(fetchRegistrationDetail.rejected, (state) => {
+        state.isDetailLoading = false;
+        state.selectedRegistrationDetail = null;
       })
 
       // Handle admin registration list
@@ -433,5 +458,6 @@ const eventSlice = createSlice({
   },
 });
 
-export const { clearRegistrations, clearUserActivities } = eventSlice.actions;
+export const { clearRegistrations, clearRegistrationDetail } =
+  eventSlice.actions;
 export default eventSlice.reducer;

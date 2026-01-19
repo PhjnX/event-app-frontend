@@ -23,7 +23,7 @@ export default defineConfig({
     }),
 
     visualizer({
-      open: false, 
+      open: false,
       filename: "stats.html",
       gzipSize: true,
       brotliSize: true,
@@ -42,51 +42,24 @@ export default defineConfig({
 
   build: {
     sourcemap: false,
-
     chunkSizeWarningLimit: 1000,
-
     minify: "esbuild",
-
     target: "es2020",
 
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("recharts") || id.includes("d3")) {
-              return "vendor-charts";
-            }
-
-            if (id.includes("framer-motion")) {
-              return "vendor-motion";
-            }
-
-            if (id.includes("react-icons")) {
-              return "vendor-icons";
-            }
-
-            if (id.includes("xlsx")) {
-              return "vendor-excel";
-            }
-
-            if (id.includes("@editorjs")) {
-              return "vendor-editor";
-            }
-
-            if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router")
-            ) {
-              return "vendor-react";
-            }
-
-            if (id.includes("@reduxjs") || id.includes("react-redux")) {
-              return "vendor-redux";
-            }
-
-            return "vendor";
-          }
+        manualChunks: {
+          "vendor-react": [
+            "react",
+            "react-dom",
+            "react-router-dom",
+            "react-redux",
+            "@reduxjs/toolkit",
+          ],
+          "vendor-motion": ["framer-motion"],
+          "vendor-icons": ["react-icons"],
+          "vendor-charts": ["recharts"],
+          "vendor-excel": ["xlsx"],
         },
 
         chunkFileNames: "assets/[name]-[hash].js",

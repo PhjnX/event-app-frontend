@@ -20,19 +20,20 @@ import {
   FaEye,
   FaMapMarkerAlt,
   FaCalendarAlt,
-  FaMoneyBillWave,
   FaSpinner,
+  FaCheckCircle,
+  FaTimesCircle,
 } from "react-icons/fa";
 
-import type { AppDispatch, RootState } from "../../../store";
+import type { AppDispatch, RootState } from "@/store";
 import {
   fetchEventRegistrations,
-  fetchRegisteredActivitiesInEvent,
+  fetchRegistrationDetail,
   approveRegistration,
   rejectRegistration,
   clearRegistrations,
-  clearUserActivities,
-} from "../../../store/slices/eventSlice";
+  clearRegistrationDetail,
+} from "@/store/slices/eventSlice";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ITEMS_PER_PAGE = 8;
@@ -60,7 +61,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
   return (
     <div
-      className={`px-3 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1.5 uppercase tracking-widest ${
+      className={`px-3 py-1 rounded-full text-[10px] font-bold border ring-1 inline-flex items-center gap-1. 5 uppercase tracking-widest ${
         styles[status] || "text-gray-400 border-gray-700"
       }`}
     >
@@ -74,23 +75,39 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+// Badge cho trạng thái check-in của activity
+const ActivityCheckInBadge = ({ status }: { status: string }) => {
+  if (status === "CHECKED_IN") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
+        <FaCheckCircle /> Đã check-in
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded border border-gray-500/20">
+      <FaTimesCircle /> Chưa check-in
+    </span>
+  );
+};
+
 export default function ManageRegistrations() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { registrations, userActivities, isLoading } = useSelector(
-    (state: RootState) => state.events,
-  );
+  const {
+    registrations,
+    selectedRegistrationDetail,
+    isLoading,
+    isDetailLoading,
+  } = useSelector((state: RootState) => state.events);
 
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedRegId, setSelectedRegId] = useState<number | null>(null);
   const [reason, setReason] = useState("");
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedRegistration, setSelectedRegistration] = useState<any>(null);
-
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -163,35 +180,27 @@ export default function ManageRegistrations() {
     }
   };
 
+  // ✅ Sử dụng API mới
   const openDetailModal = async (item: any) => {
-    setSelectedRegistration(item);
     setIsDetailModalOpen(true);
-    setIsDetailLoading(true);
-    dispatch(clearUserActivities());
+    dispatch(clearRegistrationDetail());
 
     try {
-      if (eventId && item.userId) {
-        await dispatch(
-          fetchRegisteredActivitiesInEvent({
-            eventId: Number(eventId),
-            userId: item.userId,
-          }),
-        ).unwrap();
-      }
+      await dispatch(fetchRegistrationDetail(item.id)).unwrap();
     } catch (error) {
-      console.error("Không lấy được danh sách hoạt động", error);
-    } finally {
-      setIsDetailLoading(false);
+      console.error("Không lấy được chi tiết đăng ký", error);
+      toast.error("Không thể tải thông tin chi tiết");
     }
   };
 
   const closeDetailModal = () => {
     setIsDetailModalOpen(false);
-    dispatch(clearUserActivities());
+    dispatch(clearRegistrationDetail());
   };
 
   return (
     <div className="min-h-screen pb-20 font-sans text-gray-200 bg-[#090909]">
+      {/* Header */}
       <div className="relative pt-8 pb-10 px-6 sm:px-10 border-b border-white/5 bg-[#0f0f0f]">
         <button
           onClick={() => navigate("/admin/events")}
@@ -251,22 +260,23 @@ export default function ManageRegistrations() {
         </div>
       </div>
 
+      {/* Filters */}
       <div className="px-6 sm:px-10 -mt-6">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-[#141414]/80 backdrop-blur-md p-2 rounded-2xl border border-white/5 shadow-2xl mb-8">
-          <div className="flex gap-1 bg-[#0a0a0a] p-1.5 rounded-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
+          <div className="flex gap-1 bg-[#0a0a0a] p-1. 5 rounded-xl w-full md:w-auto overflow-x-auto custom-scrollbar">
             {["ALL", "PENDING", "APPROVED", "REJECTED", "CHECKED_IN"].map(
               (status) => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
                   className={`
-                            px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap
-                            ${
-                              filterStatus === status
-                                ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
-                                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                            }
-                        `}
+                    px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap
+                    ${
+                      filterStatus === status
+                        ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
+                        : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                    }
+                  `}
                 >
                   {status === "ALL" ? "Tất cả" : status}
                 </button>
@@ -286,6 +296,7 @@ export default function ManageRegistrations() {
           </div>
         </div>
 
+        {/* Table */}
         <div className="w-full">
           <table className="w-full text-left border-separate border-spacing-y-2">
             <thead className="hidden md:table-header-group">
@@ -366,9 +377,10 @@ export default function ManageRegistrations() {
                         </div>
                       </td>
 
+                      {/* CONTACT */}
                       <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
                         <div className="space-y-1.5">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-2. 5">
                             <div className="w-6 h-6 rounded-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 text-[10px]">
                               <FaEnvelope />
                             </div>
@@ -390,10 +402,11 @@ export default function ManageRegistrations() {
                         </div>
                       </td>
 
+                      {/* TICKET INFO */}
                       <td className="px-4 py-4 border-y border-white/5 group-hover:border-white/10">
                         <div className="space-y-2">
                           {item.ticketCode ? (
-                            <div className="flex items-center gap-2 w-fit bg-[#221a2c] text-[#d8b4fe] border border-[#d8b4fe]/20 px-2.5 py-1 rounded text-[10px] font-mono tracking-wide">
+                            <div className="flex items-center gap-2 w-fit bg-[#221a2c] text-[#d8b4fe] border border-[#d8b4fe]/20 px-2. 5 py-1 rounded text-[10px] font-mono tracking-wide">
                               <FaQrcode /> {item.ticketCode}
                             </div>
                           ) : (
@@ -412,6 +425,7 @@ export default function ManageRegistrations() {
                         </div>
                       </td>
 
+                      {/* STATUS */}
                       <td className="px-4 py-4 text-center border-y border-white/5 group-hover:border-white/10">
                         <StatusBadge status={item.status} />
                         {item.eventCheckInStatus === "CHECKED_IN" && (
@@ -421,6 +435,7 @@ export default function ManageRegistrations() {
                         )}
                       </td>
 
+                      {/* ACTIONS */}
                       <td className="px-4 py-4 rounded-r-2xl border-r border-y border-white/5 group-hover:border-white/10 text-right">
                         <div className="flex justify-end gap-2">
                           <button
@@ -460,6 +475,7 @@ export default function ManageRegistrations() {
           </table>
         </div>
 
+        {/* Pagination */}
         {!isLoading && filteredData.length > 0 && (
           <div className="py-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest bg-[#1a1a1a] px-3 py-1 rounded-full border border-white/5">
@@ -496,6 +512,7 @@ export default function ManageRegistrations() {
         )}
       </div>
 
+      {/* Reject Modal */}
       <AnimatePresence>
         {isRejectModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -565,8 +582,9 @@ export default function ManageRegistrations() {
         )}
       </AnimatePresence>
 
+      {/* ✅ Detail Modal - Sử dụng API mới */}
       <AnimatePresence>
-        {isDetailModalOpen && selectedRegistration && (
+        {isDetailModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -580,173 +598,281 @@ export default function ManageRegistrations() {
               initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
-              className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-              <div className="bg-[#141414] px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
+              {/* Header */}
+              <div className="relative px-6 py-5 border-b border-white/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#B5A65F]/20 flex items-center justify-center text-[#B5A65F]">
-                    <FaUser />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B5A65F] to-[#8a7b3d] flex items-center justify-center text-black shadow-lg shadow-[#B5A65F]/20">
+                    <FaTicketAlt size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white uppercase tracking-wide">
+                    <h3 className="text-xl font-black text-white tracking-tight">
                       Thông tin đăng ký
                     </h3>
                     <p className="text-xs text-gray-500 font-mono">
-                      ID: #{selectedRegistration.id}
+                      ID: #{selectedRegistrationDetail?.id || "---"}
                     </p>
                   </div>
                 </div>
 
                 <button
                   onClick={closeDetailModal}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                  className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all"
                 >
                   <FaTimes />
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-[#141414] p-4 rounded-xl border border-white/5">
-                    <h4 className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3">
-                      Người tham gia
-                    </h4>
-                    <div className="flex items-center gap-3 mb-3">
-                      {selectedRegistration.avatarUrl ? (
-                        <OptimizedImage
-                          src={selectedRegistration.avatarUrl}
-                          alt={selectedRegistration.username || "User"}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                          <FaUser className="text-gray-500" />
+              {/* Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                {isDetailLoading ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-16 h-16 rounded-full bg-[#B5A65F]/10 flex items-center justify-center mb-4">
+                      <FaSpinner className="animate-spin text-2xl text-[#B5A65F]" />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Đang tải thông tin...
+                    </p>
+                  </div>
+                ) : selectedRegistrationDetail ? (
+                  <>
+                    {/* User & Ticket Cards */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                      {/* User Card */}
+                      <div className="bg-[#161616] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <FaUser className="text-blue-400 text-xs" />
+                          </div>
+                          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+                            Người tham gia
+                          </span>
                         </div>
-                      )}
-                      <div>
-                        <div className="text-sm font-bold text-white">
-                          {selectedRegistration.username}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {selectedRegistration.email}
+
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            {selectedRegistrationDetail.avatarUrl ? (
+                              <OptimizedImage
+                                src={selectedRegistrationDetail.avatarUrl}
+                                alt={
+                                  selectedRegistrationDetail.username || "User"
+                                }
+                                width={56}
+                                height={56}
+                                className="w-14 h-14 rounded-xl ring-2 ring-white/10"
+                              />
+                            ) : (
+                              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-white/10">
+                                <FaUser className="text-gray-500 text-xl" />
+                              </div>
+                            )}
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#161616]"></div>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-white text-base truncate">
+                              {selectedRegistrationDetail.username}
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate flex items-center gap-1.5 mt-1">
+                              <FaEnvelope className="text-gray-600 shrink-0" />
+                              {selectedRegistrationDetail.email}
+                            </p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
+                              <FaPhone className="text-gray-600 shrink-0" />
+                              {selectedRegistrationDetail.phoneNumber ||
+                                "Chưa cập nhật"}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-2">
-                      <FaPhone className="text-gray-600" />{" "}
-                      {selectedRegistration.phoneNumber || "Chưa cập nhật"}
-                    </div>
-                  </div>
 
-                  <div className="bg-[#141414] p-4 rounded-xl border border-white/5">
-                    <h4 className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3">
-                      Thông tin vé
-                    </h4>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">Mã vé:</span>
-                      <span className="text-xs font-mono font-bold text-[#B5A65F] bg-[#B5A65F]/10 px-2 py-0.5 rounded">
-                        {selectedRegistration.ticketCode || "---"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">
-                        Ngày đăng ký:
-                      </span>
-                      <span className="text-xs text-white">
-                        {selectedRegistration.registrationDate
-                          ? new Date(
-                              selectedRegistration.registrationDate,
-                            ).toLocaleDateString("vi-VN")
-                          : "---"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">Trạng thái:</span>
-                      <StatusBadge status={selectedRegistration.status} />
-                    </div>
-                  </div>
-                </div>
+                      {/* Ticket Card */}
+                      <div className="bg-[#161616] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-6 h-6 rounded-lg bg-[#B5A65F]/20 flex items-center justify-center">
+                            <FaQrcode className="text-[#B5A65F] text-xs" />
+                          </div>
+                          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+                            Thông tin vé
+                          </span>
+                        </div>
 
-                {/* Phần 2: Danh sách Activity */}
-                <div>
-                  <h4 className="text-sm font-bold text-white uppercase tracking-wide mb-4 flex items-center gap-2 border-l-4 border-[#B5A65F] pl-3">
-                    Hoạt động đã đăng ký
-                  </h4>
+                        <div className="space-y-3">
+                          {/* Ticket Code */}
+                          <div className="bg-[#0d0d0d] rounded-xl px-4 py-3 border border-dashed border-[#B5A65F]/30">
+                            <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
+                              Mã vé
+                            </p>
+                            <p className="text-[#B5A65F] font-mono text-sm font-bold break-all">
+                              {selectedRegistrationDetail.ticketCode || "---"}
+                            </p>
+                          </div>
 
-                  {/* Loading State */}
-                  {isDetailLoading ? (
-                    <div className="text-center py-8">
-                      <FaSpinner className="animate-spin text-2xl text-[#B5A65F] mx-auto mb-2" />
-                      <p className="text-xs text-gray-500">
-                        Đang tải thông tin hoạt động...
-                      </p>
-                    </div>
-                  ) : !userActivities || userActivities.length === 0 ? (
-                    <div className="text-center py-8 bg-[#141414] rounded-xl border border-dashed border-white/10">
-                      <p className="text-gray-400 font-bold text-sm mb-1">
-                        Vé vào cửa tiêu chuẩn
-                      </p>
-                      <p className="text-gray-600 text-xs">
-                        Người dùng này chỉ đăng ký tham gia sự kiện chung, chưa
-                        đăng ký cụ thể Activity (hoặc sự kiện không có
-                        sub-activities).
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {userActivities.map((activity: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="bg-[#141414] p-4 rounded-xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#B5A65F]/30 transition-colors group"
-                        >
-                          <div className="flex-1">
-                            <h5 className="font-bold text-white text-sm mb-1 group-hover:text-[#B5A65F] transition-colors">
-                              {activity.name || "Tên hoạt động"}
-                            </h5>
-                            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                              {activity.startTime && (
-                                <span className="flex items-center gap-1">
-                                  <FaCalendarAlt />{" "}
-                                  {new Date(
-                                    activity.startTime,
-                                  ).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              )}
-                              {activity.location && (
-                                <span className="flex items-center gap-1">
-                                  <FaMapMarkerAlt /> {activity.location}
-                                </span>
-                              )}
+                          {/* Info Grid */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
+                                Ngày ĐK
+                              </p>
+                              <p className="text-white text-sm font-medium">
+                                {selectedRegistrationDetail.registrationDate
+                                  ? new Date(
+                                      selectedRegistrationDetail.registrationDate,
+                                    ).toLocaleDateString("vi-VN")
+                                  : "---"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
+                                Trạng thái
+                              </p>
+                              <StatusBadge
+                                status={selectedRegistrationDetail.status}
+                              />
                             </div>
                           </div>
 
-                          {activity.cost !== undefined && (
-                            <div className="text-right shrink-0">
-                              <div className="text-[#B5A65F] font-bold font-mono text-sm flex items-center gap-1 justify-end">
-                                <FaMoneyBillWave />
-                                {activity.cost === 0
-                                  ? "Miễn phí"
-                                  : activity.cost.toLocaleString() + " đ"}
+                          {/* Event Check-in */}
+                          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                            <span className="text-xs text-gray-500">
+                              Check-in sự kiện
+                            </span>
+                            {selectedRegistrationDetail.eventCheckInStatus ===
+                            "CHECKED_IN" ? (
+                              <span className="inline-flex items-center gap-1. 5 text-xs font-bold text-green-400 bg-green-500/10 px-3 py-1 rounded-full">
+                                <FaCheckCircle /> Đã check-in
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-white/5 px-3 py-1 rounded-full">
+                                <FaClock /> Chưa check-in
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Activities Section */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-1 h-6 bg-gradient-to-b from-[#B5A65F] to-transparent rounded-full"></div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wide">
+                          Hoạt động đã đăng ký
+                        </h4>
+                        <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+                          {selectedRegistrationDetail.activities?.length || 0}
+                        </span>
+                      </div>
+
+                      {!selectedRegistrationDetail.activities ||
+                      selectedRegistrationDetail.activities.length === 0 ? (
+                        <div className="text-center py-10 bg-[#161616] rounded-2xl border border-dashed border-white/10">
+                          <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                            <FaTicketAlt className="text-gray-600 text-xl" />
+                          </div>
+                          <p className="text-gray-400 font-medium text-sm">
+                            Vé vào cửa tiêu chuẩn
+                          </p>
+                          <p className="text-gray-600 text-xs mt-1 max-w-xs mx-auto">
+                            Người dùng chỉ đăng ký tham gia sự kiện chung
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedRegistrationDetail.activities.map(
+                            (activity, idx) => (
+                              <div
+                                key={activity.activityId || idx}
+                                className="group bg-[#161616] rounded-2xl p-4 border border-white/5 hover:border-[#B5A65F]/20 transition-all hover:shadow-lg hover:shadow-[#B5A65F]/5"
+                              >
+                                <div className="flex items-start justify-between gap-4">
+                                  {/* Left - Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="w-6 h-6 rounded-lg bg-[#B5A65F]/10 flex items-center justify-center text-[#B5A65F] text-xs font-bold">
+                                        {idx + 1}
+                                      </span>
+                                      <h5 className="font-bold text-white text-sm group-hover:text-[#B5A65F] transition-colors truncate">
+                                        {activity.activityName || "Hoạt động"}
+                                      </h5>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                                      {activity.startTime && (
+                                        <span className="flex items-center gap-1.5">
+                                          <FaCalendarAlt className="text-gray-600" />
+                                          {new Date(
+                                            activity.startTime,
+                                          ).toLocaleString("vi-VN", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                          {activity.endTime && (
+                                            <span className="text-gray-600">
+                                              {" - "}
+                                              {new Date(
+                                                activity.endTime,
+                                              ).toLocaleTimeString("vi-VN", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })}
+                                            </span>
+                                          )}
+                                        </span>
+                                      )}
+                                      {activity.roomOrVenue && (
+                                        <span className="flex items-center gap-1.5">
+                                          <FaMapMarkerAlt className="text-gray-600" />
+                                          {activity.roomOrVenue}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Right - Status */}
+                                  <div className="flex flex-col items-end gap-2 shrink-0">
+                                    <StatusBadge
+                                      status={activity.activityStatus}
+                                    />
+                                    {activity.activityCheckInStatus ===
+                                    "CHECKED_IN" ? (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                                        <FaCheckCircle /> Đã check-in
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-medium text-gray-500 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                                        <FaClock /> Chưa check-in
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            ),
                           )}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                      <FaTimes className="text-2xl text-red-400" />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Không thể tải thông tin
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Footer của Modal */}
-              <div className="bg-[#141414] p-4 border-t border-white/5 flex justify-end">
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-white/5 bg-[#0d0d0d]">
                 <button
                   onClick={closeDetailModal}
-                  className="px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wide transition-all"
+                  className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover: border-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all"
                 >
                   Đóng
                 </button>
