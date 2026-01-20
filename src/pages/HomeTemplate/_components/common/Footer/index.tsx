@@ -185,6 +185,8 @@ export default function Footer() {
                   target="_blank"
                   key={social.id}
                   href={social.url}
+                  aria-label={`${social.id.charAt(0).toUpperCase() + social.id.slice(1)} - Webie Vietnam`}
+                  rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
                 >
                   <span className="text-sm">{social.icon}</span>
