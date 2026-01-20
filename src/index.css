@@ -11,8 +11,11 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Inter OpenType features: cv02 (l with tail), cv03 (curved r), cv04 (simple i/j), cv11 (single-story a) */
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* ✅ REMOVE font-feature-settings - can cause issues with Vietnamese diacritics */
+    /* font-feature-settings: "cv02", "cv03", "cv04", "cv11"; */
+    
+    /* ✅ ADD global line-height for Vietnamese text */
+    line-height: 1.6;
   }
 
   /* Default font - Inter */
@@ -34,6 +37,15 @@
       sans-serif;
   }
 
+  /* ✅ ADD: Specific line-height for text elements */
+  body, p {
+    line-height: 1.6; /* Safe for Vietnamese body text */
+  }
+
+  button, input, select {
+    line-height: 1.5; /* Slightly tighter for UI elements */
+  }
+
   /* Headings - Inter Bold/Extrabold/Black */
   h1,
   h2,
@@ -43,17 +55,24 @@
   h6 {
     font-family: "Inter", sans-serif;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em; /* ✅ Reduced from -0.02em */
+    line-height: 1.3; /* ✅ CRITICAL: Space for Vietnamese diacritics */
+    padding-top: 0.1em; /* ✅ Extra space above for hỏi/ngã marks */
+    padding-bottom: 0.05em; /* ✅ Extra space below for nặng mark */
   }
 
   h1 {
     font-weight: 900;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em; /* ✅ Reduced from -0.03em */
+    line-height: 1.25; /* ✅ Slightly tighter but safe for large text */
+    padding-top: 0.15em; /* ✅ More space for largest headings */
   }
 
   h2 {
     font-weight: 800;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em; /* ✅ Reduced from -0.025em */
+    line-height: 1.3; /* ✅ Safe spacing */
+    padding-top: 0.12em;
   }
 
   /* Utility classes */
@@ -67,7 +86,7 @@
       sans-serif;
   }
 
-  .font-inter {
+  .font-noto {
     font-family:
       "Inter",
       -apple-system,
@@ -153,6 +172,19 @@
   --animate-shimmer: shimmer 2s linear infinite;
 }
 
+/**
+ * Vietnamese Diacritics Test Cases:
+ * - Hỏi: ỏ, ả, ẻ, ỉ, ủ, ỷ, ở, ử, ỷ
+ * - Ngã: õ, ã, ẽ, ĩ, ũ, ỹ, ỡ, ữ, ỹ
+ * - Nặng: ọ, ạ, ẹ, ị, ụ, ỵ, ợ, ự, ỵ
+ * - Combined: Họp, Mặt, Đầu, Năm, Sự, Kiện, Hỏi, Đáp
+ * 
+ * Requirements:
+ * - All diacritics must be fully visible
+ * - No clipping at top or bottom
+ * - No overlap with adjacent lines
+ */
+
 @layer utilities {
   /* GPU acceleration for fade-in animation */
   .animate-fade-in-up {
@@ -160,6 +192,20 @@
     transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform, opacity;
+  }
+
+  /* ✅ ADD: Vietnamese text optimization */
+  .text-vietnamese {
+    line-height: 1.5;
+    padding-top: 0.15em;
+    padding-bottom: 0.1em;
+  }
+
+  /* ✅ ADD: Safe line-height for headings with Vietnamese */
+  .heading-vietnamese {
+    line-height: 1.3;
+    padding-top: 0.15em;
+    padding-bottom: 0.08em;
   }
 
   .bg-stars-pattern {
