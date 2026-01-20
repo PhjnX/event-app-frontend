@@ -72,18 +72,12 @@
 }
 
 @layer utilities {
-  /* GPU acceleration utilities */
+  /* GPU acceleration for fade-in animation */
   .animate-fade-in-up {
     animation: fadeInUp 0.8s ease-out forwards;
     transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform, opacity;
-  }
-
-  .animate-element {
-    will-change: transform, opacity;
-    transform: translateZ(0);
-    backface-visibility: hidden;
   }
 
   .bg-stars-pattern {
