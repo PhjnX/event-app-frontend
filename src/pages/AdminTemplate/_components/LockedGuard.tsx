@@ -30,7 +30,7 @@ export default function LockedGuard({
 
   // Lấy thông tin user từ Auth slice
   const { user, isLoading: authLoading } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   // State lưu thông tin chi tiết Organizer (được fetch bằng SLUG)
@@ -57,17 +57,19 @@ export default function LockedGuard({
       }
 
       // 2. Nếu User là ORGANIZER -> Tìm SLUG -> Gọi API chi tiết
+      // Tìm đoạn useEffect trong LockedGuard.tsx
+
+      // ...
       if (currentUser?.role === "ORGANIZER") {
-        // Lấy slug: Thường nằm trong object user.organizer hoặc user.username (nếu logic hệ thống dùng username làm slug)
-        // Bạn check lại response user của bạn, code dưới ưu tiên user.organizer.slug
-        const slug =
-          (currentUser as any).organizer?.slug ||
-          (currentUser as any).slug ||
-          (currentUser as any).username;
+        // LẤY DATA ORGANIZER TỪ USER
+        const organizerInfo = (currentUser as any).organizer;
+
+        // CHỈ LẤY SLUG NẾU NÓ TỒN TẠI THỰC SỰ
+        // Tuyệt đối không dùng || (currentUser as any).username
+        const slug = organizerInfo?.slug || (currentUser as any).slug;
 
         if (slug) {
           try {
-            // 👇 GỌI API LẤY CHI TIẾT THEO SLUG
             const resultAction = await dispatch(fetchOrganizerDetail(slug));
             if (fetchOrganizerDetail.fulfilled.match(resultAction)) {
               setOrganizerDetail(resultAction.payload);
@@ -76,9 +78,13 @@ export default function LockedGuard({
             console.error("Lỗi fetch chi tiết organizer:", error);
           }
         } else {
-          console.warn("Không tìm thấy slug trong user object");
+          // Log warning để biết user này đang bị thiếu data organizer
+          console.warn(
+            "User là Organizer nhưng không có Slug! Kiểm tra lại API Login.",
+          );
         }
       }
+      // ...
 
       setIsChecking(false);
     };

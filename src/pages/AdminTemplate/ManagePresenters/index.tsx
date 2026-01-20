@@ -23,7 +23,7 @@ import {
   FaFileExcel,
   FaLock,
   FaSpinner,
-  FaFilter, 
+  FaFilter,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
@@ -42,14 +42,14 @@ import {
   fetchOrganizers,
   fetchOrganizerDetail,
 } from "../../../store/slices/organizerSlice";
-import { fetchMyEvents } from "@/store/slices/eventSlice"; 
+import { fetchMyEvents } from "@/store/slices/eventSlice";
 import { uploadAvatar } from "../../../store/slices/auth";
 import type { Presenter } from "../../../models/presenter";
 import { ROLES } from "@/constants";
 
 import ConfirmModal from "./../_components/ConfirmModal";
 import LoadingOverlay from "../../HomeTemplate/_components/common/LoadingOverlay";
-import apiService from "@/services/apiService"; 
+import apiService from "@/services/apiService";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -57,31 +57,17 @@ export default function ManagePresenters() {
   const dispatch = useDispatch<AppDispatch>();
 
   const { data: presenters, isLoading } = useSelector(
-    (state: RootState) => state.presenters
+    (state: RootState) => state.presenters,
   );
   const { data: organizers } = useSelector(
-    (state: RootState) => state.organizers
+    (state: RootState) => state.organizers,
   );
-  const { data: myEvents } = useSelector((state: RootState) => state.events); 
+  const { data: myEvents } = useSelector((state: RootState) => state.events);
   const { user } = useSelector((state: RootState) => state.auth);
 
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
   const isOrganizer =
     user?.role === ROLES.ORGANIZER || user?.role === "ORGANIZER";
-
-  const toSlug = (str: string) => {
-    if (!str) return "";
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[đĐ]/g, "d")
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]+/g, "")
-      .replace(/--+/g, "-")
-      .replace(/^-+/, "")
-      .replace(/-+$/, "");
-  };
 
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
   const [isChecking, setIsChecking] = useState(isOrganizer);
@@ -90,11 +76,20 @@ export default function ManagePresenters() {
     if (isOrganizer && user) {
       setIsChecking(true);
       const orgData = (user as any).organizer || {};
+      if (
+        typeof orgData.locked === "boolean" ||
+        typeof orgData.approved === "boolean"
+      ) {
+        setOrgStatus({
+          locked: orgData.locked === true,
+          approved: orgData.approved !== false,
+        });
+      }
+
       const slugToCheck =
         orgData.slug ||
-        (user as any).slug ||
-        toSlug((user as any).username) ||
-        toSlug(orgData.name);
+        (user as any).organizerSlug ||
+        (user as any).organizer?.slug;
 
       if (slugToCheck) {
         dispatch(fetchOrganizerDetail(slugToCheck))
@@ -135,7 +130,7 @@ export default function ManagePresenters() {
   const [viewDetailPresenter, setViewDetailPresenter] =
     useState<Presenter | null>(null);
   const [selectedPresenterId, setSelectedPresenterId] = useState<number | null>(
-    null
+    null,
   );
   const [formData, setFormData] = useState<Partial<Presenter>>({
     fullName: "",
@@ -160,7 +155,7 @@ export default function ManagePresenters() {
     if (isSAdmin) {
       dispatch(fetchOrganizers());
     } else if (isOrganizer) {
-      dispatch(fetchMyEvents()); 
+      dispatch(fetchMyEvents());
     }
   }, [dispatch, isSAdmin, isOrganizer]);
 
@@ -185,7 +180,7 @@ export default function ManagePresenters() {
         setIsLoadingEventPresenters(true);
         try {
           const res: any = await apiService.get(
-            `/activities/by-event/${filterEventId}`
+            `/activities/by-event/${filterEventId}`,
           );
 
           if (Array.isArray(res)) {
@@ -194,12 +189,12 @@ export default function ManagePresenters() {
               if (act.presenter) {
                 uniquePresentersMap.set(
                   act.presenter.presenterId,
-                  act.presenter
+                  act.presenter,
                 );
               }
               if (act.presenters && Array.isArray(act.presenters)) {
                 act.presenters.forEach((p: any) =>
-                  uniquePresentersMap.set(p.presenterId, p)
+                  uniquePresentersMap.set(p.presenterId, p),
                 );
               }
             });
@@ -239,9 +234,9 @@ export default function ManagePresenters() {
 
   const displayData = useMemo(() => {
     if (isOrganizer && filterEventId !== "ALL") {
-      return eventPresenters; 
+      return eventPresenters;
     }
-    return presenters; 
+    return presenters;
   }, [presenters, eventPresenters, isOrganizer, filterEventId]);
 
   const filteredData = useMemo(() => {
@@ -326,7 +321,7 @@ export default function ManagePresenters() {
         await dispatch(createPresenter(payload)).unwrap();
       else if (selectedPresenterId)
         await dispatch(
-          updatePresenter({ id: selectedPresenterId, data: payload as any })
+          updatePresenter({ id: selectedPresenterId, data: payload as any }),
         ).unwrap();
 
       toast.success("Thao tác thành công!");
@@ -337,10 +332,8 @@ export default function ManagePresenters() {
       } else if (isOrganizer) {
         if (filterEventId === "ALL") dispatch(fetchMyPresenters());
         else {
-          setFilterEventId(
-            (prev) => prev
-          );
-        } 
+          setFilterEventId((prev) => prev);
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "Lỗi");
@@ -487,7 +480,7 @@ export default function ManagePresenters() {
                     {filterEventId === "ALL"
                       ? "Tất cả sự kiện"
                       : myEvents?.find(
-                          (e) => String(e.eventId) === filterEventId
+                          (e) => String(e.eventId) === filterEventId,
                         )?.eventName || "Chọn sự kiện"}
                   </span>
                 </div>
@@ -616,7 +609,7 @@ export default function ManagePresenters() {
           <AnimatePresence mode="popLayout">
             {paginatedData.map((item) => {
               const isStarActive = localFeatured.hasOwnProperty(
-                item.presenterId
+                item.presenterId,
               )
                 ? localFeatured[item.presenterId]
                 : item.featured;

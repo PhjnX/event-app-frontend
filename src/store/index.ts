@@ -6,7 +6,7 @@ import organizerReducer from "./slices/organizerSlice";
 import eventReducer from "./slices/eventSlice";
 import activityReducer from "./slices/activitySlice";
 import newsReducer from "./slices/newsSlice";
-
+import notificationReducer from "./slices/notificationSlice";
 const env = import.meta.env.NODE_ENV;
 
 const store = configureStore({
@@ -18,6 +18,7 @@ const store = configureStore({
     events: eventReducer,
     activities: activityReducer,
     news: newsReducer,
+    notifications: notificationReducer,
   },
   devTools: env !== "production",
 });

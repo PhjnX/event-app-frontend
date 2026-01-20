@@ -52,7 +52,6 @@ import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ITEMS_PER_PAGE = 8;
 
-
 const Skeleton = ({ className = "" }: { className?: string }) => (
   <div
     className={`animate-pulse bg-linear-to-r from-gray-800 via-gray-700 to-gray-800 bg-size-[200%_100%] rounded-3xl ${className}`}
@@ -123,21 +122,6 @@ export default function ManageEvents() {
   const { user } = useSelector((state: RootState) => state.auth);
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
 
-  // --- LOGIC HELPER & KHÓA (GIỮ NGUYÊN) ---
-  const toSlug = (str: string) => {
-    if (!str) return "";
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[đĐ]/g, "d")
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]+/g, "")
-      .replace(/--+/g, "-")
-      .replace(/^-+/, "")
-      .replace(/-+$/, "");
-  };
-
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
   const [isChecking, setIsChecking] = useState(user?.role === "ORGANIZER");
 
@@ -145,11 +129,20 @@ export default function ManageEvents() {
     if (user?.role === "ORGANIZER") {
       setIsChecking(true);
       const orgData = (user as any).organizer || {};
+      if (
+        typeof orgData.locked === "boolean" ||
+        typeof orgData.approved === "boolean"
+      ) {
+        setOrgStatus({
+          locked: orgData.locked === true,
+          approved: orgData.approved !== false,
+        });
+      }
+
       const slugToCheck =
         orgData.slug ||
-        (user as any).slug ||
-        toSlug((user as any).username) ||
-        toSlug(orgData.name);
+        (user as any).organizerSlug ||
+        (user as any).organizer?.slug;
 
       if (slugToCheck) {
         dispatch(fetchOrganizerDetail(slugToCheck))
@@ -170,13 +163,11 @@ export default function ManageEvents() {
 
   const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
 
-  // --- STATE UI ---
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
 
-  // State Dropdown Filter
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
 

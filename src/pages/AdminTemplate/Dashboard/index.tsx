@@ -31,7 +31,7 @@ import {
 } from "recharts";
 
 import NumberTicker from "@/components/magicui/number-ticker";
-import OptimizedImage from "@/components/ui/OptimizedImage"; 
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 import type { AppDispatch, RootState } from "../../../store";
 import {
@@ -144,7 +144,7 @@ const MiniStatCard = ({
       </div>
     </div>
     <div className="absolute bottom-0 left-0 right-0 h-20 z-0 opacity-40">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="99%" height={80}>
         <AreaChart data={data}>
           <defs>
             <linearGradient
@@ -326,7 +326,6 @@ export default function RealDataDashboard() {
       className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-[#B5A65F]/30 overflow-x-hidden`}
     >
       <div className="max-w-[1600px] mx-auto p-6 lg:p-8">
-        {/* HEADER */}
         <div className="flex items-center justify-between mb-8 sticky top-4 z-50">
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -335,7 +334,7 @@ export default function RealDataDashboard() {
           <div
             className={`flex-1 max-w-xl mx-auto ${THEME.cardBg} border ${THEME.border} rounded-full flex items-center px-4 py-2. 5 shadow-xl`}
           >
-            <Search className="w-5 h-5 text-zinc-500 mr-3" />
+            <Search className="w-6 h-6 text-zinc-500 mr-3" />{" "}
             <input
               type="text"
               value={searchQuery}
@@ -343,7 +342,7 @@ export default function RealDataDashboard() {
               placeholder={
                 isSAdmin ? "Search Events, News, Users..." : "Search Events..."
               }
-              className="bg-transparent border-none outline-none text-sm w-full placeholder:text-zinc-600"
+              className="bg-transparent border-none outline-none text-base w-full placeholder: text-zinc-600 py-3"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")}>
@@ -504,7 +503,7 @@ export default function RealDataDashboard() {
                     </div>
                   </div>
                   <div className="h-[350px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="99%" height={350}>
                       <BarChart data={monthlyStats} barGap={8}>
                         <CartesianGrid
                           strokeDasharray="3 3"
@@ -553,7 +552,7 @@ export default function RealDataDashboard() {
                     {statusData.length > 0 ? (
                       <>
                         <div className="h-[200px] relative">
-                          <ResponsiveContainer width="100%" height="100%">
+                          <ResponsiveContainer width="99%" height={200}>
                             <PieChart>
                               <Pie
                                 data={statusData}
