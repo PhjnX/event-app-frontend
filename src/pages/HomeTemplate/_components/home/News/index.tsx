@@ -278,6 +278,7 @@ const NewsSection = () => {
         <div className="relative h-[550px] flex items-center justify-center group/carousel">
           <button
             onClick={handlePrev}
+            aria-label="Previous news"
             className="absolute left-0 md:left-10 z-30 p-4 rounded-full bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.1)] text-white hover:bg-[#D8C97B] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
           >
             <FaChevronLeft size={24} />
@@ -285,6 +286,7 @@ const NewsSection = () => {
 
           <button
             onClick={handleNext}
+            aria-label="Next news"
             className="absolute right-0 md:right-10 z-30 p-4 rounded-full bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.1)] text-white hover:bg-[#D8C97B] hover:text-black transition-all opacity-0 group-hover/carousel:opacity-100 hidden md:block"
           >
             <FaChevronRight size={24} />
