@@ -16,7 +16,7 @@ interface OptimizedImageProps {
   objectFit?: "cover" | "contain" | "fill" | "none"; 
 }
 
-const OptimizedImage = memo(({
+const OptimizedImage = ({
   src,
   alt,
   width,
@@ -29,7 +29,7 @@ const OptimizedImage = memo(({
   enableHover = false,
   aspectRatio, 
   objectFit = "cover", // ✅ DEFAULT là cover
-}: OptimizedImageProps) {
+}: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -86,8 +86,6 @@ const OptimizedImage = memo(({
       />
     </div>
   );
-});
+};
 
-OptimizedImage.displayName = 'OptimizedImage';
-
-export default OptimizedImage;
+export default memo(OptimizedImage);
