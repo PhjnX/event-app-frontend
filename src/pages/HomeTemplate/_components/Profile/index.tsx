@@ -63,7 +63,7 @@ export default function ProfilePage() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -122,7 +122,7 @@ export default function ProfilePage() {
   const displayAvatar = previewAvatar || formData.avatarUrl;
 
   return (
-    <div className="min-h-screen bg-[#050505] pt-28 pb-20 font-sans relative overflow-hidden selection:bg-[rgba(216,201,123,0.3)]">
+    <div className="min-h-screen bg-[#050505] pt-28 pb-20 font-noto relative overflow-hidden selection:bg-[rgba(216,201,123,0.3)]">
       {/* 1. BACKGROUND EFFECTS - FIX WARNING TRANSPARENT */}
       <div
         className="absolute inset-0 z-0 opacity-20 pointer-events-none"

@@ -31,7 +31,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   const [formData, setFormData] = useState({
@@ -80,7 +80,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
   }, [isOpen]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

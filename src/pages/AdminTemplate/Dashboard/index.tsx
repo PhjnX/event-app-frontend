@@ -323,7 +323,7 @@ export default function RealDataDashboard() {
 
   return (
     <div
-      className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-[#B5A65F]/30 overflow-x-hidden`}
+      className={`min-h-screen ${THEME.bg} text-white font-noto selection:bg-[#B5A65F]/30 overflow-x-hidden`}
     >
       <div className="max-w-[1600px] mx-auto p-6 lg:p-8">
         <div className="flex items-center justify-between mb-8 sticky top-4 z-50">

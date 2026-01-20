@@ -455,16 +455,28 @@ const NewsDetail = () => {
                 <span className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 mb-2">
                   <Share2 size={18} />
                 </span>
-                <button aria-label="Share on Facebook" className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1">
+                <button
+                  aria-label="Share on Facebook"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
+                >
                   <Facebook size={18} />
                 </button>
-                <button aria-label="Share on Twitter" className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-sky-500 hover:border-sky-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1">
+                <button
+                  aria-label="Share on Twitter"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-sky-500 hover:border-sky-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
+                >
                   <Twitter size={18} />
                 </button>
-                <button aria-label="Share on LinkedIn" className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-800 hover:border-blue-800 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1">
+                <button
+                  aria-label="Share on LinkedIn"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-800 hover:border-blue-800 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
+                >
                   <Linkedin size={18} />
                 </button>
-                <button aria-label="Copy link" className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-gray-900 hover:border-gray-900 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1">
+                <button
+                  aria-label="Copy link"
+                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-gray-900 hover:border-gray-900 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
+                >
                   <LinkIcon size={18} />
                 </button>
               </div>

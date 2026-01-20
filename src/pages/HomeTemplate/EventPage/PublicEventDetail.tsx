@@ -289,17 +289,14 @@ export default function PublicEventDetail() {
                       <FaCheckCircle className="text-green-800 text-2xl" />
                     );
                   } else if (isFull) {
-                    // HẾT CHỖ (SOLD OUT)
-                    // Dùng background sọc chéo (Striped) để báo hiệu khu vực cấm
                     wrapperClass = `
                         border-red-900/20 bg-[#140505] opacity-80 cursor-not-allowed
                         bg-[repeating-linear-gradient(45deg,#140505,#140505_10px,#1f0a0a_10px,#1f0a0a_20px)]
                     `;
                     timeClass = "text-red-900/40 border-red-900/10";
-                    titleClass = "text-gray-500 opacity-50"; // Làm mờ chữ chứ không gạch ngang
+                    titleClass = "text-gray-500 opacity-50";
                     iconStatus = <FaBan className="text-red-900/40 text-2xl" />;
                   } else if (isSelected) {
-                    // ĐANG CHỌN
                     wrapperClass =
                       "border-[#B5A65F] bg-[#1a1a1a] shadow-[0_0_25px_rgba(181,166,95,0.15)] z-10 scale-[1.02]";
                     timeClass = "text-[#B5A65F] font-bold border-[#B5A65F]/30";
@@ -314,7 +311,6 @@ export default function PublicEventDetail() {
                       key={act.activityId}
                       layout
                       onClick={() => toggleActivity(act.activityId, isFull)}
-                      // Hiệu ứng Rung (Shake) khi click vào thẻ Hết chỗ
                       animate={isShaking ? { x: [-5, 5, -5, 5, 0] } : {}}
                       transition={{ duration: 0.4 }}
                       className={`
@@ -322,7 +318,6 @@ export default function PublicEventDetail() {
                         ${wrapperClass}
                       `}
                     >
-                      {/* SOLD OUT STAMP (Đóng dấu) - Xịn hơn, có Animation */}
                       {isFull && !isRegistered && (
                         <motion.div
                           initial={{ scale: 2, opacity: 0 }}
@@ -340,7 +335,6 @@ export default function PublicEventDetail() {
                         </motion.div>
                       )}
 
-                      {/* Time Column */}
                       <div
                         className={`flex flex-row sm:flex-col items-center sm:justify-center gap-2 p-6 sm:w-32 sm:border-r border-dashed shrink-0 ${timeClass}`}
                       >
@@ -353,7 +347,6 @@ export default function PublicEventDetail() {
                         </div>
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 p-6 flex flex-col justify-center gap-3 relative z-10">
                         <div className="flex justify-between items-start gap-4">
                           <h4
@@ -362,7 +355,6 @@ export default function PublicEventDetail() {
                             {act.activityName}
                           </h4>
 
-                          {/* Slot Indicator */}
                           {!isRegistered && !isFull && (
                             <div
                               className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[10px] font-mono tracking-wide border ${
@@ -408,12 +400,10 @@ export default function PublicEventDetail() {
                         )}
                       </div>
 
-                      {/* Checkbox */}
-                      <div className="flex items-center justify-center px-8 min-w-[80px] relative z-10">
+                      <div className="flex items-center justify-center px-8 min-w-20 relative z-10">
                         {iconStatus}
                       </div>
 
-                      {/* Badge Registered */}
                       {isRegistered && (
                         <div className="absolute top-0 right-0 bg-green-900/90 text-green-300 text-[9px] font-bold px-4 py-1.5 rounded-bl-xl border-l border-b border-green-500/30 z-20">
                           ĐÃ ĐĂNG KÝ
@@ -425,7 +415,6 @@ export default function PublicEventDetail() {
               </div>
             </section>
 
-            {/* Presenters */}
             <section>
               <div className="flex items-center gap-4 mb-8 pt-8 border-t border-white/10">
                 <h3 className="text-2xl font-black uppercase tracking-tight text-white">
@@ -446,7 +435,7 @@ export default function PublicEventDetail() {
                       className="w-full h-full"
                       imgClassName="opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                     />
-                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+                    <div className="absolute inset-x-0 bottom-0 p-4 bg-linear-to-t from-black via-black/80 to-transparent">
                       <p className="text-sm font-bold text-white truncate">
                         {p.fullName}
                       </p>
@@ -460,19 +449,14 @@ export default function PublicEventDetail() {
             </section>
           </div>
 
-          {/* --- RIGHT: STICKY TICKET (MINIMALIST RECEIPT STYLE) --- */}
           <div className="hidden lg:block lg:w-2/5 relative">
             <div className="sticky top-28">
-              {/* VÉ STYLE HÓA ĐƠN TRẮNG (Như hình mẫu) */}
-              <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl relative text-black transform transition-all hover:scale-[1.01] duration-500">
-                {/* --- HEADER --- */}
+              <div className="bg-white rounded-4xl overflow-hidden shadow-2xl relative text-black transform transition-all hover:scale-[1.01] duration-500">
                 <div className="p-10 pb-12 relative">
                   <div className="flex justify-between items-start mb-8">
-                    {/* Logo Box */}
                     <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white text-xl">
                       <FaTicketAlt />
                     </div>
-                    {/* Ticket Meta */}
                     <div className="text-right">
                       <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">
                         Vé tham dự
@@ -483,12 +467,10 @@ export default function PublicEventDetail() {
                     </div>
                   </div>
 
-                  {/* Event Name */}
                   <h2 className="text-3xl font-noto font-bold leading-[1.1] mb-8 tracking-tight">
                     {event.eventName}
                   </h2>
 
-                  {/* Info Rows */}
                   <div className="space-y-4 border-t-2 border-black/5 pt-6">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400 uppercase font-bold tracking-wider text-[10px]">

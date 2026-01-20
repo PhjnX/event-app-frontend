@@ -51,7 +51,7 @@ const TimelineSection = () => {
   };
 
   return (
-    <section className="relative py-20 lg:py-28 bg-[#0a0a0a] overflow-hidden font-sans text-white selection:bg-[#D8C97B] selection:text-black">
+    <section className="relative py-20 lg:py-28 bg-[#0a0a0a] overflow-hidden font-noto text-white selection:bg-[#D8C97B] selection:text-black">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[400px] bg-[rgba(216,201,123,0.08)] rounded-full blur-[100px]"></div>
         <div

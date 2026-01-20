@@ -478,7 +478,7 @@ export default function ManageEvents() {
   const visibleTabs = isSAdmin ? TABS.filter((t) => t.id !== "DRAFT") : TABS;
 
   return (
-    <div className="min-h-screen pb-20 font-sans text-white">
+    <div className="min-h-screen pb-20 font-noto text-white">
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
         <div className="w-full sm:w-auto relative z-30" ref={filterDropdownRef}>
           <div

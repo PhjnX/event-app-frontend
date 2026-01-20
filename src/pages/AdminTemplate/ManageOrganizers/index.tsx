@@ -38,7 +38,7 @@ export default function ManageOrganizers() {
   const dispatch = useDispatch<AppDispatch>();
 
   const { data: organizers, isLoading: isLoadingOrg } = useSelector(
-    (state: RootState) => state.organizers
+    (state: RootState) => state.organizers,
   );
   const { data: users } = useSelector((state: RootState) => state.listUser);
 
@@ -81,7 +81,7 @@ export default function ManageOrganizers() {
       return userOwner.avatarUrl;
     }
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      org.name
+      org.name,
     )}&background=random&color=fff`;
   };
 
@@ -123,8 +123,8 @@ export default function ManageOrganizers() {
         "Trạng thái": org.locked
           ? "Đã khóa"
           : org.approved
-          ? "Hoạt động"
-          : "Chờ duyệt",
+            ? "Hoạt động"
+            : "Chờ duyệt",
       }));
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
@@ -162,7 +162,7 @@ export default function ManageOrganizers() {
 
   const openConfirmModal = (
     type: "ACTIVATE" | "LOCK" | "UNLOCK",
-    org: Organizer
+    org: Organizer,
   ) => {
     setConfirmState({ isOpen: true, type, data: org });
   };
@@ -190,7 +190,7 @@ export default function ManageOrganizers() {
   };
 
   return (
-    <div className="min-h-screen pb-20 font-sans text-white relative selection:bg-[rgba(181,166,95,0.3)]">
+    <div className="min-h-screen pb-20 font-noto text-white relative selection:bg-[rgba(181,166,95,0.3)]">
       <AnimatePresence>
         {isProcessing && (
           <LoadingOverlay message="Đang xử lý yêu cầu..." className="z-9999" />
@@ -266,8 +266,8 @@ export default function ManageOrganizers() {
                   org.locked
                     ? "border-red-500/20"
                     : org.approved
-                    ? "border-white/5 hover:border-[rgba(181,166,95,0.3)] hover:shadow-2xl"
-                    : "border-red-500/10 opacity-80"
+                      ? "border-white/5 hover:border-[rgba(181,166,95,0.3)] hover:shadow-2xl"
+                      : "border-red-500/10 opacity-80"
                 }`}
               >
                 {org.locked && (
@@ -487,8 +487,7 @@ export default function ManageOrganizers() {
 
       <AnimatePresence>
         {rejectModal.isOpen && (
-          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
-          </div>
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4"></div>
         )}
       </AnimatePresence>
 
@@ -502,15 +501,15 @@ export default function ManageOrganizers() {
             confirmState.type === "LOCK"
               ? "Khóa tài khoản"
               : confirmState.type === "UNLOCK"
-              ? "Mở khóa tài khoản"
-              : "Kích hoạt"
+                ? "Mở khóa tài khoản"
+                : "Kích hoạt"
           }
           message={
             confirmState.type === "LOCK"
               ? `Bạn có chắc muốn khóa quyền tương tác của "${confirmState.data.name}"? Họ sẽ chỉ có thể xem dữ liệu.`
               : confirmState.type === "UNLOCK"
-              ? `Khôi phục quyền cho "${confirmState.data.name}"?`
-              : `Kích hoạt tổ chức "${confirmState.data.name}"?`
+                ? `Khôi phục quyền cho "${confirmState.data.name}"?`
+                : `Kích hoạt tổ chức "${confirmState.data.name}"?`
           }
           confirmText="Xác nhận"
         />

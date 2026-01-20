@@ -15,7 +15,6 @@ const revealVariants: Variants = {
 const FoundersPledge: React.FC = () => {
   return (
     <section className="py-32 bg-[#0a0a0a] font-noto text-white relative overflow-hidden">
-     
       <style>{`
         .font-signature {
           font-family: 'Great Vibes', cursive;

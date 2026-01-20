@@ -87,7 +87,7 @@ const TeamSection: React.FC = () => {
   const handlePrev = () => {
     setDirection(-1);
     setCurrentIndex(
-      (prev) => (prev - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length
+      (prev) => (prev - 1 + TEAM_MEMBERS.length) % TEAM_MEMBERS.length,
     );
   };
 

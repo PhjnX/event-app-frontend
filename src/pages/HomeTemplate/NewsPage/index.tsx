@@ -329,7 +329,6 @@ const ExploreMasonry: React.FC<{ posts: any[] }> = ({ posts }) => {
   );
 };
 
-
 export default function NewsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);

@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { type AppDispatch, type RootState } from "@/store"; 
+import { type AppDispatch, type RootState } from "@/store";
 import { fetchPublicPosts } from "@/store/slices/newsSlice";
 
 interface NewsUI {
@@ -67,106 +67,103 @@ interface NewsCardProps {
   onDragStart: () => void;
   onDragEnd: (
     event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => void;
 }
 
-const NewsCard = memo(({
-  news,
-  position,
-  onDragStart,
-  onDragEnd,
-}: NewsCardProps) => {
-  const isCenter = position === "center";
-  const isLeft = position === "left";
+const NewsCard = memo(
+  ({ news, position, onDragStart, onDragEnd }: NewsCardProps) => {
+    const isCenter = position === "center";
+    const isLeft = position === "left";
 
-  return (
-    <motion.div
-      drag={isCenter ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.2}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      initial={{
-        x: isCenter ? 0 : isLeft ? -200 : 200,
-        scale: 0.8,
-        opacity: 0,
-      }}
-      animate={{
-        x: isCenter ? "0%" : isLeft ? "-85%" : "85%",
-        scale: isCenter ? 1.1 : 0.85,
-        zIndex: isCenter ? 20 : 10,
-        opacity: isCenter ? 1 : 0.3,
-        filter: isCenter
-          ? "brightness(1) blur(0px)"
-          : "brightness(0.4) blur(4px)",
-        cursor: isCenter ? "grab" : "default",
-      }}
-      whileTap={{ cursor: "grabbing" }}
-      exit={{ opacity: 0, scale: 0.5 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute w-[90%] md:w-[800px] h-[350px] md:h-[450px] rounded-3xl"
-    >
-      <div
-        className={`relative w-full h-full rounded-3xl overflow-hidden border shadow-2xl group transition-all duration-500
+    return (
+      <motion.div
+        drag={isCenter ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        initial={{
+          x: isCenter ? 0 : isLeft ? -200 : 200,
+          scale: 0.8,
+          opacity: 0,
+        }}
+        animate={{
+          x: isCenter ? "0%" : isLeft ? "-85%" : "85%",
+          scale: isCenter ? 1.1 : 0.85,
+          zIndex: isCenter ? 20 : 10,
+          opacity: isCenter ? 1 : 0.3,
+          filter: isCenter
+            ? "brightness(1) blur(0px)"
+            : "brightness(0.4) blur(4px)",
+          cursor: isCenter ? "grab" : "default",
+        }}
+        whileTap={{ cursor: "grabbing" }}
+        exit={{ opacity: 0, scale: 0.5 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute w-[90%] md:w-[800px] h-[350px] md:h-[450px] rounded-3xl"
+      >
+        <div
+          className={`relative w-full h-full rounded-3xl overflow-hidden border shadow-2xl group transition-all duration-500
             ${
               isCenter
                 ? "border-[rgba(181,166,95,0.5)] shadow-[0_0_50px_rgba(181,166,95,0.15)]"
                 : "border-[rgba(255,255,255,0.05)]"
             }
         `}
-      >
-        <img
-          src={news.image}
-          alt={news.title}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.6)] to-[rgba(0,0,0,0)] opacity-90 pointer-events-none"></div>
+        >
+          <img
+            src={news.image}
+            alt={news.title}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-[rgba(0,0,0,1)] via-[rgba(0,0,0,0.6)] to-[rgba(0,0,0,0)] opacity-90 pointer-events-none"></div>
 
-        <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end pointer-events-none">
-          <div className="transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-            <div className="flex flex-wrap items-center gap-4 mb-4">
-              <span className="bg-[#D8C97B] text-black text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
-                {news.category}
-              </span>
-              <div className="flex items-center gap-4 text-xs text-gray-300 uppercase tracking-wider font-bold">
-                <span className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-[#D8C97B]" /> {news.date}
+          <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end pointer-events-none">
+            <div className="transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                <span className="bg-[#D8C97B] text-black text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
+                  {news.category}
                 </span>
+                <div className="flex items-center gap-4 text-xs text-gray-300 uppercase tracking-wider font-bold">
+                  <span className="flex items-center gap-2">
+                    <FaCalendarAlt className="text-[#D8C97B]" /> {news.date}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#D8C97B] transition-colors pointer-events-auto line-clamp-2">
-              <Link to={`/news/${news.id}`}>{news.title}</Link>
-            </h3>
+              <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#D8C97B] transition-colors pointer-events-auto line-clamp-2">
+                <Link to={`/news/${news.id}`}>{news.title}</Link>
+              </h3>
 
-            <motion.div
-              animate={{ opacity: isCenter ? 1 : 0 }}
-              className="overflow-hidden pointer-events-auto"
-            >
-              <p className="text-gray-300 text-base md:text-lg line-clamp-2 mb-6 max-w-2xl font-light">
-                {news.excerpt}
-              </p>
-              <Link
-                to={`/news/${news.id}`}
-                className="inline-flex items-center gap-3 text-[#D8C97B] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#D8C97B] pb-1 hover:border-white"
+              <motion.div
+                animate={{ opacity: isCenter ? 1 : 0 }}
+                className="overflow-hidden pointer-events-auto"
               >
-                Xem chi tiết <FaArrowRight />
-              </Link>
-            </motion.div>
+                <p className="text-gray-300 text-base md:text-lg line-clamp-2 mb-6 max-w-2xl font-light">
+                  {news.excerpt}
+                </p>
+                <Link
+                  to={`/news/${news.id}`}
+                  className="inline-flex items-center gap-3 text-[#D8C97B] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#D8C97B] pb-1 hover:border-white"
+                >
+                  Xem chi tiết <FaArrowRight />
+                </Link>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
-  );
-});
+      </motion.div>
+    );
+  },
+);
 
-NewsCard.displayName = 'NewsCard';
+NewsCard.displayName = "NewsCard";
 
 const NewsSection = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data: apiData, loading } = useSelector(
-    (state: RootState) => state.news
+    (state: RootState) => state.news,
   );
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -182,12 +179,11 @@ const NewsSection = () => {
       id: item.id || item.slug,
       title: item.title,
       image: item.thumbnailUrl,
-      category: "Tin Tức", 
+      category: "Tin Tức",
       date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
-      author: "", 
+      author: "",
       excerpt: item.summary,
     }));
-
 
     if (mapped.length > 0 && mapped.length < 3) {
       return [...mapped, ...mapped, ...mapped].slice(0, 3);
@@ -196,7 +192,6 @@ const NewsSection = () => {
     return mapped;
   }, [apiData]);
 
-  
   useEffect(() => {
     if (isPaused || newsList.length === 0) return;
     const interval = setInterval(() => {
@@ -217,7 +212,7 @@ const NewsSection = () => {
 
   const onDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
     const threshold = 50;
     if (info.offset.x > threshold) {
@@ -240,7 +235,6 @@ const NewsSection = () => {
     ];
   };
 
-
   if (loading && newsList.length === 0) {
     return (
       <section className="py-32 bg-[#0a0a0a] flex justify-center items-center h-[600px]">
@@ -253,7 +247,7 @@ const NewsSection = () => {
   }
 
   if (!loading && newsList.length === 0) {
-    return null; 
+    return null;
   }
 
   return (

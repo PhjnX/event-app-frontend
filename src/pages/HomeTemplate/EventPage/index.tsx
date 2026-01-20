@@ -2,14 +2,13 @@ import React, { Suspense, useState } from "react";
 import FeaturedPresenters from "../_components/events/FeaturedPresenters";
 
 const HeroCarousel = React.lazy(
-  () => import("../_components/events/HeroCarousel")
+  () => import("../_components/events/HeroCarousel"),
 );
 const FilterBar = React.lazy(() => import("../_components/events/FilterBar"));
 const EventsGrid = React.lazy(() => import("../_components/events/EventsGrid"));
 const CTANewsletter = React.lazy(
-  () => import("../_components/events/CTANewsletter")
+  () => import("../_components/events/CTANewsletter"),
 );
-
 
 const SectionLoader = () => (
   <div className="w-full h-40 flex items-center justify-center bg-[#0a0a0a]">
@@ -35,7 +34,6 @@ export default function EventsPage() {
         <FilterBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </Suspense>
 
-    
       <Suspense fallback={<SectionLoader />}>
         <EventsGrid searchTerm={searchTerm} />
       </Suspense>

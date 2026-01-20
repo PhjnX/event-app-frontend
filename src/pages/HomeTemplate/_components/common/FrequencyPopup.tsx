@@ -14,7 +14,7 @@ const FrequencyPopup = () => {
   const [showModal, setShowModal] = useState(false);
 
   const { isAuthenticated, user } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const FrequencyPopup = () => {
     }
 
     const currentCount = parseInt(
-      localStorage.getItem("page_load_count") || "0"
+      localStorage.getItem("page_load_count") || "0",
     );
     const newCount = currentCount + 1;
     localStorage.setItem("page_load_count", newCount.toString());

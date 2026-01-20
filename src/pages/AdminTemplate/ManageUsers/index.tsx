@@ -46,7 +46,7 @@ export default function ManageUsers() {
 
   // 1. Nguồn dữ liệu
   const { data: allAttendees, isLoading: isUserLoading } = useSelector(
-    (state: RootState) => state.listUser
+    (state: RootState) => state.listUser,
   );
 
   const {
@@ -126,7 +126,7 @@ export default function ManageUsers() {
             role: "USER",
             address: "",
             gender: "OTHER",
-          } as User)
+          }) as User,
       );
     }
     return (allAttendees || []) as User[];
@@ -148,7 +148,7 @@ export default function ManageUsers() {
           (u.username || "").toLowerCase().includes(lower) ||
           (u.email || "").toLowerCase().includes(lower) ||
           (String(u.uid) || "").toLowerCase().includes(lower) ||
-          (u.phoneNumber || "").includes(lower)
+          (u.phoneNumber || "").includes(lower),
       );
     }
     return result;
@@ -178,7 +178,7 @@ export default function ManageUsers() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
     XLSX.writeFile(
       workbook,
-      `Users_${new Date().toISOString().slice(0, 10)}.xlsx`
+      `Users_${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
     toast.success("Xuất file thành công!");
   };
@@ -226,7 +226,7 @@ export default function ManageUsers() {
       }
       const updateData = { ...formData, avatarUrl: finalAvatarUrl };
       await dispatch(
-        updateUser({ uid: selectedUser.uid, data: updateData })
+        updateUser({ uid: selectedUser.uid, data: updateData }),
       ).unwrap();
       toast.success("Cập nhật thành công!");
       setIsDrawerOpen(false);
@@ -266,7 +266,7 @@ export default function ManageUsers() {
     isUserLoading || (filterEventId !== "ALL" && isRegistrationLoading);
 
   return (
-    <div className="pb-20 font-sans text-white min-h-screen selection:bg-[#B5A65F]/30 pr-1">
+    <div className="pb-20 font-noto text-white min-h-screen selection:bg-[#B5A65F]/30 pr-1">
       {/* HEADER */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
         {isOrganizer ? (
@@ -288,7 +288,7 @@ export default function ManageUsers() {
                     {filterEventId === "ALL"
                       ? "Tất cả sự kiện"
                       : myEvents?.find(
-                          (e) => String(e.eventId) === filterEventId
+                          (e) => String(e.eventId) === filterEventId,
                         )?.eventName || "Chọn sự kiện"}
                   </span>
                 </div>

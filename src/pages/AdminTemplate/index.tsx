@@ -10,7 +10,7 @@ export default function AdminTemplate() {
   const sidebarWidth = isCollapsed ? "80px" : "260px";
 
   return (
-    <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-[#B5A65F] selection:text-black">
+    <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-noto selection:bg-[#B5A65F] selection:text-black">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <main

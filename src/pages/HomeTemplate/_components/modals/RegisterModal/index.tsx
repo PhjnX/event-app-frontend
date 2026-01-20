@@ -115,7 +115,7 @@ export default function RegisterModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans selection:bg-[rgba(216,201,123,0.3)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-noto selection:bg-[rgba(216,201,123,0.3)]">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

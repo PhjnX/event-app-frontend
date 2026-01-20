@@ -109,7 +109,7 @@ export default function EditEventPage() {
 
     const startDateISO = combineToISO(
       formData.startDateDate,
-      formData.startDateTime
+      formData.startDateTime,
     );
     const endDateISO = combineToISO(formData.endDateDate, formData.endDateTime);
     const regDateISO = combineToISO(formData.regDateDate, formData.regDateTime);
@@ -124,7 +124,7 @@ export default function EditEventPage() {
       let finalBannerUrl = formData.bannerImageUrl;
       if (bannerFile) {
         const uploadResult = await dispatch(
-          uploadEventImage(bannerFile)
+          uploadEventImage(bannerFile),
         ).unwrap();
         finalBannerUrl =
           typeof uploadResult === "string"
@@ -141,7 +141,7 @@ export default function EditEventPage() {
         endDate: endDateISO,
         registrationDeadline: regDateISO,
         visibility: formData.visibility,
-        status: formData.status, 
+        status: formData.status,
       };
 
       if (slug) {
@@ -168,7 +168,7 @@ export default function EditEventPage() {
     "bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden transition-colors hover:border-[rgba(181,166,95,0.3)]";
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-200 selection:bg-[rgba(181,166,95,0.3)]">
+    <div className="max-w-6xl mx-auto pb-20 font-noto text-gray-200 selection:bg-[rgba(181,166,95,0.3)]">
       <div className="sticky top-0 z-40 bg-[rgba(5,5,5,0.8)] backdrop-blur-md py-4 border-b border-white/10 flex items-center gap-4 mb-8">
         <Link
           to={`/admin/events/${slug}`}

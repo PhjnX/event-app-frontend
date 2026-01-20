@@ -375,7 +375,7 @@ export default function ManagePresenters() {
     (isOrganizer && filterEventId !== "ALL" && isLoadingEventPresenters);
 
   return (
-    <div className="relative min-h-screen pb-20 px-4 md:px-6 font-sans text-white selection:bg-[rgba(181,166,95,0.3)]">
+    <div className="relative min-h-screen pb-20 px-4 md:px-6 font-noto text-white selection:bg-[rgba(181,166,95,0.3)]">
       <AnimatePresence>
         {isSubmitting && (
           <LoadingOverlay message="Đang xử lý..." className="fixed z-9999" />

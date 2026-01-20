@@ -351,7 +351,7 @@ export default function EventDetail() {
     "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-700 text-sm font-medium";
 
   return (
-    <div className="min-h-screen bg-[#050505] text-gray-100 font-sans pb-20 selection:bg-[rgba(181,166,95,0.3)]">
+    <div className="min-h-screen bg-[#050505] text-gray-100 font-noto pb-20 selection:bg-[rgba(181,166,95,0.3)]">
       <div className="bg-[rgba(5,5,5,0.8)] border-b border-white/5 top-0 z-40 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <Link
@@ -372,7 +372,7 @@ export default function EventDetail() {
             alt={event.eventName}
             width={1920}
             height={800}
-            priority={true} 
+            priority={true}
             className="w-full h-full"
             imgClassName="transition-transform duration-2000 ease-out group-hover:scale-105"
           />

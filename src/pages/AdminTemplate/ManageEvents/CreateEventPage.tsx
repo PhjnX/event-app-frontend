@@ -46,7 +46,7 @@ export default function CreateEventPage() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -79,7 +79,7 @@ export default function CreateEventPage() {
     setLoading(true);
     try {
       const uploadResult = await dispatch(
-        uploadEventImage(bannerFile)
+        uploadEventImage(bannerFile),
       ).unwrap();
 
       let bannerImageUrl = "";
@@ -121,8 +121,7 @@ export default function CreateEventPage() {
     "bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden hover:border-[#B5A65F]/30 transition-colors";
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 font-sans text-gray-200">
-      
+    <div className="max-w-6xl mx-auto pb-20 font-noto text-gray-200">
       <div className="flex items-center justify-between mb-8 py-4 border-b border-white/10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Link
@@ -137,7 +136,6 @@ export default function CreateEventPage() {
         </div>
       </div>
 
-    
       <LockedGuard>
         <form
           onSubmit={handleSubmit}

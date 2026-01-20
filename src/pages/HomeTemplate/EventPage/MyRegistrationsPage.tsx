@@ -325,7 +325,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
 export default function MyRegistrationsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { myRegistrations, isLoading } = useSelector(
-    (state: RootState) => state.events
+    (state: RootState) => state.events,
   );
   const [activeTab, setActiveTab] = useState<"UPCOMING" | "PAST">("UPCOMING");
 
@@ -343,7 +343,7 @@ export default function MyRegistrationsPage() {
   const status = {
     active: (myRegistrations || []).filter(
       (t: any) =>
-        new Date(t.eventEndDate) >= new Date() && t.status === "APPROVED"
+        new Date(t.eventEndDate) >= new Date() && t.status === "APPROVED",
     ).length,
     total: (myRegistrations || []).length,
   };

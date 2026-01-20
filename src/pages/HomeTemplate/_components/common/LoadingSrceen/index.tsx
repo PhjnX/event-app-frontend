@@ -18,7 +18,7 @@ const LoadingScreen = () => {
           className="absolute w-12 h-12 border-2 border-[#D8C97B]/30 border-b-[#D8C97B] rounded-full"
           animate={{ rotate: -360 }}
           transition={{
-            duration: 2, 
+            duration: 2,
             repeat: Infinity,
             ease: "linear",
           }}

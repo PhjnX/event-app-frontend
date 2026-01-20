@@ -11,7 +11,7 @@ import { FaChevronLeft, FaChevronRight, FaArrowRight } from "react-icons/fa";
 import { SLIDES, type Slide } from "./slide";
 
 import LoginModal from "../../modals/LoginModal";
-import OrganizerRegModal from "../../common/OrganizerRegModal"; 
+import OrganizerRegModal from "../../common/OrganizerRegModal";
 
 const Device3D = ({ slide }: { slide: Slide }) => {
   const x = useMotionValue(0.5);
@@ -130,12 +130,12 @@ export default function CarouselHero() {
   const renderButton = (
     label: string,
     path: string,
-    variant: "primary" | "secondary"
+    variant: "primary" | "secondary",
   ) => {
     const primaryClass =
       "font-noto group relative inline-flex items-center gap-2 px-7 py-3 bg-[#B5A65F] text-black font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(181,166,95,0.4)]";
     const secondaryClass =
-      "font-sans px-7 py-3 bg-[rgba(255,255,255,0.05)] backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest rounded-full border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[#B5A65F] transition-all duration-300 hover:-translate-y-1";
+      "font-noto px-7 py-3 bg-[rgba(255,255,255,0.05)] backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest rounded-full border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[#B5A65F] transition-all duration-300 hover:-translate-y-1";
 
     const className = variant === "primary" ? primaryClass : secondaryClass;
     const content = (
@@ -192,7 +192,7 @@ export default function CarouselHero() {
   };
 
   return (
-    <section className="relative min-h-dvh w-full overflow-hidden bg-[#050505] text-white font-sans selection:bg-[rgba(181,166,95,0.3)] selection:text-black">
+    <section className="relative min-h-dvh w-full overflow-hidden bg-[#050505] text-white font-noto selection:bg-[rgba(181,166,95,0.3)] selection:text-black">
       {SLIDES.map((slide, index) => (
         <SlideBackground
           key={slide.id}
@@ -223,12 +223,12 @@ export default function CarouselHero() {
               {renderButton(
                 currentSlide.btnPrimary,
                 currentSlide.pathPrimary,
-                "primary"
+                "primary",
               )}
               {renderButton(
                 currentSlide.btnSecondary,
                 currentSlide.pathSecondary,
-                "secondary"
+                "secondary",
               )}
             </div>
           </motion.div>

@@ -10,7 +10,7 @@ import OptimizedImage from "@/components/ui/OptimizedImage";
 export default function HeroCarousel() {
   const dispatch = useDispatch<AppDispatch>();
   const { featuredEvents, isLoading } = useSelector(
-    (state: RootState) => state.events
+    (state: RootState) => state.events,
   );
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -27,7 +27,7 @@ export default function HeroCarousel() {
     if (displayData.length <= 1) return;
     const timer = setInterval(
       () => setCurrentSlide((prev) => (prev + 1) % displayData.length),
-      6000 // 6 giây đổi 1 lần
+      6000, // 6 giây đổi 1 lần
     );
     return () => clearInterval(timer);
   }, [displayData.length]);

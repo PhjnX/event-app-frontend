@@ -175,8 +175,8 @@ export default function RegistrationSection() {
                   alt="Event"
                   width={1200}
                   height={400}
-                  aspectRatio="21/9" 
-                  objectFit="cover" 
+                  aspectRatio="21/9"
+                  objectFit="cover"
                   imgClassName="opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
                   className="rounded-xl"
                   priority={false}

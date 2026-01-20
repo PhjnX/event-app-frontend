@@ -196,7 +196,7 @@ export default function ManageRegistrations() {
   };
 
   return (
-    <div className="min-h-screen pb-20 font-sans text-gray-200 bg-[#090909]">
+    <div className="min-h-screen pb-20 font-noto text-gray-200 bg-[#090909]">
       {/* Header */}
       <div className="relative pt-8 pb-10 px-6 sm:px-10 border-b border-white/5 bg-[#0f0f0f]">
         <button
