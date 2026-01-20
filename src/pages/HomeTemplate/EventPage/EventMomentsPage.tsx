@@ -535,7 +535,7 @@ export default function EventMomentsPage() {
           <div className="absolute inset-0 w-full h-full">
             <OptimizedImage
               src={bgImage}
-              alt="Event background"
+              alt="Event moments page background image"
               width={1920}
               height={1080}
               priority={true}

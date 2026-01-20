@@ -28,7 +28,7 @@ const OptimizedImage = ({
   onClick,
   enableHover = false,
   aspectRatio, 
-  objectFit = "cover", // ✅ DEFAULT là cover
+  objectFit = "cover", // DEFAULT is cover
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
