@@ -195,12 +195,14 @@ const TeamSection: React.FC = () => {
                   <div className="absolute bottom-0 left-0 p-6 flex gap-3">
                     <a
                       href="#"
+                      aria-label="LinkedIn profile"
                       className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
                       <FaLinkedinIn />
                     </a>
                     <a
                       href="#"
+                      aria-label="Email contact"
                       className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
                       <FaEnvelope />
@@ -244,6 +246,7 @@ const TeamSection: React.FC = () => {
                         <button
                           key={member.id}
                           onClick={() => handleSelect(idx)}
+                          aria-label={`View ${member.name}`}
                           // FIX: Dùng rgba(216,201,123,0) thay cho border-transparent để tránh lỗi oklab
                           className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${
                             idx === currentIndex
@@ -263,12 +266,14 @@ const TeamSection: React.FC = () => {
                     <div className="flex gap-3">
                       <button
                         onClick={handlePrev}
+                        aria-label="Previous team member"
                         className="w-12 h-12 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
                       >
                         <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
                       </button>
                       <button
                         onClick={handleNext}
+                        aria-label="Next team member"
                         className="w-12 h-12 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all group"
                       >
                         <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
