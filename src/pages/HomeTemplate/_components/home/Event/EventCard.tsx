@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { memo } from "react";
 import {
   FaMapMarkerAlt,
   FaArrowRight,
@@ -34,7 +35,7 @@ const formatDate = (dateString: string) => {
   };
 };
 
-const EventCard = ({
+const EventCard = memo(({
   event,
   className = "",
 }: {
@@ -150,6 +151,8 @@ const EventCard = ({
       </div>
     </Link>
   );
-};
+});
+
+EventCard.displayName = 'EventCard';
 
 export default EventCard;

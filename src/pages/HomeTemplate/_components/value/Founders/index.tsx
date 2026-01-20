@@ -17,7 +17,6 @@ const FoundersPledge: React.FC = () => {
     <section className="py-32 bg-[#0a0a0a] font-noto text-white relative overflow-hidden">
      
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
         .font-signature {
           font-family: 'Great Vibes', cursive;
         }

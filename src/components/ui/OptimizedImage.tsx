@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface OptimizedImageProps {
@@ -16,7 +16,7 @@ interface OptimizedImageProps {
   objectFit?: "cover" | "contain" | "fill" | "none"; 
 }
 
-export default function OptimizedImage({
+const OptimizedImage = ({
   src,
   alt,
   width,
@@ -28,8 +28,8 @@ export default function OptimizedImage({
   onClick,
   enableHover = false,
   aspectRatio, 
-  objectFit = "cover", // ✅ DEFAULT là cover
-}: OptimizedImageProps) {
+  objectFit = "cover", // DEFAULT is cover
+}: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -86,4 +86,6 @@ export default function OptimizedImage({
       />
     </div>
   );
-}
+};
+
+export default memo(OptimizedImage);
