@@ -31,9 +31,9 @@ export default function FeaturedPresenters() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-6xl font-black text-white mt-2 uppercase tracking-wide">
+          <h2 className="text-4xl md:text-6xl font-black text-white mt-2 uppercase leading-snug">
             KHÁCH MỜI{" "}
-            <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] to-[#F4E2A6]">
               NỔI BẬT
             </span>
           </h2>

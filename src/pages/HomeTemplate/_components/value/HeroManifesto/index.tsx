@@ -82,10 +82,10 @@ const HeroManifesto: React.FC = () => {
             variants={textVariants}
             initial="hidden"
             animate="visible"
-            className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl"
+            className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase leading-snug drop-shadow-2xl"
           >
             YOUR VERSION <br />
-            <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
               OUR CREATION
             </span>
           </motion.h1>

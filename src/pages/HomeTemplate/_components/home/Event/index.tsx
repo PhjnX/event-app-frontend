@@ -94,9 +94,9 @@ export default function EventsSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-10 md:mb-16 px-4"
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 leading-tight uppercase tracking-tight text-white font-noto">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 leading-snug uppercase text-white font-noto">
             SỰ KIỆN{" "}
-            <span className="bg-clip-text bg-gradient-to-r text-[#D8C97B] font-noto">
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] to-[#F4E2A6] font-noto">
               NỔI BẬT
             </span>
           </h2>

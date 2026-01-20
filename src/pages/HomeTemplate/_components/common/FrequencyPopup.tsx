@@ -103,9 +103,9 @@ const FrequencyPopup = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <h2 className="text-4xl md:text-6xl font-black text-white leading-[1.1] mb-2 tracking-tight">
+                    <h2 className="text-4xl md:text-6xl font-black text-white leading-snug mb-2">
                       TRỞ THÀNH <br />
-                      <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#FFF5C2] to-[#D8C97B] drop-shadow-sm">
+                      <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] via-[#FFF5C2] to-[#D8C97B] drop-shadow-sm">
                         ĐỐI TÁC WEBIE
                       </span>
                     </h2>
