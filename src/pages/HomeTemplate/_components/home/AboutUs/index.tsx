@@ -210,9 +210,6 @@ const AboutSection = () => {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
-        .font-noto { font-family: 'Noto Serif', serif !important; }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }

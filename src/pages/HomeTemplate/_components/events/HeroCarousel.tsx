@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaArrowRight, FaSpinner } from "react-icons/fa";
 import type { AppDispatch, RootState } from "@/store";
 import { fetchFeaturedEvents } from "@/store/slices/eventSlice";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export default function HeroCarousel() {
   const dispatch = useDispatch<AppDispatch>();
@@ -85,10 +86,15 @@ export default function HeroCarousel() {
             animate={{ scale: 1 }}
             transition={{ duration: 6, ease: "linear" }}
           >
-            <img
+            <OptimizedImage
               src={image}
               alt={eventName}
-              className="w-full h-full object-cover filter brightness-[0.6]"
+              width={1920}
+              height={1080}
+              priority={true}
+              className="w-full h-full"
+              imgClassName="filter brightness-[0.6]"
+              fallback="https://via.placeholder.com/1920x1080"
             />
           </motion.div>
 

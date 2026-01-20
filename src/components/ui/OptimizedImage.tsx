@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 
 interface OptimizedImageProps {
@@ -16,7 +16,7 @@ interface OptimizedImageProps {
   objectFit?: "cover" | "contain" | "fill" | "none"; 
 }
 
-export default function OptimizedImage({
+const OptimizedImage = memo(({
   src,
   alt,
   width,
@@ -86,4 +86,8 @@ export default function OptimizedImage({
       />
     </div>
   );
-}
+});
+
+OptimizedImage.displayName = 'OptimizedImage';
+
+export default OptimizedImage;

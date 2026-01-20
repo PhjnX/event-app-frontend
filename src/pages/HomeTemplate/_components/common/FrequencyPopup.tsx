@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaHandshake, FaArrowRight } from "react-icons/fa";
 import OrganizerRegModal from "./OrganizerRegModal";
 import webieBg from "@/assets/images/webie_background.webp";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
@@ -63,10 +64,14 @@ const FrequencyPopup = () => {
               className="relative w-[95vw] max-w-4xl min-h-[500px] rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(216,201,123,0.2)] border border-[#D8C97B]/30 group flex bg-[#050505]"
             >
               <div className="absolute inset-0 z-0">
-                <img
+                <OptimizedImage
                   src={webieBg}
                   alt="Webie Background"
-                  className="w-full h-full object-cover object-[center_30%] transition-transform duration-1000 group-hover:scale-105 opacity-80"
+                  width={1200}
+                  height={800}
+                  priority={false}
+                  className="w-full h-full"
+                  imgClassName="object-[center_30%] transition-transform duration-1000 group-hover:scale-105 opacity-80"
                 />
                 <div className="absolute inset-0 bg-linear-to-r from-black via-black/90 via-40% to-transparent/20 z-10" />
                 <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10" />

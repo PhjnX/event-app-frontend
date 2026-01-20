@@ -533,10 +533,14 @@ export default function EventMomentsPage() {
       <div className="fixed inset-0 z-0 bg-black">
         {bgImage && (
           <div className="absolute inset-0 w-full h-full">
-            <img
+            <OptimizedImage
               src={bgImage}
-              alt="bg"
-              className="w-full h-full object-cover opacity-70 scale-105"
+              alt="Event background"
+              width={1920}
+              height={1080}
+              priority={true}
+              className="w-full h-full"
+              imgClassName="opacity-70 scale-105"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black via-black/80 to-black/30" />
             <div className="absolute inset-0 bg-linear-to-r from-black/50 via-transparent to-black/50" />

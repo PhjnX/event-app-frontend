@@ -62,6 +62,9 @@ export default defineConfig({
           "vendor-icons": ["react-icons"],
           "vendor-charts": ["recharts"],
           "vendor-excel": ["xlsx"],
+          "vendor-ui": ["react-toastify"],
+          "vendor-websocket": ["sockjs-client", "@stomp/stompjs"],
+          "vendor-utils": ["axios", "clsx", "tailwind-merge"],
         },
 
         chunkFileNames: "assets/js/[name]-[hash].js",

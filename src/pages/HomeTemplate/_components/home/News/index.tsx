@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import {
@@ -71,7 +71,7 @@ interface NewsCardProps {
   ) => void;
 }
 
-const NewsCard = ({
+const NewsCard = memo(({
   news,
   position,
   onDragStart,
@@ -159,7 +159,9 @@ const NewsCard = ({
       </div>
     </motion.div>
   );
-};
+});
+
+NewsCard.displayName = 'NewsCard';
 
 const NewsSection = () => {
   const dispatch = useDispatch<AppDispatch>();
