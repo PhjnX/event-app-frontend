@@ -252,12 +252,14 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
               <div className="flex gap-2">
                 <button
                   onClick={handlePrev}
+                  aria-label="Previous post"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={handleNext}
+                  aria-label="Next post"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <ChevronRight size={18} />

@@ -249,6 +249,7 @@ export default function CarouselHero() {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
+              aria-label={`Go to slide ${index + 1}`}
               className={`h-1 rounded-full transition-all duration-500 ${
                 index === currentIndex
                   ? "w-12 bg-[#B5A65F]"
@@ -261,6 +262,7 @@ export default function CarouselHero() {
         <div className="gap-3 hidden sm:flex">
           <button
             onClick={prevSlide}
+            aria-label="Previous slide"
             className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
           >
             <FaChevronLeft
@@ -270,6 +272,7 @@ export default function CarouselHero() {
           </button>
           <button
             onClick={nextSlide}
+            aria-label="Next slide"
             className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
           >
             <FaChevronRight
