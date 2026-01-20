@@ -368,10 +368,10 @@ export default function MyRegistrationsPage() {
                     Member Access
                   </span>
                 </div>
-                <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.85] tracking-tighter">
+                <h1 className="text-6xl md:text-8xl font-black text-white leading-snug">
                   TICKET
                   <br />
-                  <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D4AF37] to-[#F2C94C] opacity-90">
+                  <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#F2C94C] opacity-90">
                     WALLET.
                   </span>
                 </h1>

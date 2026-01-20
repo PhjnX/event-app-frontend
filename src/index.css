@@ -1,8 +1,45 @@
+/**
+ * =====================================================
+ * VIETNAMESE TYPOGRAPHY SYSTEM
+ * =====================================================
+ * 
+ * Root Causes of Vietnamese Diacritics Issues:
+ * 
+ * 1. bg-clip-text + text-transparent:
+ *    - Gradient only renders within text bounding box
+ *    - Vietnamese marks (hỏi, ngã, nặng) extend beyond box
+ *    - Solution: inline-block + padding on gradient elements
+ * 
+ * 2. Insufficient line-height:
+ *    - Inter/Noto Sans designed for Latin, default line-height too tight
+ *    - Vietnamese marks need ~1.4-1.6 line-height
+ *    - Solution: Global line-height + heading-specific overrides
+ * 
+ * 3. Negative letter-spacing:
+ *    - Causes marks to overlap with adjacent characters
+ *    - Solution: Use normal or minimal negative spacing (-0.01em max)
+ * 
+ * 4. Parent overflow-hidden:
+ *    - Clips tall characters at container boundaries
+ *    - Solution: Add vertical padding (py-10 or pt-4)
+ * 
+ * Test Cases:
+ * - Họp Mặt Đầu Năm (hỏi: ọ, ặ, ầ)
+ * - Sự Kiện Hỏi Đáp (hỏi, ngã)
+ * - Giá Trị Cốt Lõi (nặng, ngã)
+ * - All uppercase with diacritics
+ * - Gradient text with diacritics
+ * 
+ * =====================================================
+ */
+
 @import "tailwindcss";
 
 @layer base {
   html {
+    /* ✅ Ưu tiên Noto Sans cho tiếng Việt, fallback Inter */
     font-family:
+      "Noto Sans",
       "Inter",
       -apple-system,
       BlinkMacSystemFont,
@@ -11,14 +48,15 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* ✅ REMOVE font-feature-settings - can cause issues with Vietnamese diacritics */
+
+    /* ✅ REMOVE font-feature-settings - can conflict with Vietnamese glyphs */
     /* font-feature-settings: "cv02", "cv03", "cv04", "cv11"; */
     
-    /* ✅ ADD global line-height for Vietnamese text */
+    /* ✅ Tăng line-height tổng thể cho tiếng Việt */
     line-height: 1.6;
   }
 
-  /* Default font - Inter */
+  /* Default font */
   body,
   p,
   div,
@@ -29,6 +67,7 @@
   textarea,
   select {
     font-family:
+      "Noto Sans",
       "Inter",
       -apple-system,
       BlinkMacSystemFont,
@@ -37,45 +76,54 @@
       sans-serif;
   }
 
-  /* ✅ ADD: Specific line-height for text elements */
-  body, p {
-    line-height: 1.6; /* Safe for Vietnamese body text */
+  /* Specific line-heights for text elements */
+  body,
+  p {
+    line-height: 1.6;
   }
 
-  button, input, select {
-    line-height: 1.5; /* Slightly tighter for UI elements */
+  button,
+  input,
+  select {
+    line-height: 1.5;
   }
 
-  /* Headings - Inter Bold/Extrabold/Black */
+  /* --- ✅ FIX CRITICAL: Headings with Vietnamese Diacritics --- */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: "Inter", sans-serif;
+    font-family: "Noto Sans", "Inter", sans-serif;
     font-weight: 700;
-    letter-spacing: -0.015em; /* ✅ Reduced from -0.02em */
-    line-height: 1.3; /* ✅ CRITICAL: Space for Vietnamese diacritics */
-    padding-top: 0.1em; /* ✅ Extra space above for hỏi/ngã marks */
-    padding-bottom: 0.05em; /* ✅ Extra space below for nặng mark */
+    
+    /* ✅ KHÔNG dùng negative letter-spacing với tiếng Việt */
+    letter-spacing: normal;
+    
+    /* ✅ Line-height đủ lớn để chứa dấu hỏi, ngã, nặng */
+    line-height: 1.4 !important;
+    
+    /* ✅ Padding bù trừ cho dấu thanh */
+    padding-top: 0.2em;
+    padding-bottom: 0.1em;
   }
 
   h1 {
     font-weight: 900;
-    letter-spacing: -0.02em; /* ✅ Reduced from -0.03em */
-    line-height: 1.25; /* ✅ Slightly tighter but safe for large text */
-    padding-top: 0.15em; /* ✅ More space for largest headings */
+    letter-spacing: -0.01em; /* Chỉ giảm rất nhẹ */
+    line-height: 1.35 !important; /* H1 to có thể chặt hơn 1 chút */
+    padding-top: 0.15em;
   }
 
   h2 {
     font-weight: 800;
-    letter-spacing: -0.02em; /* ✅ Reduced from -0.025em */
-    line-height: 1.3; /* ✅ Safe spacing */
+    letter-spacing: -0.01em;
+    line-height: 1.4 !important;
     padding-top: 0.12em;
   }
 
-  /* Utility classes */
+  /* --- ✅ FIX: Utility Classes --- */
   .font-inter {
     font-family:
       "Inter",
@@ -86,19 +134,23 @@
       sans-serif;
   }
 
+  /* ✅ FIXED: .font-noto ưu tiên Noto Sans */
   .font-noto {
     font-family:
+      "Noto Sans",
       "Inter",
       -apple-system,
       BlinkMacSystemFont,
       "Segoe UI",
       Roboto,
       sans-serif;
-    /* Legacy class name - now uses Inter for backwards compatibility */
   }
 
   .font-signature {
     font-family: "Great Vibes", cursive;
+    /* Font chữ viết cần line-height lớn hơn */
+    line-height: 1.8;
+    padding: 0.5rem 0;
   }
 
   /* Font weights utilities */
@@ -172,19 +224,6 @@
   --animate-shimmer: shimmer 2s linear infinite;
 }
 
-/**
- * Vietnamese Diacritics Test Cases:
- * - Hỏi: ỏ, ả, ẻ, ỉ, ủ, ở, ử
- * - Ngã: õ, ã, ẽ, ĩ, ũ, ỹ, ỡ, ữ
- * - Nặng: ọ, ạ, ẹ, ị, ụ, ỵ, ợ, ự
- * - Combined: Họp, Mặt, Đầu, Năm, Sự, Kiện, Hỏi, Đáp
- * 
- * Requirements:
- * - All diacritics must be fully visible
- * - No clipping at top or bottom
- * - No overlap with adjacent lines
- */
-
 @layer utilities {
   /* GPU acceleration for fade-in animation */
   .animate-fade-in-up {
@@ -194,18 +233,29 @@
     will-change: transform, opacity;
   }
 
-  /* ✅ ADD: Vietnamese text optimization */
+  /* ✅ NEW: Vietnamese text optimization */
   .text-vietnamese {
-    line-height: 1.5;
-    padding-top: 0.15em;
+    line-height: 1.6 !important;
+    padding-top: 0.2em;
     padding-bottom: 0.1em;
+    /* ✅ CRITICAL: inline-block giúp padding hoạt động với bg-clip-text */
+    display: inline-block;
   }
 
-  /* ✅ ADD: Safe line-height for headings with Vietnamese */
+  /* ✅ NEW: Vietnamese headings */
   .heading-vietnamese {
-    line-height: 1.3;
-    padding-top: 0.15em;
-    padding-bottom: 0.08em;
+    line-height: 1.4 !important;
+    padding-top: 0.2em;
+    padding-bottom: 0.1em;
+    display: inline-block;
+  }
+
+  /* ✅ NEW: Fix cho gradient text (bg-clip-text) */
+  .gradient-text-safe {
+    display: inline-block;
+    padding-top: 0.2em;
+    padding-bottom: 0.15em;
+    line-height: 1.4;
   }
 
   .bg-stars-pattern {

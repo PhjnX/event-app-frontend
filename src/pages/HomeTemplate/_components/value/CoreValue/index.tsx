@@ -82,7 +82,7 @@ const CoreValues: React.FC = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[rgba(30,58,138,0.1)] rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10 py-10">
         {/* SECTION HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -91,9 +91,9 @@ const CoreValues: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white tracking-wide mb-6">
-            GIÁ TRỊ {/* FIX: Thay text-transparent bằng rgba alpha 0 */}
-            <span className="text-[rgba(0,0,0,0)] bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6]">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase text-white mb-6 leading-snug">
+            GIÁ TRỊ{" "}
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] to-[#F4E2A6]">
               CỐT LÕI
             </span>
           </h2>

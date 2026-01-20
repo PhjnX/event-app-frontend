@@ -104,7 +104,7 @@ const EventCard = memo(({
             </span>
           </div>
 
-          <h3 className="text-xl font-black text-white mb-4 line-clamp-2 leading-tight min-h-14 group-hover: bg-gradient-to-r group-hover:from-[#E5D9B6] group-hover:to-[#D8C97B] group-hover: bg-clip-text group-hover:text-transparent transition-all duration-500">
+          <h3 className="text-xl font-black text-white mb-4 line-clamp-2 leading-snug min-h-14 group-hover:inline-block group-hover:pt-2 group-hover:pb-2 group-hover:bg-gradient-to-r group-hover:from-[#E5D9B6] group-hover:to-[#D8C97B] group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
             {event.eventName}
           </h3>
 
