@@ -20,13 +20,13 @@ export interface Event {
 }
 
 const formatDate = (dateString: string) => {
-  if (!dateString) return { day: "--", month: "---", time: "--:--" };
+  if (!dateString) return { day: "--", month: "TH-", time: "--: --" };
   const date = new Date(
     dateString.endsWith("Z") ? dateString : dateString + "Z",
   );
   return {
     day: date.getDate(),
-    month: `Th${date.getMonth() + 1}`,
+    month: `TH${date.getMonth() + 1}`,
     time: date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -48,84 +48,105 @@ const EventCard = ({
       to={`/event/${event.slug || event.eventId}`}
       className={`block h-full ${className}`}
     >
-      <div className="w-[calc(100vw-48px)] md:w-[420px] shrink-0 relative group font-sans perspective-1000 h-full">
-        <div className="relative h-full bg-[#121212] rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.1)] group-hover:border-[rgba(181,166,95,0.8)] transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_rgba(181,166,95,0.2)] flex flex-col">
-          {/* Banner Image */}
-          <div className="relative h-48 md:h-56 overflow-hidden">
-            <div className="absolute inset-0 bg-linear-to-t from-[#121212] via-[rgba(18,18,18,0)] to-[rgba(18,18,18,0)] z-10 opacity-80"></div>
-            <OptimizedImage
-              src={event.bannerImageUrl}
-              alt={event.eventName}
-              width={420}
-              height={224}
-              className="w-full h-full"
-              imgClassName="transform group-hover:scale-110 transition-transform duration-1000 ease-out"
-              fallback="https://via.placeholder.com/600x400?text=Event+Image"
-            />
-            {/* Date Badge */}
-            <div className="absolute top-3 right-3 md:top-4 md:right-4 z-20 bg-[rgba(0,0,0,0.6)] backdrop-blur-md border border-[#B5A65F] rounded-lg p-2 text-center min-w-[50px] md:min-w-[60px] shadow-lg">
-              <span className="block text-2xl md:text-3xl font-bold text-[#B5A65F] leading-none drop-shadow-md">
-                {dateInfo.day}
-              </span>
-              <span className="block text-[10px] md:text-xs text-white font-bold uppercase tracking-wider">
-                {dateInfo.month}
-              </span>
-            </div>
-            {/* Status Badge */}
-            <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
-              <span
-                className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-lg ${
-                  event.status === "OPEN"
-                    ? "bg-[rgba(34,197,94,0.8)] text-white border border-green-400"
-                    : "bg-[rgba(181,166,95,0.8)] text-black border border-[#B5A65F]"
-                }`}
-              >
-                {event.status === "OPEN"
-                  ? "Đang Mở"
-                  : event.status || "Sắp Diễn Ra"}
-              </span>
+      <div className="group relative h-full bg-gradient-to-br from-[#1a1a1a] via-[#1a1a1a] to-[#141414] rounded-3xl overflow-hidden border border-[rgba(216,201,123,0.2)] hover:border-[rgba(216,201,123,0.6)] transition-all duration-700 shadow-[0_10px_40px_rgba(0,0,0,0.7)] hover:shadow-[0_20px_60px_rgba(216,201,123,0.4)] hover:-translate-y-3 hover:scale-[1.02]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[rgba(216,201,123,0.05)] via-transparent to-[rgba(216,201,123,0.08)] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+        <div className="relative h-52 overflow-hidden">
+          <OptimizedImage
+            src={event.bannerImageUrl}
+            alt={event.eventName}
+            width={420}
+            height={208}
+            className="w-full h-full"
+            imgClassName="transform group-hover:scale-[1.15] group-hover:rotate-2 transition-all duration-1000 ease-out object-cover brightness-90 group-hover:brightness-100"
+            fallback="https://via.placeholder.com/600x400? text=Event+Image"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-[rgba(26,26,26,0.4)] to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[rgba(216,201,123,0.15)] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+          <div className="absolute top-4 right-4 z-20 group/date">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#E5D9B6] to-[#D8C97B] rounded-2xl blur-xl opacity-50 group-hover/date:opacity-75 transition-opacity duration-300"></div>
+
+              <div className="relative bg-gradient-to-br from-[#E5D9B6] via-[#D8C97B] to-[#C9BA6A] rounded-2xl p-4 shadow-[0_8px_25px_rgba(216,201,123,0.5)] min-w-[70px] text-center transform group-hover/date:scale-110 group-hover/date:rotate-3 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-2xl"></div>
+
+                <span className="relative block text-3xl font-black text-black leading-none drop-shadow-md">
+                  {dateInfo.day}
+                </span>
+                <span className="relative block text-[10px] text-black/80 font-bold uppercase tracking-widest mt-1">
+                  {dateInfo.month}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-5 md:p-6 flex flex-col grow relative z-20 -mt-6">
-            <div className="inline-flex items-center gap-2 self-start bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-full px-3 py-1 mb-3 backdrop-blur-sm">
-              <FaUserTie className="text-[#B5A65F] text-xs" />
-              <span className="text-gray-300 text-[10px] uppercase font-bold tracking-wider max-w-[150px] md:max-w-[200px] truncate">
-                {event.organizerName || "EMS Organizer"}
+          {/* Status Badge - Modern Pill */}
+          <div className="absolute top-4 left-4 z-20">
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#D8C97B] rounded-xl blur-md opacity-60"></div>
+              <span className="relative inline-block px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-[#E5D9B6] to-[#D8C97B] text-black shadow-lg">
+                PUBLISHED
               </span>
             </div>
-
-            <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2 leading-snug group-hover:text-[#B5A65F] transition-colors duration-300 min-h-14">
-              {event.eventName}
-            </h3>
-
-            <div className="space-y-2 mb-6">
-              <div className="flex items-center gap-3 text-gray-400 text-xs md:text-sm">
-                <FaClock className="text-[#B5A65F]" />
-                <span>{dateInfo.time}</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-400 text-xs md:text-sm">
-                <FaMapMarkerAlt className="text-[#B5A65F] shrink-0" />
-                <span className="truncate">{event.location || "Online"}</span>
-              </div>
-            </div>
-
-            <p className="text-gray-500 text-xs md:text-sm line-clamp-2 mb-6 grow border-t border-[rgba(255,255,255,0.05)] pt-4">
-              {event.description || "Chưa có mô tả cho sự kiện này."}
-            </p>
-
-            <button className="relative w-full py-3 md:py-3.5 rounded-xl overflow-hidden group/btn font-bold text-xs md:text-sm uppercase tracking-wider transition-all shadow-md mt-auto">
-              <div className="absolute inset-0 bg-linear-to-r from-[#B5A65F] to-[#8E803C] opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
-              <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-[rgba(255,255,255,0)] via-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0)] -skew-x-12 animate-shine-infinite pointer-events-none"></div>
-
-              <div className="relative z-10 flex items-center justify-center gap-2 text-black">
-                Chi Tiết{" "}
-                <FaArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
-              </div>
-            </button>
           </div>
         </div>
+
+        <div className="relative p-6 flex flex-col">
+          <div className="inline-flex items-center gap-2. 5 self-start mb-4 px-4 py-2 rounded-full bg-gradient-to-r from-[rgba(216,201,123,0.2)] via-[rgba(216,201,123,0.15)] to-transparent border border-[rgba(216,201,123,0.3)] backdrop-blur-sm group-hover: border-[rgba(216,201,123,0.5)] transition-all duration-500">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#E5D9B6] to-[#D8C97B] flex items-center justify-center shadow-lg">
+              <FaUserTie className="text-black text-[10px]" />
+            </div>
+            <span className="text-[#D8C97B] text-xs uppercase font-black tracking-wider truncate max-w-[180px]">
+              {event.organizerName || "TIT EVENT"}
+            </span>
+          </div>
+
+          <h3 className="text-xl font-black text-white mb-4 line-clamp-2 leading-tight min-h-14 group-hover: bg-gradient-to-r group-hover:from-[#E5D9B6] group-hover:to-[#D8C97B] group-hover: bg-clip-text group-hover:text-transparent transition-all duration-500">
+            {event.eventName}
+          </h3>
+
+          <div className="space-y-3 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[rgba(216,201,123,0.2)] to-[rgba(216,201,123,0.05)] border border-[rgba(216,201,123,0.25)] shadow-inner">
+                <FaClock className="text-[#D8C97B] text-xs" />
+              </div>
+              <span className="text-gray-300 text-sm font-semibold">
+                {dateInfo.time}
+              </span>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-[rgba(216,201,123,0.2)] to-[rgba(216,201,123,0.05)] border border-[rgba(216,201,123,0.25)] shadow-inner shrink-0">
+                <FaMapMarkerAlt className="text-[#D8C97B] text-xs" />
+              </div>
+              <span className="text-gray-300 text-sm font-medium line-clamp-2 leading-relaxed">
+                {event.location || "Online"}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-gray-500 text-sm line-clamp-3 mb-6 leading-relaxed grow">
+            {event.description ||
+              "Khám phá sự kiện đặc sắc với nhiều hoạt động thú vị và bổ ích. "}
+          </p>
+
+          <button className="relative w-full py-4 rounded-2xl overflow-hidden group/btn transition-all duration-500 shadow-[0_4px_20px_rgba(216,201,123,0.3)] hover:shadow-[0_8px_35px_rgba(216,201,123,0.6)]">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#E5D9B6] via-[#D8C97B] to-[#E5D9B6] bg-[length:200%_100%] animate-gradient"></div>
+
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+
+            <div className="absolute inset-0 rounded-2xl border-2 border-white/20"></div>
+
+            <div className="relative z-10 flex items-center justify-center gap-3 text-black font-black text-sm uppercase tracking-[0.15em]">
+              <span>Chi Tiết</span>
+              <FaArrowRight className="group-hover/btn:translate-x-2 transition-transform duration-300" />
+            </div>
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-[rgba(216,201,123,0.1)] to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
     </Link>
   );
