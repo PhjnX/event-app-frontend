@@ -5,10 +5,9 @@ import axios, {
 } from "axios";
 import { STORAGE_KEYS } from "../constants";
 
-// FIX: Xóa từ khóa 'export' vì baseURL chỉ dùng nội bộ để tạo instance axios ở dưới
 const baseURL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://ems-backend-jkjx.onrender.com/api";
+  "https://event-app-y77p.onrender.com/api";
 
 const apiService = axios.create({
   baseURL: baseURL,
@@ -32,7 +31,7 @@ apiService.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 apiService.interceptors.response.use(
@@ -54,7 +53,7 @@ apiService.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const apiServiceExport = {

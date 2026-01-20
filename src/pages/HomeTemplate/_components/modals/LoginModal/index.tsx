@@ -12,7 +12,7 @@ import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.webp";
 
 const GOOGLE_LOGIN_URL =
-  "https://ems-backend-jkjx.onrender.com/oauth2/authorization/google";
+  "https://event-app-y77p.onrender.com/oauth2/authorization/google";
 
 interface LoginModalProps {
   isOpen: boolean;

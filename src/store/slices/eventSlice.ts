@@ -5,7 +5,7 @@ import { logoutUser } from "./auth";
 
 const API_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://ems-backend-jkjx.onrender.com/api";
+  "https://event-app-y77p.onrender.com/api";
 
 const getBackendRootUrl = () => {
   if (API_URL.endsWith("/api")) {

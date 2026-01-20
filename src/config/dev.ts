@@ -1,3 +1,3 @@
 export default {
-  apiUrl: "https://ems-backend-jkjx.onrender.com/api",
+  apiUrl: "https://event-app-y77p.onrender.com/api",
 };

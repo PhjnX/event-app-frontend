@@ -8,6 +8,7 @@ import sitemap from "vite-plugin-sitemap";
 export default defineConfig({
   plugins: [
     react(),
+
     tailwindcss(),
     sitemap({
       hostname: "https://ems.webie.com.vn",
@@ -27,6 +28,9 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+  define: {
+    global: "window",
+  },
 
   server: {
     port: 3000,

@@ -68,7 +68,7 @@ interface MomentCardProps {
 const getWebSocketUrl = () => {
   const apiUrl =
     import.meta.env.VITE_API_BASE_URL ||
-    "https://ems-backend-jkjx.onrender.com/api";
+    "https://event-app-y77p.onrender.com/api";
   const rootUrl = apiUrl.endsWith("/api") ? apiUrl.slice(0, -4) : apiUrl;
   return `${rootUrl}/ws`;
 };
