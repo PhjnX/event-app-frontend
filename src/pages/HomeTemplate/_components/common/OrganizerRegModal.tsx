@@ -423,6 +423,9 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                       <a
                         key={i}
                         href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Social link ${i + 1}`}
                         className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-zinc-500 hover:bg-[#D8C97B] hover:text-black hover:scale-110 transition-all"
                       >
                         <Icon size={18} />

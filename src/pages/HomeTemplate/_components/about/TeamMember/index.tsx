@@ -195,6 +195,8 @@ const TeamSection: React.FC = () => {
                   <div className="absolute bottom-0 left-0 p-6 flex gap-3">
                     <a
                       href="#"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label="LinkedIn profile"
                       className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
@@ -202,6 +204,8 @@ const TeamSection: React.FC = () => {
                     </a>
                     <a
                       href="#"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label="Email contact"
                       className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
                     >
