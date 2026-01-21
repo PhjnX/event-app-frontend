@@ -18,6 +18,8 @@ import {
   FaLayerGroup,
   FaUsers,
   FaHistory,
+  FaImage,
+  FaCloudUploadAlt,
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -123,6 +125,7 @@ export default function EventDetail() {
     (state: RootState) => state.presenters,
   );
 
+  // State form
   const [actForm, setActForm] = useState({
     activityName: "",
     description: "",
@@ -134,7 +137,12 @@ export default function EventDetail() {
     categoryId: 0,
     presenterIds: [] as number[],
     maxAttendees: "",
+    activityImageUrl: "", // Thêm trường ảnh
   });
+
+  // State upload ảnh
+  const [previewImage, setPreviewImage] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -178,11 +186,13 @@ export default function EventDetail() {
     }));
   };
 
+  // Reset form khi mở modal Thêm mới
   const handleOpenAddModal = () => {
     if (!event) return;
     setIsEditMode(false);
     setEditingActivityId(null);
     const eventTime = parseDateTimeToInput(event.startDate);
+
     setActForm({
       activityName: "",
       description: "",
@@ -194,10 +204,13 @@ export default function EventDetail() {
       categoryId: 0,
       presenterIds: [],
       maxAttendees: "",
+      activityImageUrl: "",
     });
+    setPreviewImage("");
     setIsModalOpen(true);
   };
 
+  // Populate data khi mở modal Edit
   const handleOpenEditModal = (activity: Activity) => {
     setIsEditMode(true);
     setEditingActivityId(activity.activityId);
@@ -208,6 +221,8 @@ export default function EventDetail() {
       (activity as any).presenters ||
       (activity.presenter ? [activity.presenter] : []);
     const existingIds = existingPresenters.map((p: any) => p.presenterId);
+
+    const existingImage = (activity as any).activityImageUrl || "";
 
     setActForm({
       activityName: activity.activityName,
@@ -222,8 +237,49 @@ export default function EventDetail() {
       maxAttendees: (activity as any).maxAttendees
         ? (activity as any).maxAttendees.toString()
         : "",
+      activityImageUrl: existingImage,
     });
+
+    setPreviewImage(existingImage);
     setIsModalOpen(true);
+  };
+
+  // Xử lý upload ảnh
+  // Xử lý upload ảnh
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Tạo preview local
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewImage(objectUrl);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      // LƯU Ý: Bạn kiểm tra lại trong Swagger xem cái nút "Try it out"
+      // nó yêu cầu key là 'file' hay 'image'. Thường mặc định là 'file'.
+      formData.append("image", file);
+
+      // ===> SỬA DÒNG NÀY <===
+      // Thay "/files" thành "/images/upload" theo đúng Swagger của bạn
+      const res: any = await apiService.post("/images/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Lấy URL trả về (cần kiểm tra xem API trả về chuỗi hay object)
+      // Nếu API trả về string url trực tiếp thì dùng res
+      // Nếu API trả về { url: "..." } thì dùng res.url
+      const uploadedUrl = res.url || res.data || res;
+
+      setActForm((prev) => ({ ...prev, activityImageUrl: uploadedUrl }));
+      toast.success("Đã tải ảnh lên!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi upload ảnh.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmitForm = async (e: React.FormEvent) => {
@@ -244,21 +300,13 @@ export default function EventDetail() {
       return;
     }
 
+    // Logic validate thời gian
     if (actStart < eventStart) {
-      toast.warn(
-        `Hoạt động không được bắt đầu trước sự kiện! (Sự kiện bắt đầu lúc: ${formatDisplayTime(
-          event.startDate,
-        )} ${formatShortDate(event.startDate)})`,
-      );
+      toast.warn(`Hoạt động không được bắt đầu trước sự kiện!`);
       return;
     }
-
     if (actEnd > eventEnd) {
-      toast.warn(
-        `Hoạt động không được kết thúc sau sự kiện! (Sự kiện kết thúc lúc: ${formatDisplayTime(
-          event.endDate,
-        )} ${formatShortDate(event.endDate)})`,
-      );
+      toast.warn(`Hoạt động không được kết thúc sau sự kiện!`);
       return;
     }
 
@@ -276,6 +324,7 @@ export default function EventDetail() {
           actForm.presenterIds.length > 0 ? actForm.presenterIds[0] : null,
         accessibleTo: [],
         materialsUrl: "",
+        activityImageUrl: actForm.activityImageUrl, // Gửi URL ảnh lên
       };
 
       if (isEditMode && editingActivityId) {
@@ -530,20 +579,34 @@ export default function EventDetail() {
                         <div className="absolute -left-[39px] top-6 w-4 h-4 rounded-full bg-[#121212] border-2 border-gray-600 group-hover:border-[#B5A65F] transition-all z-20 shadow-[0_0_0_4px_#050505]" />
 
                         <div className="bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-[#B5A65F]/40 p-5 rounded-2xl transition-all flex flex-col md:flex-row gap-6 shadow-xl hover:translate-x-2">
-                          <div className="min-w-[120px] border-b md:border-b-0 md:border-r border-white/10 pb-3 md:pb-0 pr-4 flex flex-col justify-center">
-                            <span className="text-2xl font-black text-[#B5A65F] font-mono tracking-tighter">
-                              {formatDisplayTime(act.startTime)}
-                            </span>
-                            <div className="flex flex-col">
-                              <span className="text-[10px] text-gray-500 font-mono">
-                                đến {formatDisplayTime(act.endTime)}
+                          {/* Left: Time & Thumbnail Image if exists */}
+                          <div className="flex flex-col gap-3 min-w-[120px] border-b md:border-b-0 md:border-r border-white/10 pb-3 md:pb-0 pr-4">
+                            <div>
+                              <span className="text-2xl font-black text-[#B5A65F] font-mono tracking-tighter">
+                                {formatDisplayTime(act.startTime)}
                               </span>
-                              {isMultiDay && (
-                                <span className="text-[9px] text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded mt-1 border border-red-500/20">
-                                  {formatShortDate(act.endTime)}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-gray-500 font-mono">
+                                  đến {formatDisplayTime(act.endTime)}
                                 </span>
-                              )}
+                                {isMultiDay && (
+                                  <span className="text-[9px] text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded mt-1 border border-red-500/20">
+                                    {formatShortDate(act.endTime)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
+
+                            {/* Hiển thị ảnh nhỏ nếu có */}
+                            {(act as any).activityImageUrl && (
+                              <div className="w-full h-20 rounded-lg overflow-hidden border border-white/10">
+                                <img
+                                  src={(act as any).activityImageUrl}
+                                  alt="Thumbnail"
+                                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                />
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex-1">
@@ -682,6 +745,58 @@ export default function EventDetail() {
                       placeholder="VD: Khai mạc & Welcome Teabreak"
                     />
                   </div>
+
+                  {/* ===== UPLOAD ẢNH BANNER ===== */}
+                  <div className="bg-[#1a1a1a]/50 p-4 rounded-2xl border border-white/5">
+                    <label className={modalLabelStyle}>Banner Hoạt Động</label>
+                    <div className="flex gap-4 items-start">
+                      {/* Preview Image */}
+                      <div className="w-32 h-20 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 relative group">
+                        {isUploading ? (
+                          <div className="w-6 h-6 border-2 border-[#B5A65F] border-t-transparent rounded-full animate-spin"></div>
+                        ) : previewImage ? (
+                          <>
+                            <img
+                              src={previewImage}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <FaPen className="text-white text-xs" />
+                            </div>
+                          </>
+                        ) : (
+                          <FaImage className="text-gray-700 text-2xl" />
+                        )}
+                      </div>
+
+                      {/* Input Upload */}
+                      <div className="flex-1">
+                        <label
+                          className={`cursor-pointer flex flex-col items-center justify-center w-full h-20 border-2 border-dashed rounded-xl transition-all group relative overflow-hidden ${isUploading ? "border-gray-600 bg-gray-900 pointer-events-none" : "border-white/10 hover:border-[#B5A65F]/50 hover:bg-white/5"}`}
+                        >
+                          <div className="flex flex-col items-center justify-center pt-2 pb-3 z-10">
+                            <FaCloudUploadAlt
+                              className={`mb-1 text-xl ${isUploading ? "text-gray-600" : "text-gray-400 group-hover:text-[#B5A65F]"}`}
+                            />
+                            <p className="text-[10px] text-gray-500 group-hover:text-gray-300">
+                              {isUploading
+                                ? "Đang tải ảnh lên..."
+                                : "Click để tải ảnh mới (JPG, PNG)"}
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  {/* ===== END UPLOAD ===== */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#1a1a1a] p-4 rounded-2xl border border-white/5">
                     <div className="space-y-2">
@@ -903,9 +1018,10 @@ export default function EventDetail() {
                 <button
                   type="submit"
                   form="activity-form"
-                  className="px-8 py-2.5 rounded-xl bg-[#B5A65F] text-black font-bold text-sm uppercase tracking-wider hover:bg-[#c9ba6e] shadow-lg transition-all transform active:scale-95"
+                  disabled={isUploading}
+                  className={`px-8 py-2.5 rounded-xl bg-[#B5A65F] text-black font-bold text-sm uppercase tracking-wider shadow-lg transition-all transform ${isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#c9ba6e] active:scale-95"}`}
                 >
-                  Lưu Lại
+                  {isUploading ? "Đang tải ảnh..." : "Lưu Lại"}
                 </button>
               </div>
             </motion.div>

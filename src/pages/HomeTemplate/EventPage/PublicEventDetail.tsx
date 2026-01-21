@@ -49,7 +49,6 @@ export default function PublicEventDetail() {
     [],
   );
 
-  // State để quản lý animation rung lắc khi click vào thẻ hết chỗ
   const [shakeId, setShakeId] = useState<number | null>(null);
 
   const { scrollYProgress } = useScroll();
@@ -109,20 +108,17 @@ export default function PublicEventDetail() {
   };
 
   const checkIsFull = (act: any) => {
-    if (act.maxAttendees === 0) return true;
-    if (act.maxAttendees > 0) {
-      return (act.currentAttendees || 0) >= act.maxAttendees;
-    }
-    return false;
+    if (!act.maxAttendees || act.maxAttendees === 0) return false;
+
+    return (act.currentAttendees || 0) >= act.maxAttendees;
   };
 
   const toggleActivity = (activityId: number, isFull: boolean) => {
     if (registeredActivityIds.includes(activityId)) return;
 
-    // Nếu hết chỗ -> Kích hoạt rung lắc (Shake animation)
     if (isFull) {
       setShakeId(activityId);
-      setTimeout(() => setShakeId(null), 500); // Reset sau 500ms
+      setTimeout(() => setShakeId(null), 500); 
       toast.error("Hoạt động này đã hết chỗ!");
       return;
     }
@@ -178,7 +174,6 @@ export default function PublicEventDetail() {
 
   return (
     <div className="bg-[#050505] min-h-screen font-noto text-gray-200 selection:bg-[#B5A65F]/30 pb-32">
-      {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl transition-all">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link
@@ -196,7 +191,6 @@ export default function PublicEventDetail() {
         </div>
       </nav>
 
-      {/* Hero Image */}
       <section className="relative pt-12 pb-16 overflow-hidden">
         <div className="container mx-auto px-6">
           <motion.div
@@ -237,17 +231,14 @@ export default function PublicEventDetail() {
         </div>
       </section>
 
-      {/* Description */}
       <section className="container mx-auto px-6 max-w-7xl mb-20">
         <p className="text-lg md:text-xl font-light leading-relaxed text-gray-300 border-l-4 border-[#B5A65F] pl-6">
           {event.description}
         </p>
       </section>
 
-      {/* Main Layout */}
       <main className="container mx-auto px-6 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-16">
-          {/* LEFT: ACTIVITIES */}
           <div className="w-full lg:w-3/5 space-y-12">
             <section>
               <div className="flex items-center gap-4 mb-8">
@@ -265,12 +256,14 @@ export default function PublicEventDetail() {
                   const isRegistered = registeredActivityIds.includes(
                     act.activityId,
                   );
+
                   const isFull = checkIsFull(act);
+
                   const isUnlimited =
-                    act.maxAttendees === null || act.maxAttendees === undefined;
+                    !act.maxAttendees || act.maxAttendees === 0;
+
                   const isShaking = shakeId === act.activityId;
 
-                  // --- STYLE CONFIG ---
                   let wrapperClass =
                     "border-white/5 bg-[#121212] hover:bg-[#181818] cursor-pointer";
                   let timeClass = "text-gray-400 border-white/10";
@@ -280,7 +273,6 @@ export default function PublicEventDetail() {
                   );
 
                   if (isRegistered) {
-                    // ĐÃ ĐĂNG KÝ
                     wrapperClass =
                       "border-green-900/30 bg-[#0a100a] opacity-60 cursor-default";
                     timeClass = "text-gray-500 border-green-900/20";
@@ -335,8 +327,22 @@ export default function PublicEventDetail() {
                         </motion.div>
                       )}
 
+                      {act.activityImageUrl && (
+                        <div className="relative w-full sm:w-32 h-32 sm:h-auto shrink-0 overflow-hidden border-b sm:border-b-0 sm:border-r border-white/5">
+                          <OptimizedImage
+                            src={act.activityImageUrl}
+                            alt={act.activityName}
+                            width={128}
+                            height={128}
+                            className="w-full h-full"
+                            imgClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        </div>
+                      )}
+
                       <div
-                        className={`flex flex-row sm:flex-col items-center sm:justify-center gap-2 p-6 sm:w-32 sm:border-r border-dashed shrink-0 ${timeClass}`}
+                        className={`flex flex-row sm:flex-col items-center sm:justify-center gap-2 p-6 sm:w-28 sm:border-r border-dashed shrink-0 ${timeClass}`}
                       >
                         <div className="text-xl font-black tracking-tighter">
                           {formatTime(act.startTime)}
@@ -364,8 +370,14 @@ export default function PublicEventDetail() {
                               }`}
                             >
                               {isUnlimited ? (
-                                <span className="flex items-center gap-1">
+                                <span
+                                  className="flex items-center gap-1"
+                                  title="Không giới hạn"
+                                >
                                   <FaInfinity />
+                                  <span className="hidden sm:inline">
+                                    Không giới hạn
+                                  </span>
                                 </span>
                               ) : (
                                 <>
@@ -501,14 +513,12 @@ export default function PublicEventDetail() {
                   </div>
                 </div>
 
-                {/* --- CUTOUT EFFECT --- */}
                 <div className="relative w-full h-6 flex items-center justify-center">
-                  <div className="absolute left-[-16px] w-8 h-8 bg-[#050505] rounded-full"></div>
-                  <div className="absolute right-[-16px] w-8 h-8 bg-[#050505] rounded-full"></div>
+                  <div className="absolute -left-4 w-8 h-8 bg-[#050505] rounded-full"></div>
+                  <div className="absolute -right-4 w-8 h-8 bg-[#050505] rounded-full"></div>
                   <div className="w-[80%] border-t-2 border-dashed border-gray-300"></div>
                 </div>
 
-                {/* --- FOOTER --- */}
                 <div className="p-10 pt-6">
                   <div className="flex justify-between items-end mb-8">
                     <div>
@@ -553,7 +563,6 @@ export default function PublicEventDetail() {
         </div>
       </main>
 
-      {/* Mobile Sticky Bar (Giữ nguyên cho Mobile) */}
       <AnimatePresence>
         {selectedActivityIds.length > 0 && (
           <div className="lg:hidden fixed bottom-6 inset-x-0 z-50 px-6">

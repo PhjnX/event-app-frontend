@@ -45,7 +45,8 @@ import {
   updateSelectedEvents,
 } from "../../../store/slices/eventSlice";
 
-import { fetchOrganizerDetail } from "../../../store/slices/organizerSlice";
+// ✅ Import action mới fetchMyOrganizerStatus
+import { fetchMyOrganizerStatus } from "../../../store/slices/organizerSlice";
 import { ROLES } from "@/constants";
 import ConfirmModal from "../_components/ConfirmModal";
 import OptimizedImage from "@/components/ui/OptimizedImage";
@@ -56,7 +57,7 @@ const Skeleton = ({ className = "" }: { className?: string }) => (
   <div
     className={`animate-pulse bg-linear-to-r from-gray-800 via-gray-700 to-gray-800 bg-size-[200%_100%] rounded-3xl ${className}`}
     style={{
-      animation: "shimmer 1. 5s infinite",
+      animation: "shimmer 1.5s infinite",
     }}
   />
 );
@@ -101,7 +102,6 @@ const Tooltip = ({
             className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap z-50 border border-white/10"
           >
             {title}
-            {/* Arrow */}
             <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
               <div className="border-4 border-transparent border-t-gray-900" />
             </div>
@@ -123,41 +123,32 @@ export default function ManageEvents() {
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
 
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
+  // Mặc định isChecking true nếu là Organizer để tránh nhấp nháy
   const [isChecking, setIsChecking] = useState(user?.role === "ORGANIZER");
 
+  // ✅ FIX: Logic check status mới nhất bằng API /me/status
   useEffect(() => {
     if (user?.role === "ORGANIZER") {
       setIsChecking(true);
-      const orgData = (user as any).organizer || {};
-      if (
-        typeof orgData.locked === "boolean" ||
-        typeof orgData.approved === "boolean"
-      ) {
-        setOrgStatus({
-          locked: orgData.locked === true,
-          approved: orgData.approved !== false,
-        });
-      }
-
-      const slugToCheck =
-        orgData.slug ||
-        (user as any).organizerSlug ||
-        (user as any).organizer?.slug;
-
-      if (slugToCheck) {
-        dispatch(fetchOrganizerDetail(slugToCheck))
-          .then((res: any) => {
-            if (res.payload) {
-              setOrgStatus({
-                locked: res.payload.locked === true,
-                approved: res.payload.approved === true,
-              });
-            }
-          })
-          .finally(() => setIsChecking(false));
-      } else {
-        setIsChecking(false);
-      }
+      dispatch(fetchMyOrganizerStatus())
+        .unwrap()
+        .then((res: any) => {
+          setOrgStatus({
+            locked: res.locked === true,
+            approved: res.approved === true,
+          });
+        })
+        .catch(() => {
+          // Fallback: Nếu API lỗi thì lấy tạm từ user state
+          const orgData = (user as any).organizer || {};
+          setOrgStatus({
+            locked: orgData.locked === true,
+            approved: orgData.approved !== false,
+          });
+        })
+        .finally(() => setIsChecking(false));
+    } else {
+      setIsChecking(false);
     }
   }, [dispatch, user]);
 
@@ -194,7 +185,6 @@ export default function ManageEvents() {
     return "HAPPENING";
   };
 
-  // --- CLICK OUTSIDE DROPDOWN ---
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -222,7 +212,6 @@ export default function ManageEvents() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
-  // --- FILTER LOGIC ---
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
       if (isSAdmin && event.status === "DRAFT") return false;
@@ -266,24 +255,37 @@ export default function ManageEvents() {
 
   const handleToggleHero = async (event: any) => {
     if (!isSAdmin) return;
+    if (checkTimeStatus(event.startDate, event.endDate) === "ENDED") {
+      toast.error("Không thể thêm sự kiện đã kết thúc vào Hero Banner!");
+      return;
+    }
     const isCurrentlyHero = tempHeroState.hasOwnProperty(event.eventId)
       ? tempHeroState[event.eventId]
       : featuredEvents.some((e) => e.eventId === event.eventId);
     const nextState = !isCurrentlyHero;
+    const validFeaturedEvents = featuredEvents.filter(
+      (e) => checkTimeStatus(e.startDate, e.endDate) !== "ENDED",
+    );
+
     if (
       nextState &&
-      featuredEvents.length >= 4 &&
+      validFeaturedEvents.length >= 4 &&
       !tempHeroState[event.eventId]
     ) {
-      toast.warning("Tối đa 4 sự kiện Hero Banner!");
+      toast.warning(
+        "Tối đa 4 sự kiện Hero Banner (Đã lọc bỏ các sự kiện hết hạn)!",
+      );
       return;
     }
+
     setTempHeroState((prev) => ({ ...prev, [event.eventId]: nextState }));
+
     try {
-      const currentIds = featuredEvents.map((e) => e.eventId);
+      const currentIds = validFeaturedEvents.map((e) => e.eventId);
       let newIds = [];
       if (nextState) {
         newIds = [...currentIds, event.eventId];
+        newIds = Array.from(new Set(newIds));
       } else {
         newIds = currentIds.filter((id) => id !== event.eventId);
       }
@@ -291,8 +293,8 @@ export default function ManageEvents() {
       dispatch(fetchFeaturedEvents());
       if (nextState) toast.success("Đã thêm vào Hero Banner");
       else toast.info("Đã gỡ khỏi Hero Banner");
-    } catch (error) {
-      toast.error("Lỗi cập nhật!");
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi cập nhật!");
       setTempHeroState((prev) => ({
         ...prev,
         [event.eventId]: isCurrentlyHero,
@@ -302,24 +304,35 @@ export default function ManageEvents() {
 
   const handleToggleSelected = async (event: any) => {
     if (!isSAdmin) return;
+    if (checkTimeStatus(event.startDate, event.endDate) === "ENDED") {
+      toast.error("Không thể thêm sự kiện đã kết thúc vào Nổi bật!");
+      return;
+    }
     const isCurrentlySelected = tempSelectedState.hasOwnProperty(event.eventId)
       ? tempSelectedState[event.eventId]
       : selectedEvents.some((e) => e.eventId === event.eventId);
     const nextState = !isCurrentlySelected;
+    const validSelectedEvents = selectedEvents.filter(
+      (e) => checkTimeStatus(e.startDate, e.endDate) !== "ENDED",
+    );
+
     if (
       nextState &&
-      selectedEvents.length >= 8 &&
+      validSelectedEvents.length >= 8 &&
       !tempSelectedState[event.eventId]
     ) {
       toast.warning("Tối đa 8 sự kiện Nổi bật!");
       return;
     }
+
     setTempSelectedState((prev) => ({ ...prev, [event.eventId]: nextState }));
+
     try {
-      const currentIds = selectedEvents.map((e) => e.eventId);
+      const currentIds = validSelectedEvents.map((e) => e.eventId);
       let newIds = [];
       if (nextState) {
         newIds = [...currentIds, event.eventId];
+        newIds = Array.from(new Set(newIds));
       } else {
         newIds = currentIds.filter((id) => id !== event.eventId);
       }
@@ -327,8 +340,8 @@ export default function ManageEvents() {
       dispatch(fetchSelectedEvents());
       if (nextState) toast.success("Đã thêm vào Nổi bật");
       else toast.info("Đã gỡ khỏi Nổi bật");
-    } catch (error) {
-      toast.error("Lỗi cập nhật!");
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi cập nhật!");
       setTempSelectedState((prev) => ({
         ...prev,
         [event.eventId]: isCurrentlySelected,
@@ -460,7 +473,7 @@ export default function ManageEvents() {
         );
       return (
         <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-green-500/10 text-green-400 border-green-500/30 flex items-center gap-1">
-          <span className="w-1. 5 h-1.5 rounded-full bg-green-500 animate-pulse" />{" "}
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />{" "}
           ĐANG DIỄN RA
         </span>
       );

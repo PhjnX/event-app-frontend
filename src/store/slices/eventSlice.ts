@@ -23,7 +23,6 @@ const processImageUrl = (url: string | null | undefined) => {
   return `${root}${cleanPath}`;
 };
 
-// ===== INTERFACES =====
 interface Activity {
   activityId: number;
   activityName: string;
@@ -54,7 +53,6 @@ interface EventState {
   selectedEvents: Event[];
   registrations: any[];
   myRegistrations: any[];
-  // ✅ Thay đổi:  Lưu chi tiết registration (bao gồm activities)
   selectedRegistrationDetail: RegistrationDetail | null;
   isLoading: boolean;
   isDetailLoading: boolean;
@@ -174,8 +172,6 @@ export const uploadEventImage = createAsyncThunk(
   },
 );
 
-// --- CÁC API ĐĂNG KÝ SỰ KIỆN ---
-
 export const registerForEvent = createAsyncThunk(
   "events/register",
   async (
@@ -221,26 +217,63 @@ export const fetchMyRegistrations = createAsyncThunk(
     try {
       const response = await apiService.get<any[]>("/events/my-registrations");
 
-      const formattedData = Array.isArray(response)
-        ? response.map((item: any) => {
-            const evt = item.event || item;
-            const rawImage =
-              evt.bannerImageUrl || evt.bannerUrl || evt.image || "";
+      if (!Array.isArray(response)) return [];
 
-            return {
-              registrationId: item.registrationId || item.id,
-              status: item.status,
-              ticketCode: item.ticketCode,
-              eventId: evt.eventId || evt.id,
-              eventName: evt.eventName || "Sự kiện",
-              eventSlug: evt.slug || evt.eventId?.toString() || "#",
-              eventBanner: processImageUrl(rawImage),
-              eventStartDate: evt.startDate,
-              eventEndDate: evt.endDate,
-              location: evt.location || "Online",
-            };
-          })
-        : [];
+      const formattedData = await Promise.all(
+        response.map(async (item: any) => {
+          const evt = item.event || item;
+          const eventId = evt.eventId || evt.id;
+          const rawImage =
+            evt.bannerImageUrl || evt.bannerUrl || evt.image || "";
+
+          let activityNames = "";
+
+          if (eventId) {
+            try {
+              const activitiesRes = await apiService.get<any[]>(
+                `/activities/by-event/${eventId}/registered`,
+              );
+
+              if (Array.isArray(activitiesRes) && activitiesRes.length > 0) {
+                activityNames = activitiesRes
+                  .map((act) => act.activityName)
+                  .join(", ");
+              }
+            } catch (error) {
+              console.warn(
+                `Không lấy được activities cho event ${eventId}`,
+                error,
+              );
+            }
+          }
+
+          return {
+            registrationId: item.registrationId || item.id,
+            status: item.status,
+            ticketCode: item.ticketCode,
+
+            createdAt:
+              item.registrationDate ||
+              item.createdAt ||
+              new Date().toISOString(),
+            updatedAt:
+              item.updatedAt ||
+              item.registrationDate ||
+              new Date().toISOString(),
+            rejectionReason: item.rejectionReason,
+
+            eventId: eventId,
+            eventName: evt.eventName || "Sự kiện",
+            eventSlug: evt.slug || evt.eventId?.toString() || "#",
+            eventBanner: processImageUrl(rawImage),
+            eventStartDate: evt.startDate,
+            eventEndDate: evt.endDate,
+            location: evt.location || "Online",
+
+            activityNames: activityNames,
+          };
+        }),
+      );
 
       return formattedData;
     } catch (err: any) {
@@ -248,10 +281,6 @@ export const fetchMyRegistrations = createAsyncThunk(
     }
   },
 );
-
-// --- API ADMIN:  QUẢN LÝ ---
-
-// ✅ API MỚI:  Lấy chi tiết registration (bao gồm activities)
 export const fetchRegistrationDetail = createAsyncThunk(
   "events/fetchRegistrationDetail",
   async (registrationId: number, { rejectWithValue }) => {
@@ -311,7 +340,6 @@ export const rejectRegistration = createAsyncThunk(
   },
 );
 
-// CRUD Event cơ bản
 export const createEvent = createAsyncThunk(
   "events/create",
   async (data: Partial<Event>, { rejectWithValue }) => {
@@ -389,7 +417,22 @@ export const deleteEvent = createAsyncThunk(
     }
   },
 );
-
+export const subscribeNewsletter = createAsyncThunk(
+  "events/subscribeNewsletter",
+  async (email: string, { rejectWithValue }) => {
+    try {
+      await apiService.post("/events/newsletter/subscribe", email, {
+        params: { subscribe: true },
+        headers: { "Content-Type": "application/json" },
+      });
+      return email;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || err.message || "Đăng ký thất bại",
+      );
+    }
+  },
+);
 const eventSlice = createSlice({
   name: "events",
   initialState,
@@ -405,11 +448,9 @@ const eventSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch user data
       .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
         state.myRegistrations = action.payload;
       })
-      // Fetch public events
       .addCase(fetchPublicEvents.fulfilled, (state, action) => {
         state.data = action.payload;
       })
@@ -426,7 +467,6 @@ const eventSlice = createSlice({
         state.selectedEvents = action.payload;
       })
 
-      // ✅ Handle registration detail (API mới)
       .addCase(fetchRegistrationDetail.pending, (state) => {
         state.isDetailLoading = true;
         state.selectedRegistrationDetail = null;
@@ -440,7 +480,6 @@ const eventSlice = createSlice({
         state.selectedRegistrationDetail = null;
       })
 
-      // Handle admin registration list
       .addCase(fetchEventRegistrations.pending, (state) => {
         state.isLoading = true;
       })
@@ -453,7 +492,6 @@ const eventSlice = createSlice({
         state.registrations = [];
       })
 
-      // Auth logout cleanup
       .addCase(logoutUser.fulfilled, () => initialState);
   },
 });

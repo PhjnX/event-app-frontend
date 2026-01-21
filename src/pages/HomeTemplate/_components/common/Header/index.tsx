@@ -28,6 +28,7 @@ import ChangePasswordModal from "../../modals/ChangePasswordModal";
 
 import OrganizerRegModal from "../OrganizerRegModal";
 
+import UserNotificationPanel from "../../UserNotificationPanel";
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -197,121 +198,125 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 focus:outline-none group"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#D8C97B] 
-                    ${
-                      user?.avatarUrl
-                        ? "bg-black"
-                        : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"
-                    }`}
+              <>
+                <UserNotificationPanel />
+
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 focus:outline-none group"
                   >
-                    {user?.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt="User"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="pb-0.5">{userInitial}</span>
-                    )}
-                  </div>
-
-                  <div className="hidden xl:flex flex-col items-start text-left">
-                    <span className="text-white text-xs font-medium max-w-[100px] truncate group-hover:text-[#D8C97B] transition-colors">
-                      {user?.username || "User"}
-                    </span>
-                    <span className="text-[10px] text-[#D8C97B]/80">
-                      {user?.role === ROLES.ORGANIZER
-                        ? "Nhà Tổ Chức"
-                        : "Thành viên"}
-                    </span>
-                  </div>
-                  <FaChevronDown
-                    className={`text-white text-xs transition-transform duration-300 group-hover:text-[#D8C97B] ${
-                      isUserMenuOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                <AnimatePresence>
-                  {isUserMenuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-4 w-64 bg-[#1a1a1a] border border-[rgba(216,201,123,0.3)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden z-50"
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#D8C97B] 
+                      ${
+                        user?.avatarUrl
+                          ? "bg-black"
+                          : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"
+                      }`}
                     >
-                      <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] bg-white/2">
-                        <p className="text-sm text-white font-bold truncate">
-                          {user?.username}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {user?.email}
-                        </p>
-                      </div>
+                      {user?.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt="User"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="pb-0.5">{userInitial}</span>
+                      )}
+                    </div>
 
-                      <div className="py-2">
-                        {user?.role === ROLES.ORGANIZER && (
+                    <div className="hidden xl:flex flex-col items-start text-left">
+                      <span className="text-white text-xs font-medium max-w-[100px] truncate group-hover:text-[#D8C97B] transition-colors">
+                        {user?.username || "User"}
+                      </span>
+                      <span className="text-[10px] text-[#D8C97B]/80">
+                        {user?.role === ROLES.ORGANIZER
+                          ? "Nhà Tổ Chức"
+                          : "Thành viên"}
+                      </span>
+                    </div>
+                    <FaChevronDown
+                      className={`text-white text-xs transition-transform duration-300 group-hover:text-[#D8C97B] ${
+                        isUserMenuOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-4 w-64 bg-[#1a1a1a] border border-[rgba(216,201,123,0.3)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden z-50"
+                      >
+                        <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] bg-white/2">
+                          <p className="text-sm text-white font-bold truncate">
+                            {user?.username}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {user?.email}
+                          </p>
+                        </div>
+
+                        <div className="py-2">
+                          {user?.role === ROLES.ORGANIZER && (
+                            <Link
+                              to="/admin/dashboard"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] font-bold transition-colors border-b border-[rgba(255,255,255,0.05)]"
+                            >
+                              <FaTachometerAlt /> Trang quản lý
+                            </Link>
+                          )}
+                          {user?.role !== ROLES.ORGANIZER && (
+                            <button
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                setIsOrgModalOpen(true);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] transition-colors text-left border-b border-[rgba(255,255,255,0.05)] font-bold"
+                            >
+                              <FaBuilding /> Đăng ký Đối tác
+                            </button>
+                          )}
                           <Link
-                            to="/admin/dashboard"
+                            to="/my-tickets"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] font-bold transition-colors border-b border-[rgba(255,255,255,0.05)]"
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
                           >
-                            <FaTachometerAlt /> Trang quản lý
+                            <FaTicketAlt /> Vé của tôi
                           </Link>
-                        )}
-                        {user?.role !== ROLES.ORGANIZER && (
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
+                          >
+                            <FaUser /> Thông tin cá nhân
+                          </Link>
                           <button
                             onClick={() => {
                               setIsUserMenuOpen(false);
-                              setIsOrgModalOpen(true);
+                              setIsChangePassModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#D8C97B] hover:bg-[rgba(216,201,123,0.1)] transition-colors text-left border-b border-[rgba(255,255,255,0.05)] font-bold"
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors text-left"
                           >
-                            <FaBuilding /> Đăng ký Đối tác
+                            <FaLock /> Đổi mật khẩu
                           </button>
-                        )}
-                        <Link
-                          to="/my-tickets"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
-                        >
-                          <FaTicketAlt /> Vé của tôi
-                        </Link>
-                        <Link
-                          to="/profile"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
-                        >
-                          <FaUser /> Thông tin cá nhân
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            setIsChangePassModalOpen(true);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors text-left"
-                        >
-                          <FaLock /> Đổi mật khẩu
-                        </button>
-                        <div className="my-1 border-t border-white/5 mx-2"></div>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-[rgba(239,68,68,0.1)] hover:text-red-500 transition-colors text-left"
-                        >
-                          <FaSignOutAlt /> Đăng xuất
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                          <div className="my-1 border-t border-white/5 mx-2"></div>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-[rgba(239,68,68,0.1)] hover:text-red-500 transition-colors text-left"
+                          >
+                            <FaSignOutAlt /> Đăng xuất
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -340,6 +345,14 @@ export default function Header() {
                 <span className="font-bold text-[#D8C97B] text-xl">
                   {user?.username}
                 </span>
+
+                <div
+                  className="mt-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                 
+                  <UserNotificationPanel />
+                </div>
               </div>
             )}
 
@@ -371,7 +384,6 @@ export default function Header() {
             <div className="flex flex-col gap-4 w-full px-8">
               {!isAuthenticated ? (
                 <>
-                  {/* BUTTON MOBILE CŨNG STYLE LẠI LUÔN */}
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
@@ -446,6 +458,7 @@ export default function Header() {
         </div>
       </nav>
 
+      {/* ... Các Modals giữ nguyên ... */}
       <LoginModal
         isOpen={modalType === "LOGIN"}
         onClose={() => setModalType(null)}

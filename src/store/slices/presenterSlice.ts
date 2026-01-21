@@ -27,7 +27,7 @@ export const fetchPresenters = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchPresentersByOrganizer = createAsyncThunk(
@@ -35,7 +35,7 @@ export const fetchPresentersByOrganizer = createAsyncThunk(
   async (slug: string, { rejectWithValue }) => {
     try {
       const response = await apiService.get<Presenter[]>(
-        `/presenters/by-organizer/${slug}`
+        `/presenters/by-organizer/${slug}`,
       );
       return Array.isArray(response)
         ? response
@@ -43,16 +43,15 @@ export const fetchPresentersByOrganizer = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
-// 3. Lấy diễn giả của CHÍNH TÔI (Dành cho Organizer đang đăng nhập)
 export const fetchMyPresenters = createAsyncThunk(
   "presenters/fetchMyPresenters",
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.get<Presenter[]>(
-        "/presenters/my-presenters"
+        "/presenters/my-presenters",
       );
       const list = Array.isArray(response)
         ? response
@@ -61,19 +60,7 @@ export const fetchMyPresenters = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
-);
-
-export const updateFeaturedList = createAsyncThunk(
-  "presenters/updateFeaturedList",
-  async (ids: number[], { rejectWithValue }) => {
-    try {
-      await apiService.put("/presenters/featured", ids);
-      return ids;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
-  }
+  },
 );
 
 export const deletePresenter = createAsyncThunk(
@@ -85,7 +72,7 @@ export const deletePresenter = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const createPresenter = createAsyncThunk(
@@ -97,25 +84,25 @@ export const createPresenter = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const updatePresenter = createAsyncThunk(
   "presenters/update",
   async (
     { id, data }: { id: number; data: Partial<Presenter> },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.put<Presenter>(
         `/presenters/${id}`,
-        data
+        data,
       );
       return response;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 const presenterSlice = createSlice({
@@ -160,24 +147,17 @@ const presenterSlice = createSlice({
       })
       .addCase(fetchMyPresenters.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload; 
+        state.data = action.payload;
       })
       .addCase(fetchMyPresenters.rejected, (state, action: any) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-      // --- Other Actions ---
-      .addCase(updateFeaturedList.fulfilled, (state, action) => {
-        const newFeaturedIds = action.payload;
-        state.data.forEach((p) => {
-          p.featured = newFeaturedIds.includes(p.presenterId);
-        });
-      })
 
       .addCase(deletePresenter.fulfilled, (state, action) => {
         state.data = state.data.filter(
-          (item) => item.presenterId !== action.payload
+          (item) => item.presenterId !== action.payload,
         );
       })
 
@@ -187,7 +167,7 @@ const presenterSlice = createSlice({
 
       .addCase(updatePresenter.fulfilled, (state, action) => {
         const index = state.data.findIndex(
-          (item) => item.presenterId === action.payload.presenterId
+          (item) => item.presenterId === action.payload.presenterId,
         );
         if (index !== -1) state.data[index] = action.payload;
       })

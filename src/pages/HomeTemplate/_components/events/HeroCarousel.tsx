@@ -14,27 +14,21 @@ export default function HeroCarousel() {
   );
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // 1. Gọi API khi mount
   useEffect(() => {
     dispatch(fetchFeaturedEvents());
   }, [dispatch]);
 
-  // 2. Lấy dữ liệu thật từ Redux
   const displayData = featuredEvents || [];
 
-  // 3. Logic tự động chuyển slide
   useEffect(() => {
     if (displayData.length <= 1) return;
     const timer = setInterval(
       () => setCurrentSlide((prev) => (prev + 1) % displayData.length),
-      6000, // 6 giây đổi 1 lần
+      6000,
     );
     return () => clearInterval(timer);
   }, [displayData.length]);
 
-  // --- XỬ LÝ TRẠNG THÁI LOADING & EMPTY ---
-
-  // A. Đang tải -> Hiện Skeleton màu tối
   if (isLoading) {
     return (
       <div className="h-[80vh] min-h-[600px] w-full bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
@@ -46,18 +40,13 @@ export default function HeroCarousel() {
     );
   }
 
-  // B. Tải xong nhưng không có sự kiện nào -> Ẩn section hoặc hiện thông báo
   if (displayData.length === 0) {
-    return null; // Ẩn luôn nếu không có data để tránh vỡ giao diện
+    return null;
   }
 
-  // --- RENDER DỮ LIỆU ---
-
-  // Đảm bảo currentSlide không vượt quá mảng (an toàn)
   const safeIndex = currentSlide % displayData.length;
   const currentData = displayData[safeIndex];
 
-  // Xử lý an toàn cho các trường thiếu
   const eventName = currentData.eventName || "Sự kiện hấp dẫn";
   const description =
     currentData.description ||
@@ -79,7 +68,6 @@ export default function HeroCarousel() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Background Image có hiệu ứng zoom nhẹ */}
           <motion.div
             className="absolute inset-0"
             initial={{ scale: 1.1 }}
@@ -98,11 +86,9 @@ export default function HeroCarousel() {
             />
           </motion.div>
 
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-[#0a0a0a]/90 via-transparent to-transparent" />
 
-          {/* Content Text */}
           <div className="absolute inset-0 flex items-center container mx-auto px-6 md:px-12">
             <div className="max-w-4xl relative z-10">
               <motion.div
@@ -121,7 +107,7 @@ export default function HeroCarousel() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-none mb-6 uppercase tracking-tighter drop-shadow-2xl line-clamp-2"
+                className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-6 uppercase tracking-tighter drop-shadow-2xl line-clamp-2 pb-2"
               >
                 {eventName}
               </motion.h1>
@@ -153,7 +139,6 @@ export default function HeroCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Slide Indicators / Navigation */}
       {displayData.length > 1 && (
         <div className="absolute bottom-12 right-6 md:right-12 z-20 flex flex-col items-end gap-4">
           <div className="text-white font-black text-4xl font-mono">

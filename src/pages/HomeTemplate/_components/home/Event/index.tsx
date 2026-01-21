@@ -83,7 +83,7 @@ export default function EventsSection() {
         ></div>
       </div>
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-[rgba(216,201,123,0.05)] to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-full h-2/3 bg-linear-to-t from-[rgba(216,201,123,0.05)] to-transparent"></div>
       </div>
 
       <div className="container mx-auto relative z-10 max-w-7xl px-4 md:px-6">
@@ -96,7 +96,7 @@ export default function EventsSection() {
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 leading-snug uppercase text-white font-noto">
             SỰ KIỆN{" "}
-            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] to-[#F4E2A6] font-noto">
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#F4E2A6] font-noto">
               NỔI BẬT
             </span>
           </h2>
@@ -120,7 +120,7 @@ export default function EventsSection() {
               <button
                 onClick={handleNext}
                 disabled={currentIndex >= maxIndex}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 lg: translate-x-7 z-30 w-16 h-16 items-center justify-center rounded-full bg-[rgba(26,26,26,0.8)] backdrop-blur-xl border-2 border-[rgba(216,201,123,0.3)] text-[#D8C97B] hover:bg-[rgba(216,201,123,0.2)] hover:border-[rgba(216,201,123,0.6)] disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.8)] hover:shadow-[0_8px_40px_rgba(216,201,123,0.5)] hover:scale-110 group/arrow"
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2  lg: translate-x-7 z-30 w-16 h-16 items-center justify-center rounded-full bg-[rgba(26,26,26,0.8)] backdrop-blur-xl border-2 border-[rgba(216,201,123,0.3)] text-[#D8C97B] hover:bg-[rgba(216,201,123,0.2)] hover:border-[rgba(216,201,123,0.6)] disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.8)] hover:shadow-[0_8px_40px_rgba(216,201,123,0.5)] hover:scale-110 group/arrow"
                 aria-label="Next"
               >
                 <FaChevronRight className="text-xl group-hover/arrow:scale-125 transition-transform duration-300" />
@@ -170,14 +170,14 @@ export default function EventsSection() {
                   key={index}
                   onClick={() => scrollTo(index)}
                   className={`relative h-3 rounded-full transition-all duration-500 ${
-                    index === currentIndex ? "w-12" : "w-3 hover: w-6"
+                    index === currentIndex ? "w-12" : "hover: w-6"
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 >
                   {index === currentIndex ? (
                     <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#E5D9B6] via-[#D8C97B] to-[#E5D9B6] rounded-full animate-gradient bg-[length:200%_100%]"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#D8C97B] to-[#E5D9B6] rounded-full blur-md opacity-75"></div>
+                      <div className="absolute inset-0 bg-linear-to-r from-[#E5D9B6] via-[#D8C97B] to-[#E5D9B6] rounded-full animate-gradient bg-size-[200%_100%]"></div>
+                      <div className="absolute inset-0 bg-linear-to-r from-[#D8C97B] to-[#E5D9B6] rounded-full blur-md opacity-75"></div>
                     </>
                   ) : (
                     <div className="absolute inset-0 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors duration-300"></div>

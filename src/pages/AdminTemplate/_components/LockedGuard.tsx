@@ -10,12 +10,13 @@ import {
 import { toast } from "react-toastify";
 import type { RootState, AppDispatch } from "@/store";
 
-// Import actions
 import {
   requestUnlockOrganizer,
-  fetchOrganizerDetail,
+  fetchMyOrganizerStatus, 
 } from "@/store/slices/organizerSlice";
 import { fetchCurrentUser } from "@/store/slices/auth";
+
+import ConfirmModal from "./ConfirmModal";
 
 interface LockedGuardProps {
   children: React.ReactNode;
@@ -28,23 +29,22 @@ export default function LockedGuard({
 }: LockedGuardProps) {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Lấy thông tin user từ Auth slice
   const { user, isLoading: authLoading } = useSelector(
     (state: RootState) => state.auth,
   );
 
-  // State lưu thông tin chi tiết Organizer (được fetch bằng SLUG)
-  const [organizerDetail, setOrganizerDetail] = useState<any>(null);
+  const [currentStatus, setCurrentStatus] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(true);
 
-  // --- LOGIC FETCH DỮ LIỆU ---
+  const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     const performCheck = async () => {
       setIsChecking(true);
 
+      // 1. Đảm bảo User đã load
       let currentUser = user;
-
-      // 1. Đảm bảo User đã load xong
       if (!currentUser) {
         try {
           const action = await dispatch(fetchCurrentUser());
@@ -56,46 +56,25 @@ export default function LockedGuard({
         }
       }
 
-      // 2. Nếu User là ORGANIZER -> Tìm SLUG -> Gọi API chi tiết
-      // Tìm đoạn useEffect trong LockedGuard.tsx
-
-      // ...
+      // 2. Nếu là Organizer -> Gọi API /me/status để lấy trạng thái CHÍNH XÁC NHẤT
       if (currentUser?.role === "ORGANIZER") {
-        // LẤY DATA ORGANIZER TỪ USER
-        const organizerInfo = (currentUser as any).organizer;
-
-        // CHỈ LẤY SLUG NẾU NÓ TỒN TẠI THỰC SỰ
-        // Tuyệt đối không dùng || (currentUser as any).username
-        const slug = organizerInfo?.slug || (currentUser as any).slug;
-
-        if (slug) {
-          try {
-            const resultAction = await dispatch(fetchOrganizerDetail(slug));
-            if (fetchOrganizerDetail.fulfilled.match(resultAction)) {
-              setOrganizerDetail(resultAction.payload);
-            }
-          } catch (error) {
-            console.error("Lỗi fetch chi tiết organizer:", error);
+        try {
+          const statusAction = await dispatch(fetchMyOrganizerStatus());
+          if (fetchMyOrganizerStatus.fulfilled.match(statusAction)) {
+            setCurrentStatus(statusAction.payload);
           }
-        } else {
-          // Log warning để biết user này đang bị thiếu data organizer
-          console.warn(
-            "User là Organizer nhưng không có Slug! Kiểm tra lại API Login.",
-          );
+        } catch (error) {
+          console.error("Lỗi kiểm tra status:", error);
         }
       }
-      // ...
 
       setIsChecking(false);
     };
 
     performCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [dispatch]); // Chỉ chạy 1 lần khi mount
 
-  // --- LOGIC HIỂN THỊ ---
-
-  // 1. Màn hình chờ khi đang check quyền
   if (authLoading || isChecking) {
     return (
       <div className="w-full h-64 flex flex-col items-center justify-center gap-3">
@@ -107,61 +86,47 @@ export default function LockedGuard({
     );
   }
 
-  // 2. Nếu không phải Organizer (Admin hoặc User thường) -> Cho phép truy cập
   if (user?.role !== "ORGANIZER") {
     return <>{children}</>;
   }
 
-  // 3. Quyết định trạng thái (Ưu tiên data từ API Detail vừa fetch)
-  const finalData = organizerDetail || (user as any)?.organizer;
+  // Ưu tiên dùng dữ liệu mới fetch từ API /me/status
+  // Nếu chưa có thì dùng tạm từ user (nhưng user thường cũ)
+  const finalData = currentStatus || (user as any)?.organizer;
 
-  const isPending = finalData?.approved === false; // Chưa duyệt
-  const isLocked = finalData?.locked === true; // Đã duyệt nhưng bị Admin khóa
+  const isPending = finalData?.approved === false;
+  const isLocked = finalData?.locked === true;
 
-  // Nếu tài khoản sạch (Không pending, không locked) -> Hiện nội dung
   if (!isPending && !isLocked) {
     return <>{children}</>;
   }
 
-  // --- GIAO DIỆN CHẶN (BLOCK UI) ---
-
   if (fallbackType === "HIDDEN") return null;
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Lấy các thông tin cần thiết cho action mở khóa
   const isUnlockRequested = finalData?.unlockRequested;
-  const orgId = finalData?.organizerId || finalData?.id; // API request unlock cần ID
-  const orgSlug = finalData?.slug; // Dùng slug để reload data sau khi request
 
-  const handleRequestUnlock = async () => {
-    if (!orgId) return;
+  const handleConfirmRequest = async (reason?: string) => {
     setIsSubmitting(true);
     try {
-      await dispatch(requestUnlockOrganizer(orgId)).unwrap();
+      await dispatch(requestUnlockOrganizer(reason || "")).unwrap();
       toast.success("Đã gửi yêu cầu thành công!");
 
-      // Reload lại data bằng slug để cập nhật UI nút bấm
-      if (orgSlug) {
-        const res = await dispatch(fetchOrganizerDetail(orgSlug));
-        if (fetchOrganizerDetail.fulfilled.match(res)) {
-          setOrganizerDetail(res.payload);
-        }
+      const res = await dispatch(fetchMyOrganizerStatus());
+      if (fetchMyOrganizerStatus.fulfilled.match(res)) {
+        setCurrentStatus(res.payload);
       }
-    } catch (e) {
-      toast.error("Gửi yêu cầu thất bại.");
+    } catch (e: any) {
+      toast.error(e?.message || "Gửi yêu cầu thất bại.");
     } finally {
       setIsSubmitting(false);
+      setShowModal(false);
     }
   };
 
   return (
     <div className="w-full min-h-[400px] flex flex-col items-center justify-center text-center p-8 bg-[#121212] rounded-3xl border border-red-500/20 shadow-2xl relative overflow-hidden group">
-      {/* Hiệu ứng nền */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-red-900/10 via-transparent to-transparent opacity-50 pointer-events-none" />
 
-      {/* Icon trạng thái */}
       <div className="relative z-10 mb-6 p-5 rounded-full bg-[#1a1a1a] border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
         {isPending ? (
           <FaExclamationTriangle className="text-4xl text-yellow-500 animate-pulse" />
@@ -170,23 +135,20 @@ export default function LockedGuard({
         )}
       </div>
 
-      {/* Tiêu đề */}
       <h2 className="relative z-10 text-3xl font-black text-white mb-3 uppercase tracking-wide">
         {isPending ? "Hồ sơ đang chờ duyệt" : "Tài khoản bị khóa"}
       </h2>
 
-      {/* Mô tả */}
       <p className="relative z-10 text-gray-400 max-w-lg mb-8 leading-relaxed">
         {isPending
           ? "Hồ sơ của bạn đang chờ Ban Quản Trị phê duyệt. Vui lòng quay lại sau."
           : "Tài khoản của bạn đã bị tạm khóa do vi phạm chính sách. Bạn không thể tạo sự kiện lúc này."}
       </p>
 
-      {/* Nút hành động (Chỉ hiện khi bị Locked, không hiện khi Pending) */}
       {!isPending && isLocked && (
         <div className="relative z-10">
           <button
-            onClick={handleRequestUnlock}
+            onClick={() => setShowModal(true)}
             disabled={isSubmitting || isUnlockRequested}
             className={`flex items-center gap-3 px-8 py-3.5 rounded-xl font-bold transition-all shadow-lg uppercase text-sm tracking-wider ${
               isUnlockRequested
@@ -207,6 +169,18 @@ export default function LockedGuard({
           </button>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmRequest}
+        title="Yêu cầu mở khóa"
+        message="Vui lòng nhập lý do để Admin xem xét mở khóa tài khoản:"
+        confirmText="Gửi yêu cầu"
+        type="APPROVE"
+        hasInput={true}
+        inputPlaceholder="VD: Tôi đã khắc phục sự cố..."
+      />
     </div>
   );
 }

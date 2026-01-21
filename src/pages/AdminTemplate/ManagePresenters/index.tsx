@@ -40,7 +40,7 @@ import {
 } from "../../../store/slices/presenterSlice";
 import {
   fetchOrganizers,
-  fetchOrganizerDetail,
+  fetchMyOrganizerStatus, // ✅ Import action mới
 } from "../../../store/slices/organizerSlice";
 import { fetchMyEvents } from "@/store/slices/eventSlice";
 import { uploadAvatar } from "../../../store/slices/auth";
@@ -70,41 +70,32 @@ export default function ManagePresenters() {
     user?.role === ROLES.ORGANIZER || user?.role === "ORGANIZER";
 
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
+  // Mặc định isChecking true nếu là Organizer
   const [isChecking, setIsChecking] = useState(isOrganizer);
 
+  // ✅ FIX: Logic check status mới nhất bằng API /me/status
   useEffect(() => {
     if (isOrganizer && user) {
       setIsChecking(true);
-      const orgData = (user as any).organizer || {};
-      if (
-        typeof orgData.locked === "boolean" ||
-        typeof orgData.approved === "boolean"
-      ) {
-        setOrgStatus({
-          locked: orgData.locked === true,
-          approved: orgData.approved !== false,
-        });
-      }
-
-      const slugToCheck =
-        orgData.slug ||
-        (user as any).organizerSlug ||
-        (user as any).organizer?.slug;
-
-      if (slugToCheck) {
-        dispatch(fetchOrganizerDetail(slugToCheck))
-          .then((res: any) => {
-            if (res.payload) {
-              setOrgStatus({
-                locked: res.payload.locked === true,
-                approved: res.payload.approved === true,
-              });
-            }
-          })
-          .finally(() => setIsChecking(false));
-      } else {
-        setIsChecking(false);
-      }
+      dispatch(fetchMyOrganizerStatus())
+        .unwrap()
+        .then((res: any) => {
+          setOrgStatus({
+            locked: res.locked === true,
+            approved: res.approved === true,
+          });
+        })
+        .catch(() => {
+          // Fallback nếu API lỗi
+          const orgData = (user as any).organizer || {};
+          setOrgStatus({
+            locked: orgData.locked === true,
+            approved: orgData.approved !== false,
+          });
+        })
+        .finally(() => setIsChecking(false));
+    } else {
+      setIsChecking(false);
     }
   }, [dispatch, isOrganizer, user]);
 
@@ -349,7 +340,6 @@ export default function ManagePresenters() {
       name: presenter.fullName,
     });
   const confirmDeleteAction = async () => {
-    /* Giữ nguyên */
     if (!confirmState.id) return;
     setIsSubmitting(true);
     try {

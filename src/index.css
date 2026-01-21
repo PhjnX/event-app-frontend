@@ -1,193 +1,4 @@
-/**
- * =====================================================
- * TYPOGRAPHY SYSTEM - DUAL FONT APPROACH
- * =====================================================
- * 
- * HEADINGS (h1-h6, . font-noto):
- * - Font: Noto Serif (serif - elegant, classic)
- * - Weight: 900 (Black)
- * - Letter-spacing: 1. 5px (CRITICAL - from Figma)
- * - Use: Titles, headings, hero text, uppercase text
- * - Why: Elegant serifs perfect for formal headings
- * 
- * BODY TEXT (p, div, span):
- * - Font: Noto Sans (sans-serif - clean, modern)
- * - Use:  Paragraphs, descriptions, UI elements
- * - Style: Normal letter-spacing
- * - Why: Better readability for body content
- * 
- * VIETNAMESE DIACRITICS: 
- * - All fonts: line-height 1.4-1.6
- * - All headings: padding-top 0.15-0.2em
- * - Ensures diacritics (hỏi, ngã, nặng) display fully
- * 
- * FIGMA REFERENCE:
- * - Font:  Noto Serif
- * - Weight: 900 (Black)
- * - Letter-spacing: 1.5px
- * - Line-height: 60 (tight)
- * - Text:  "ĐIỆN GIÁ NỔI BẠT", "SỰ KIỆN SẮP TỚI"
- * =====================================================
- */
-
 @import "tailwindcss";
-
-@layer base {
-  /* ===== ROOT HTML - Default Body Font ===== */
-  html {
-    /* Body text:  Sans-serif for readability */
-    font-family:
-      "Noto Sans",
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    line-height: 1.6;
-  }
-
-  /* ===== DEFAULT FONT - Body Elements ===== */
-  body,
-  p,
-  div,
-  span,
-  a,
-  button,
-  input,
-  textarea,
-  select {
-    font-family:
-      "Noto Sans",
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
-  }
-
-  body,
-  p {
-    line-height: 1.6;
-  }
-
-  button,
-  input,
-  select {
-    line-height: 1.5;
-  }
-
-  /* ===== HEADINGS - Noto Serif (Elegant, Classic) ===== */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    /* ✅ Noto Serif - serif font with elegant serifs */
-    font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
-
-    /* ✅ Black weight for bold, elegant look */
-    font-weight: 900;
-
-    /* ✅ CRITICAL: 1.5px letter-spacing (from Figma) */
-    letter-spacing: 1.5px !important;
-
-    /* ✅ Line-height for Vietnamese diacritics */
-    line-height: 1.4 !important;
-
-    /* ✅ Padding for diacritics (hỏi, ngã, nặng) */
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
-
-    /* ✅ Uppercase for elegance */
-    text-transform: uppercase;
-  }
-
-  h1 {
-    font-weight: 900;
-    /* ✅ 1.5px spacing for maximum elegance */
-    letter-spacing: 1.5px !important;
-    /* ✅ Slightly tighter line-height for large text */
-    line-height: 1.3 !important;
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
-  }
-
-  h2 {
-    font-weight: 900;
-    letter-spacing: 1.5px !important;
-    line-height: 1.4 !important;
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
-  }
-
-  h3 {
-    font-weight: 800;
-    letter-spacing: 1.5px !important;
-  }
-
-  h4,
-  h5,
-  h6 {
-    font-weight: 700;
-    letter-spacing: 1.2px !important;
-  }
-
-  /* ===== UTILITY CLASSES ===== */
-
-  /* Inter - Modern sans-serif */
-  .font-inter {
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
-  }
-
-  /* ✅ Noto Serif - Elegant serif (RESTORED ORIGINAL) */
-  .font-noto {
-    font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
-    font-weight: 900;
-    letter-spacing: 1.5px !important;
-    text-transform: uppercase;
-  }
-
-  /* Great Vibes - Signature font */
-  .font-signature {
-    font-family: "Great Vibes", cursive;
-    line-height: 1.8;
-    padding: 0.5rem 0;
-  }
-
-  /* Font weights utilities */
-  .font-light {
-    font-weight: 300;
-  }
-  .font-normal {
-    font-weight: 400;
-  }
-  .font-medium {
-    font-weight: 500;
-  }
-  .font-semibold {
-    font-weight: 600;
-  }
-  .font-bold {
-    font-weight: 700;
-  }
-  .font-extrabold {
-    font-weight: 800;
-  }
-  .font-black {
-    font-weight: 900;
-  }
-}
 
 @keyframes fadeInUp {
   from {
@@ -244,22 +55,26 @@
     will-change: transform, opacity;
   }
 
-  /* ✅ Vietnamese text utilities */
   .text-vietnamese {
     line-height: 1.6 !important;
     padding-top: 0.2em;
-    padding-bottom: 0.1em;
+    padding-bottom: 1em; /* Tăng lên */
     display: inline-block;
+  }
+
+  .font-noto {
+    font-family: "Noto Serif", serif;
+    font-display: swap;
+    line-height: 1.5;
   }
 
   .heading-vietnamese {
-    line-height: 1.4 !important;
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
+    line-height: 1.6 !important;
+    padding-bottom: 0.4em;
     display: inline-block;
+    vertical-align: bottom; /* Quan trọng */
   }
 
-  /* ✅ Gradient text with Vietnamese support */
   .gradient-text-safe {
     display: inline-block;
     padding-top: 0.2em;
@@ -267,18 +82,7 @@
     line-height: 1.4;
   }
 
-  /* ✅ Figma-exact heading style */
-  .heading-figma {
-    font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
-    font-weight: 900;
-    letter-spacing: 1.5px !important;
-    line-height: 1.3 !important;
-    text-transform: uppercase;
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
-  }
-
-  /* Background patterns */
+  /* Patterns */
   .bg-stars-pattern {
     background-color: #0a0a0a;
     background-image:
@@ -326,11 +130,13 @@
     backdrop-filter: none !important;
     background-color: rgba(10, 10, 10, 0.95) !important;
   }
+
   .blur-\[150px\],
   .blur-\[100px\],
   .blur-\[120px\] {
     display: none !important;
   }
+
   .shadow-2xl,
   .shadow-xl {
     box-shadow: none !important;

@@ -16,8 +16,6 @@ const initialState: OrganizerState = {
   error: null,
 };
 
-// --- ACTION CƠ BẢN ---
-
 export const fetchOrganizers = createAsyncThunk(
   "organizers/fetchAll",
   async (_, { rejectWithValue }) => {
@@ -27,19 +25,19 @@ export const fetchOrganizers = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
-export const fetchOrganizerDetail = createAsyncThunk(
-  "organizers/fetchDetail",
-  async (slug: string, { rejectWithValue }) => {
+export const fetchMyOrganizerStatus = createAsyncThunk(
+  "organizers/fetchMyStatus",
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await apiService.get<Organizer>(`/organizers/${slug}`);
+      const response = await apiService.get<any>("/organizers/me/status");
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const registerOrganizer = createAsyncThunk(
@@ -54,10 +52,8 @@ export const registerOrganizer = createAsyncThunk(
       toast.error(message);
       return rejectWithValue(message);
     }
-  }
+  },
 );
-
-// --- ACTION ADMIN ---
 
 export const approveOrganizer = createAsyncThunk(
   "organizers/approve",
@@ -69,10 +65,8 @@ export const approveOrganizer = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
-
-// FIX: Bỏ export vì hàm này hiện không được gọi từ bên ngoài file
 
 export const lockOrganizer = createAsyncThunk(
   "organizers/lock",
@@ -84,7 +78,7 @@ export const lockOrganizer = createAsyncThunk(
       toast.error(error.message || "Lỗi khóa tài khoản");
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const unlockOrganizer = createAsyncThunk(
@@ -97,22 +91,20 @@ export const unlockOrganizer = createAsyncThunk(
       toast.error(error.message || "Lỗi mở khóa");
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const requestUnlockOrganizer = createAsyncThunk(
   "organizers/requestUnlock",
-  async (_, { rejectWithValue }) => {
+  async (reason: string, { rejectWithValue }) => {
     try {
-      await apiService.post("/organizers/me/request-unlock");
+      await apiService.post("/organizers/me/request-unlock", { reason });
       return true;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
-
-// --- SLICE ---
 
 const organizerSlice = createSlice({
   name: "organizers",
@@ -127,14 +119,12 @@ const organizerSlice = createSlice({
         state.data = action.payload;
         state.isLoading = false;
       })
-      .addCase(fetchOrganizerDetail.fulfilled, (state, action: any) => {
-        const index = state.data.findIndex(
-          (o) => o.slug === action.payload.slug
-        );
+
+      .addCase(fetchMyOrganizerStatus.fulfilled, (state, action: any) => {
+        const statusData = action.payload;
+        const index = state.data.findIndex((o) => o.slug === statusData.slug);
         if (index !== -1) {
-          state.data[index] = action.payload;
-        } else {
-          state.data.push(action.payload);
+          state.data[index] = { ...state.data[index], ...statusData };
         }
       })
       .addCase(lockOrganizer.fulfilled, (state, action: any) => {

@@ -15,4 +15,5 @@ export interface Activity {
   eventId: number;
   category: ActivityCategory;
   presenter: Presenter;
+  activityImageUrl?: string;
 }
