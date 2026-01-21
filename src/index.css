@@ -85,7 +85,7 @@
   h5,
   h6 {
     /* ✅ Noto Serif - serif font with elegant serifs */
-    font-family: "Noto Serif", serif;
+    font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
     font-weight: 700;
 
     /* ✅ Wide letter-spacing for UPPERCASE elegance (like original design) */
@@ -129,7 +129,7 @@
 
   /* ✅ Noto Serif - Elegant serif (RESTORED ORIGINAL) */
   .font-noto {
-    font-family: "Noto Serif", serif;
+    font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
   }
 
   /* Great Vibes - Signature font */
