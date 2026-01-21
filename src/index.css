@@ -1,7 +1,38 @@
+/**
+ * =====================================================
+ * TYPOGRAPHY SYSTEM - DUAL FONT APPROACH
+ * =====================================================
+ * 
+ * HEADINGS (h1-h6, .font-noto):
+ * - Font: Noto Serif (serif - elegant, classic)
+ * - Use: Titles, headings, hero text, uppercase text
+ * - Style: Wide letter-spacing (0.05em-0.08em)
+ * - Why: Elegant serifs perfect for formal headings
+ * 
+ * BODY TEXT (p, div, span):
+ * - Font: Noto Sans (sans-serif - clean, modern)
+ * - Use: Paragraphs, descriptions, UI elements
+ * - Style: Normal letter-spacing
+ * - Why: Better readability for body content
+ * 
+ * VIETNAMESE DIACRITICS:
+ * - All fonts: line-height 1.4-1.6
+ * - All headings: padding-top 0.15-0.2em
+ * - Ensures diacritics (hỏi, ngã, nặng) display fully
+ * 
+ * REFERENCE:
+ * - Original design uses Noto Serif for headings
+ * - Screenshot: "ELEVATE YOUR TECH EVENTS" 
+ * - Letter-spacing: Wide (0.08em for h1)
+ * =====================================================
+ */
+
 @import "tailwindcss";
 
 @layer base {
+  /* ===== ROOT HTML - Default Body Font ===== */
   html {
+    /* Body text: Sans-serif for readability */
     font-family:
       "Noto Sans",
       "Inter",
@@ -12,11 +43,10 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
     line-height: 1.6;
   }
 
-  /* Default font */
+  /* ===== DEFAULT FONT - Body Elements ===== */
   body,
   p,
   div,
@@ -47,37 +77,46 @@
     line-height: 1.5;
   }
 
+  /* ===== HEADINGS - Noto Serif (Elegant, Classic) ===== */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: "Noto Sans", "Inter", sans-serif;
+    /* ✅ Noto Serif - serif font with elegant serifs */
+    font-family: "Noto Serif", serif;
     font-weight: 700;
 
-    letter-spacing: normal;
+    /* ✅ Wide letter-spacing for UPPERCASE elegance (like original design) */
+    letter-spacing: 0.05em;
 
+    /* ✅ Line-height for Vietnamese diacritics */
     line-height: 1.4 !important;
 
+    /* ✅ Padding for diacritics (hỏi, ngã, nặng) */
     padding-top: 0.2em;
     padding-bottom: 0.1em;
   }
 
   h1 {
     font-weight: 900;
-    letter-spacing: -0.01em;
+    /* ✅ Extra wide spacing for large headings */
+    letter-spacing: 0.08em;
     line-height: 1.35 !important;
     padding-top: 0.15em;
   }
 
   h2 {
     font-weight: 800;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.06em;
     line-height: 1.4 !important;
     padding-top: 0.12em;
   }
 
+  /* ===== UTILITY CLASSES ===== */
+  
+  /* Inter - Modern sans-serif */
   .font-inter {
     font-family:
       "Inter",
@@ -88,24 +127,19 @@
       sans-serif;
   }
 
+  /* ✅ Noto Serif - Elegant serif (RESTORED ORIGINAL) */
   .font-noto {
-    font-family:
-      "Noto Sans",
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+    font-family: "Noto Serif", serif;
   }
 
+  /* Great Vibes - Signature font */
   .font-signature {
     font-family: "Great Vibes", cursive;
-    /* Font chữ viết cần line-height lớn hơn */
     line-height: 1.8;
     padding: 0.5rem 0;
   }
 
+  /* Font weights utilities */
   .font-light {
     font-weight: 300;
   }
