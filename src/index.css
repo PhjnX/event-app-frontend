@@ -52,7 +52,7 @@
     /* ✅ REMOVE font-feature-settings - can conflict with Vietnamese glyphs */
     /* font-feature-settings: "cv02", "cv03", "cv04", "cv11"; */
     
-    /* ✅ Tăng line-height tổng thể cho tiếng Việt */
+    /* ✅ ADD global line-height for Vietnamese text */
     line-height: 1.6;
   }
 
@@ -76,16 +76,13 @@
       sans-serif;
   }
 
-  /* Specific line-heights for text elements */
-  body,
-  p {
-    line-height: 1.6;
+  /* ✅ ADD: Specific line-height for text elements */
+  body, p {
+    line-height: 1.6; /* Safe for Vietnamese body text */
   }
 
-  button,
-  input,
-  select {
-    line-height: 1.5;
+  button, input, select {
+    line-height: 1.5; /* Slightly tighter for UI elements */
   }
 
   /* --- ✅ FIX CRITICAL: Headings with Vietnamese Diacritics --- */
