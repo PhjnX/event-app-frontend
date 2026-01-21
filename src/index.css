@@ -1,43 +1,7 @@
-/**
- * =====================================================
- * VIETNAMESE TYPOGRAPHY SYSTEM
- * =====================================================
- * 
- * Root Causes of Vietnamese Diacritics Issues:
- * 
- * 1. bg-clip-text + text-transparent:
- *    - Gradient only renders within text bounding box
- *    - Vietnamese marks (hỏi, ngã, nặng) extend beyond box
- *    - Solution: inline-block + padding on gradient elements
- * 
- * 2. Insufficient line-height:
- *    - Inter/Noto Sans designed for Latin, default line-height too tight
- *    - Vietnamese marks need ~1.4-1.6 line-height
- *    - Solution: Global line-height + heading-specific overrides
- * 
- * 3. Negative letter-spacing:
- *    - Causes marks to overlap with adjacent characters
- *    - Solution: Use normal or minimal negative spacing (-0.01em max)
- * 
- * 4. Parent overflow-hidden:
- *    - Clips tall characters at container boundaries
- *    - Solution: Add vertical padding (py-10 or pt-4)
- * 
- * Test Cases:
- * - Họp Mặt Đầu Năm (hỏi: ọ, ặ, ầ)
- * - Sự Kiện Hỏi Đáp (hỏi, ngã)
- * - Giá Trị Cốt Lõi (nặng, ngã)
- * - All uppercase with diacritics
- * - Gradient text with diacritics
- * 
- * =====================================================
- */
-
 @import "tailwindcss";
 
 @layer base {
   html {
-    /* ✅ Ưu tiên Noto Sans cho tiếng Việt, fallback Inter */
     font-family:
       "Noto Sans",
       "Inter",
@@ -49,10 +13,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* ✅ REMOVE font-feature-settings - can conflict with Vietnamese glyphs */
-    /* font-feature-settings: "cv02", "cv03", "cv04", "cv11"; */
-    
-    /* ✅ ADD global line-height for Vietnamese text */
     line-height: 1.6;
   }
 
@@ -76,16 +36,17 @@
       sans-serif;
   }
 
-  /* ✅ ADD: Specific line-height for text elements */
-  body, p {
-    line-height: 1.6; /* Safe for Vietnamese body text */
+  body,
+  p {
+    line-height: 1.6;
   }
 
-  button, input, select {
-    line-height: 1.5; /* Slightly tighter for UI elements */
+  button,
+  input,
+  select {
+    line-height: 1.5;
   }
 
-  /* --- ✅ FIX CRITICAL: Headings with Vietnamese Diacritics --- */
   h1,
   h2,
   h3,
@@ -94,22 +55,19 @@
   h6 {
     font-family: "Noto Sans", "Inter", sans-serif;
     font-weight: 700;
-    
-    /* ✅ KHÔNG dùng negative letter-spacing với tiếng Việt */
+
     letter-spacing: normal;
-    
-    /* ✅ Line-height đủ lớn để chứa dấu hỏi, ngã, nặng */
+
     line-height: 1.4 !important;
-    
-    /* ✅ Padding bù trừ cho dấu thanh */
+
     padding-top: 0.2em;
     padding-bottom: 0.1em;
   }
 
   h1 {
     font-weight: 900;
-    letter-spacing: -0.01em; /* Chỉ giảm rất nhẹ */
-    line-height: 1.35 !important; /* H1 to có thể chặt hơn 1 chút */
+    letter-spacing: -0.01em;
+    line-height: 1.35 !important;
     padding-top: 0.15em;
   }
 
@@ -120,7 +78,6 @@
     padding-top: 0.12em;
   }
 
-  /* --- ✅ FIX: Utility Classes --- */
   .font-inter {
     font-family:
       "Inter",
@@ -131,7 +88,6 @@
       sans-serif;
   }
 
-  /* ✅ FIXED: .font-noto ưu tiên Noto Sans */
   .font-noto {
     font-family:
       "Noto Sans",
@@ -150,7 +106,6 @@
     padding: 0.5rem 0;
   }
 
-  /* Font weights utilities */
   .font-light {
     font-weight: 300;
   }
@@ -222,7 +177,6 @@
 }
 
 @layer utilities {
-  /* GPU acceleration for fade-in animation */
   .animate-fade-in-up {
     animation: fadeInUp 0.8s ease-out forwards;
     transform: translateZ(0);
@@ -230,16 +184,13 @@
     will-change: transform, opacity;
   }
 
-  /* ✅ NEW: Vietnamese text optimization */
   .text-vietnamese {
     line-height: 1.6 !important;
     padding-top: 0.2em;
     padding-bottom: 0.1em;
-    /* ✅ CRITICAL: inline-block giúp padding hoạt động với bg-clip-text */
     display: inline-block;
   }
 
-  /* ✅ NEW: Vietnamese headings */
   .heading-vietnamese {
     line-height: 1.4 !important;
     padding-top: 0.2em;
@@ -247,7 +198,6 @@
     display: inline-block;
   }
 
-  /* ✅ NEW: Fix cho gradient text (bg-clip-text) */
   .gradient-text-safe {
     display: inline-block;
     padding-top: 0.2em;
