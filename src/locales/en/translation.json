@@ -8,7 +8,7 @@
     "contact": "Contact",
     "login": "Login",
     "dashboard": "Dashboard",
-    "partner_reg": "Partner Registration",
+    "partner_reg": "Organizer Registration",
     "my_tickets": "My Tickets",
     "profile": "My Profile",
     "change_pass": "Change Password",
@@ -726,6 +726,70 @@
       "posted": "Posted successfully!",
       "deleted": "Deleted.",
       "updated": "Updated successfully."
+    }
+  },
+  "profile_page": {
+    "toast": {
+      "select_image_error": "Please select an image file!",
+      "image_size_error": "Image too large! Please select an image < 5MB.",
+      "upload_error": "Error uploading image to server.",
+      "update_success": "Profile updated successfully! 🎉",
+      "update_fail": "Update failed."
+    },
+    "nav": {
+      "back_home": "Back to Home"
+    },
+    "sidebar": {
+      "upload_btn": "Upload",
+      "unknown_user": "Unknown User",
+      "roles": {
+        "MEMBER": "Member",
+        "ORGANIZER": "Organizer",
+        "ADMIN": "Admin",
+        "SADMIN": "Super Admin"
+      },
+      "email_label": "Email",
+      "security": {
+        "label": "Security",
+        "change_password": "Change Password"
+      }
+    },
+    "organizer_card": {
+      "is_organizer": {
+        "title": "Organizer",
+        "desc": "Partner account verified."
+      },
+      "become_organizer": {
+        "title": "Become an Organizer?",
+        "desc": "Register to create and manage events.",
+        "btn": "Register Now"
+      }
+    },
+    "form": {
+      "header": {
+        "title": "Profile Settings",
+        "subtitle": "Manage and update personal information"
+      },
+      "fields": {
+        "fullname": "Full Name",
+        "email_fixed": "Email (Fixed)",
+        "phone": "Phone Number",
+        "phone_placeholder": "09xx...",
+        "dob": "Date of Birth",
+        "gender": "Gender",
+        "gender_options": {
+          "male": "Male",
+          "female": "Female",
+          "other": "Other"
+        },
+        "address": "Address",
+        "address_placeholder": "Enter your address..."
+      },
+      "footer": {
+        "note": "* Changes will be synchronized after you click Save.",
+        "btn_saving": "Saving...",
+        "btn_save": "Save Changes"
+      }
     }
   }
 }

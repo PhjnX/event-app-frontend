@@ -727,5 +727,69 @@
       "deleted": "Đã xóa.",
       "updated": "Cập nhật thành công."
     }
+  },
+  "profile_page": {
+    "toast": {
+      "select_image_error": "Vui lòng chọn file ảnh!",
+      "image_size_error": "Ảnh quá lớn! Vui lòng chọn ảnh < 5MB.",
+      "upload_error": "Lỗi khi tải ảnh lên server.",
+      "update_success": "Cập nhật hồ sơ thành công! 🎉",
+      "update_fail": "Cập nhật thất bại."
+    },
+    "nav": {
+      "back_home": "Quay lại trang chủ"
+    },
+    "sidebar": {
+      "upload_btn": "Upload",
+      "unknown_user": "Unknown User",
+      "roles": {
+        "MEMBER": "Thành viên",
+        "ORGANIZER": "Nhà tổ chức",
+        "ADMIN": "Quản trị viên",
+        "SADMIN": "Super Admin"
+      },
+      "email_label": "Email",
+      "security": {
+        "label": "Bảo mật",
+        "change_password": "Đổi mật khẩu"
+      }
+    },
+    "organizer_card": {
+      "is_organizer": {
+        "title": "Nhà tổ chức",
+        "desc": "Tài khoản đối tác đã được xác minh."
+      },
+      "become_organizer": {
+        "title": "Trở thành Nhà tổ chức?",
+        "desc": "Đăng ký để tạo và quản lý sự kiện.",
+        "btn": "Đăng ký ngay"
+      }
+    },
+    "form": {
+      "header": {
+        "title": "Cài Đặt Hồ Sơ",
+        "subtitle": "Quản lý và cập nhật thông tin cá nhân"
+      },
+      "fields": {
+        "fullname": "Họ và Tên",
+        "email_fixed": "Email (Cố định)",
+        "phone": "Số điện thoại",
+        "phone_placeholder": "09xx...",
+        "dob": "Ngày sinh",
+        "gender": "Giới tính",
+        "gender_options": {
+          "male": "Nam",
+          "female": "Nữ",
+          "other": "Khác"
+        },
+        "address": "Địa chỉ",
+        "address_placeholder": "Nhập địa chỉ của bạn..."
+      },
+      "footer": {
+        "note": "* Các thay đổi sẽ được cập nhật đồng bộ sau khi bạn nhấn Lưu.",
+        "btn_saving": "Đang cập nhật...",
+        "btn_save": "Lưu Thay Đổi"
+      }
+    }
   }
 }

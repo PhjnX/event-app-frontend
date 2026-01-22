@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next"; // Import hook
 import type { RootState, AppDispatch } from "../../../../store";
 import { updateUserProfile, uploadAvatar } from "../../../../store/slices/auth";
 import { toast } from "react-toastify";
@@ -25,6 +26,7 @@ import OrganizerRegModal from "../common/OrganizerRegModal";
 import ChangePasswordModal from "../modals/ChangePasswordModal";
 
 export default function ProfilePage() {
+  const { t } = useTranslation(); // Init hook
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
 
@@ -73,11 +75,11 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Vui lòng chọn file ảnh!");
+        toast.error(t("profile_page.toast.select_image_error"));
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Ảnh quá lớn! Vui lòng chọn ảnh < 5MB.");
+        toast.error(t("profile_page.toast.image_size_error"));
         return;
       }
       setSelectedFile(file);
@@ -98,7 +100,7 @@ export default function ProfilePage() {
       if (uploadAvatar.fulfilled.match(uploadAction)) {
         currentAvatarUrl = uploadAction.payload as string;
       } else {
-        toast.error("Lỗi khi tải ảnh lên server.");
+        toast.error(t("profile_page.toast.upload_error"));
         return;
       }
     }
@@ -107,12 +109,13 @@ export default function ProfilePage() {
     const resultAction = await dispatch(updateUserProfile(updatePayload));
 
     if (updateUserProfile.fulfilled.match(resultAction)) {
-      toast.success("Cập nhật hồ sơ thành công! 🎉");
+      toast.success(t("profile_page.toast.update_success"));
       setSelectedFile(null);
       setPreviewAvatar(null);
     } else {
       const errorMsg = resultAction.payload as string;
-      toast.error(errorMsg || "Cập nhật thất bại.");
+      // Dùng error từ server nếu có, hoặc dùng fallback text
+      toast.error(errorMsg || t("profile_page.toast.update_fail"));
     }
   };
 
@@ -121,9 +124,16 @@ export default function ProfilePage() {
     : "U";
   const displayAvatar = previewAvatar || formData.avatarUrl;
 
+  // Helper để lấy text Role từ translation
+  const getRoleText = (role?: string) => {
+    if (!role) return "MEMBER";
+    // map role từ BE (ví dụ ORGANIZER) sang key json
+    return t(`profile_page.sidebar.roles.${role}`, role);
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] pt-28 pb-20 font-noto relative overflow-hidden selection:bg-[rgba(216,201,123,0.3)]">
-      {/* 1. BACKGROUND EFFECTS - FIX WARNING TRANSPARENT */}
+      {/* 1. BACKGROUND EFFECTS */}
       <div
         className="absolute inset-0 z-0 opacity-20 pointer-events-none"
         style={{
@@ -142,7 +152,7 @@ export default function ProfilePage() {
           className="inline-flex items-center gap-2 text-gray-400 hover:text-[#D8C97B] transition-colors mb-6 group text-sm font-medium"
         >
           <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-          Quay lại trang chủ
+          {t("profile_page.nav.back_home")}
         </Link>
 
         <motion.div
@@ -179,7 +189,7 @@ export default function ProfilePage() {
                       >
                         <FaCamera className="text-xl" />
                         <span className="text-[10px] uppercase font-bold tracking-wider">
-                          Upload
+                          {t("profile_page.sidebar.upload_btn")}
                         </span>
                       </div>
                     </div>
@@ -187,11 +197,11 @@ export default function ProfilePage() {
                 </div>
 
                 <h2 className="text-2xl font-bold text-white mt-3 uppercase tracking-tight">
-                  {user?.username || "Unknown User"}
+                  {user?.username || t("profile_page.sidebar.unknown_user")}
                 </h2>
                 <div className="flex justify-center mt-2">
                   <span className="px-3 py-1 bg-[rgba(216,201,123,0.1)] border border-[rgba(216,201,123,0.3)] text-[#D8C97B] text-xs font-bold rounded-full tracking-wider uppercase">
-                    {user?.role || "MEMBER"}
+                    {getRoleText(user?.role)}
                   </span>
                 </div>
 
@@ -202,7 +212,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-xs text-gray-400 uppercase font-bold">
-                        Email
+                        {t("profile_page.sidebar.email_label")}
                       </p>
                       <p className="text-sm text-gray-200 truncate">
                         {user?.email}
@@ -220,10 +230,10 @@ export default function ProfilePage() {
                     </div>
                     <div className="text-left">
                       <p className="text-xs text-gray-400 uppercase font-bold group-hover:text-[#D8C97B] transition-colors">
-                        Bảo mật
+                        {t("profile_page.sidebar.security.label")}
                       </p>
                       <p className="text-sm text-gray-200 font-medium">
-                        Đổi mật khẩu
+                        {t("profile_page.sidebar.security.change_password")}
                       </p>
                     </div>
                   </button>
@@ -248,10 +258,10 @@ export default function ProfilePage() {
                       <FaCheckCircle size={20} />
                     </div>
                     <h4 className="text-green-500 font-bold mb-1 uppercase text-sm">
-                      Nhà tổ chức
+                      {t("profile_page.organizer_card.is_organizer.title")}
                     </h4>
                     <p className="text-gray-400 text-xs font-light">
-                      Tài khoản đối tác đã được xác minh.
+                      {t("profile_page.organizer_card.is_organizer.desc")}
                     </p>
                   </div>
                 ) : (
@@ -260,16 +270,16 @@ export default function ProfilePage() {
                       <FaBriefcase size={20} />
                     </div>
                     <h4 className="text-[#D8C97B] font-bold mb-1 uppercase text-sm">
-                      Trở thành Nhà tổ chức?
+                      {t("profile_page.organizer_card.become_organizer.title")}
                     </h4>
                     <p className="text-gray-400 text-xs mb-3 font-light">
-                      Đăng ký để tạo và quản lý sự kiện.
+                      {t("profile_page.organizer_card.become_organizer.desc")}
                     </p>
                     <button
                       onClick={() => setIsRegisterModalOpen(true)}
                       className="text-xs bg-[#D8C97B] text-black font-bold px-4 py-2 rounded-lg hover:bg-[#d6c56b] transition-all transform active:scale-95"
                     >
-                      Đăng ký ngay
+                      {t("profile_page.organizer_card.become_organizer.btn")}
                     </button>
                   </div>
                 )}
@@ -283,10 +293,10 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between mb-8 pb-4 border-b border-[rgba(255,255,255,0.1)]">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1 uppercase tracking-tight">
-                    Cài Đặt Hồ Sơ
+                    {t("profile_page.form.header.title")}
                   </h3>
                   <p className="text-gray-400 text-sm font-light">
-                    Quản lý và cập nhật thông tin cá nhân
+                    {t("profile_page.form.header.subtitle")}
                   </p>
                 </div>
                 <div className="hidden md:block">
@@ -299,7 +309,8 @@ export default function ProfilePage() {
                   {/* Name Input */}
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase ml-1 transition-colors group-focus-within:text-white">
-                      <FaUser size={12} /> Họ và Tên
+                      <FaUser size={12} />{" "}
+                      {t("profile_page.form.fields.fullname")}
                     </label>
                     <input
                       type="text"
@@ -312,7 +323,8 @@ export default function ProfilePage() {
                   {/* Email Input - ReadOnly */}
                   <div className="space-y-2 opacity-70">
                     <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase ml-1">
-                      <FaEnvelope size={12} /> Email (Cố định)
+                      <FaEnvelope size={12} />{" "}
+                      {t("profile_page.form.fields.email_fixed")}
                     </label>
                     <input
                       type="email"
@@ -324,21 +336,25 @@ export default function ProfilePage() {
                   {/* Phone Input */}
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase ml-1 transition-colors group-focus-within:text-white">
-                      <FaPhone size={12} /> Số điện thoại
+                      <FaPhone size={12} />{" "}
+                      {t("profile_page.form.fields.phone")}
                     </label>
                     <input
                       type="text"
                       name="phoneNumber"
                       value={formData.phoneNumber || ""}
                       onChange={handleChange}
-                      placeholder="09xx..."
+                      placeholder={t(
+                        "profile_page.form.fields.phone_placeholder",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] outline-none transition-all"
                     />
                   </div>
                   {/* DOB Input */}
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase ml-1 transition-colors group-focus-within:text-white">
-                      <FaBirthdayCake size={12} /> Ngày sinh
+                      <FaBirthdayCake size={12} />{" "}
+                      {t("profile_page.form.fields.dob")}
                     </label>
                     <input
                       type="date"
@@ -351,7 +367,8 @@ export default function ProfilePage() {
                   {/* Gender Select */}
                   <div className="space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase ml-1 transition-colors group-focus-within:text-white">
-                      <FaVenusMars size={12} /> Giới tính
+                      <FaVenusMars size={12} />{" "}
+                      {t("profile_page.form.fields.gender")}
                     </label>
                     <div className="relative">
                       <select
@@ -361,13 +378,13 @@ export default function ProfilePage() {
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] outline-none transition-all appearance-none cursor-pointer"
                       >
                         <option value="MALE" className="bg-[#121212]">
-                          Nam
+                          {t("profile_page.form.fields.gender_options.male")}
                         </option>
                         <option value="FEMALE" className="bg-[#121212]">
-                          Nữ
+                          {t("profile_page.form.fields.gender_options.female")}
                         </option>
                         <option value="OTHER" className="bg-[#121212]">
-                          Khác
+                          {t("profile_page.form.fields.gender_options.other")}
                         </option>
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
@@ -392,14 +409,17 @@ export default function ProfilePage() {
                   {/* Address TextArea */}
                   <div className="md:col-span-2 space-y-2 group">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#D8C97B] uppercase ml-1 transition-colors group-focus-within:text-white">
-                      <FaMapMarkerAlt size={12} /> Địa chỉ
+                      <FaMapMarkerAlt size={12} />{" "}
+                      {t("profile_page.form.fields.address")}
                     </label>
                     <textarea
                       name="address"
                       value={formData.address || ""}
                       onChange={handleChange}
                       rows={3}
-                      placeholder="Nhập địa chỉ của bạn..."
+                      placeholder={t(
+                        "profile_page.form.fields.address_placeholder",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 px-4 text-white focus:border-[#D8C97B] focus:ring-1 focus:ring-[#D8C97B] outline-none transition-all resize-none"
                     />
                   </div>
@@ -407,8 +427,7 @@ export default function ProfilePage() {
 
                 <div className="pt-6 border-t border-[rgba(255,255,255,0.1)] flex flex-col md:flex-row items-center justify-between gap-4">
                   <p className="text-xs text-gray-500 italic text-center md:text-left font-light">
-                    * Các thay đổi sẽ được cập nhật đồng bộ sau khi bạn nhấn
-                    Lưu.
+                    {t("profile_page.form.footer.note")}
                   </p>
                   <button
                     type="submit"
@@ -416,10 +435,10 @@ export default function ProfilePage() {
                     className="w-full md:w-auto flex items-center justify-center gap-2 px-10 py-3.5 bg-[#D8C97B] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(216,201,123,0.4)] transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap uppercase text-sm tracking-widest"
                   >
                     {isLoading ? (
-                      "Đang cập nhật..."
+                      t("profile_page.form.footer.btn_saving")
                     ) : (
                       <>
-                        <FaSave /> Lưu Thay Đổi
+                        <FaSave /> {t("profile_page.form.footer.btn_save")}
                       </>
                     )}
                   </button>
