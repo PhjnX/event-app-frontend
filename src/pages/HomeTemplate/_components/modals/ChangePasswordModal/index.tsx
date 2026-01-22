@@ -4,6 +4,7 @@ import { FaTimes, FaLock, FaKey } from "react-icons/fa";
 import { toast } from "react-toastify";
 import apiService from "@/services/apiService";
 import { modalVariants } from "@/constants/motions";
+import { useTranslation } from "react-i18next";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export default function ChangePasswordModal({
   isOpen,
   onClose,
 }: ChangePasswordModalProps) {
+  const { t } = useTranslation();
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,17 +33,17 @@ export default function ChangePasswordModal({
     e.preventDefault();
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.warning("Vui lòng nhập đầy đủ thông tin!");
+      toast.warning(t("auth_modals.validation.required_all"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu mới không khớp!");
+      toast.error(t("auth_modals.validation.password_mismatch"));
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.warning("Mật khẩu mới phải có ít nhất 6 ký tự.");
+      toast.warning(t("auth_modals.validation.password_length"));
       return;
     }
 
@@ -52,7 +55,7 @@ export default function ChangePasswordModal({
         confirmPassword: confirmPassword,
       });
 
-      toast.success("Đổi mật khẩu thành công!");
+      toast.success(t("auth_modals.change_password.success_msg"));
       handleClose();
     } catch (error: any) {
       const msg = error.response?.data?.message || "Đổi mật khẩu thất bại.";
@@ -66,7 +69,6 @@ export default function ChangePasswordModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-noto selection:bg-[rgba(216,201,123,0.3)]">
-          {/* Overlay Background - FIX Warning black/80 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -97,17 +99,17 @@ export default function ChangePasswordModal({
                   <FaLock size={28} />
                 </div>
                 <h2 className="text-2xl font-bold text-white uppercase tracking-tight">
-                  Đổi Mật Khẩu
+                  {t("auth_modals.change_password.title")}
                 </h2>
                 <p className="text-gray-400 text-sm mt-1 font-light">
-                  Bảo vệ tài khoản của bạn bằng mật khẩu mạnh
+                  {t("auth_modals.change_password.subtitle")}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                    Mật khẩu hiện tại
+                    {t("auth_modals.change_password.label_current")}
                   </label>
                   <div className="relative group">
                     <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -115,7 +117,9 @@ export default function ChangePasswordModal({
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder={t(
+                        "auth_modals.common.placeholders.password",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                     />
                   </div>
@@ -123,7 +127,7 @@ export default function ChangePasswordModal({
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                    Mật khẩu mới
+                    {t("auth_modals.change_password.label_new")}
                   </label>
                   <div className="relative group">
                     <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -131,7 +135,9 @@ export default function ChangePasswordModal({
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder={t(
+                        "auth_modals.common.placeholders.password",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                     />
                   </div>
@@ -140,7 +146,7 @@ export default function ChangePasswordModal({
                 {/* Confirm Password */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                    Xác nhận mật khẩu mới
+                    {t("auth_modals.change_password.label_confirm")}
                   </label>
                   <div className="relative group">
                     <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -148,7 +154,9 @@ export default function ChangePasswordModal({
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder={t(
+                        "auth_modals.common.placeholders.password",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                     />
                   </div>
@@ -159,7 +167,9 @@ export default function ChangePasswordModal({
                   disabled={isLoading}
                   className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mt-2 uppercase text-sm tracking-widest"
                 >
-                  {isLoading ? "Đang xử lý..." : "Xác Nhận Thay Đổi"}
+                  {isLoading
+                    ? t("auth_modals.common.processing")
+                    : t("auth_modals.change_password.btn_submit")}
                 </button>
               </form>
             </div>

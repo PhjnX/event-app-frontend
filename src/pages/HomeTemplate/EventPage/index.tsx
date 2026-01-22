@@ -9,10 +9,12 @@ const EventsGrid = React.lazy(() => import("../_components/events/EventsGrid"));
 const CTANewsletter = React.lazy(
   () => import("../_components/events/CTANewsletter"),
 );
+const AllEventsSection = React.lazy(
+  () => import("../_components/events/EventsList"),
+);
 
 const SectionLoader = () => (
   <div className="w-full h-40 flex items-center justify-center bg-[#0a0a0a]">
-    {/* FIX: Thay border-t-transparent bằng rgba alpha 0 */}
     <div className="w-8 h-8 border-2 border-[#B5A65F] border-t-primary-gold-transparent rounded-full animate-spin"></div>
   </div>
 );
@@ -36,6 +38,9 @@ export default function EventsPage() {
 
       <Suspense fallback={<SectionLoader />}>
         <EventsGrid searchTerm={searchTerm} />
+      </Suspense>
+      <Suspense fallback={<SectionLoader />}>
+        <AllEventsSection searchTerm={searchTerm} />
       </Suspense>
 
       <Suspense fallback={<SectionLoader />}>

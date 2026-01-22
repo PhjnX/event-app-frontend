@@ -1,15 +1,14 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import banner from "../../../../../assets/images/banner.webp";
+import { useTranslation } from "react-i18next";
 
 const HERO_IMAGE = banner;
 
 const AboutHero = () => {
-  // CÁCH FIX TRIỆT ĐỂ:
-  // Xóa ref, dùng useScroll toàn cục (Window Scroll).
-  // Không cần quan tâm cha/con có relative hay không nữa.
+  const { t } = useTranslation();
+
   const { scrollY } = useScroll();
 
-  // Map 0px (đỉnh) -> 1000px (cuộn xuống)
   const backgroundY = useTransform(scrollY, [0, 1000], ["0%", "30%"]);
   const textY = useTransform(scrollY, [0, 1000], ["0%", "100%"]);
   const textOpacity = useTransform(scrollY, [0, 500], [1, 0]);
@@ -17,7 +16,6 @@ const AboutHero = () => {
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center font-noto selection:bg-[rgba(216,201,123,0.3)] selection:text-black">
-      {/* 1. BACKGROUND */}
       <motion.div style={{ y: backgroundY }} className="absolute inset-0 z-0">
         <img
           src={HERO_IMAGE}
@@ -36,7 +34,6 @@ const AboutHero = () => {
         ></div>
       </motion.div>
 
-      {/* 2. CONTENT */}
       <div className="relative z-40 container mx-auto px-4 flex flex-col items-center justify-center h-full">
         <motion.div
           style={{ y: textY, opacity: textOpacity, scale: textScale }}
@@ -54,8 +51,10 @@ const AboutHero = () => {
                 }}
                 className="text-4xl md:text-5xl lg:text-7xl font-black text-white uppercase tracking-tight leading-tight mb-2 drop-shadow-2xl"
               >
-                Event Manager <br className="md:hidden" />
-                <span className="text-[#D8C97B]">System</span>
+                {t("about_page.hero.title_first")} <br className="md:hidden" />
+                <span className="text-[#D8C97B]">
+                  {t("about_page.hero.title_second")}
+                </span>
               </motion.h1>
             </div>
 
@@ -72,7 +71,7 @@ const AboutHero = () => {
               >
                 <div className="h-px w-8 bg-white/30"></div>
                 <p className="text-xs md:text-sm font-medium tracking-[0.2em] uppercase">
-                  Created by{" "}
+                  {t("about_page.hero.created_by")}{" "}
                   <span className="text-[#D8C97B] font-bold">
                     Webie Vietnam
                   </span>
@@ -89,21 +88,18 @@ const AboutHero = () => {
             className="relative mt-10 max-w-2xl text-center px-4"
           >
             <p className="text-gray-400 text-sm md:text-lg font-normal leading-relaxed border-t border-[rgba(255,255,255,0.1)] pt-6">
-              Chúng tôi kiến tạo giải pháp công nghệ toàn diện, giúp tối ưu hóa
-              quy trình quản lý cho hệ sinh thái giáo dục và sự kiện tại Việt
-              Nam.
+              {t("about_page.hero.description")}
             </p>
           </motion.div>
         </motion.div>
       </div>
 
-      {/* 3. SCROLL INDICATOR */}
       <motion.div
         style={{ opacity: textOpacity }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-3"
       >
         <span className="text-[10px] uppercase tracking-widest text-white/50 animate-pulse">
-          Scroll
+          {t("about_page.hero.scroll")}
         </span>
         <div className="relative w-px h-16 bg-[rgba(255,255,255,0.1)] overflow-hidden">
           <motion.div

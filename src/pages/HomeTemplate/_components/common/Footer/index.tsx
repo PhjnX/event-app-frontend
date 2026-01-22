@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   FaFacebookF,
@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { motion, type Variants } from "framer-motion";
 import logoImage from "@/assets/images/Logo_EMS.webp";
+import { useTranslation } from "react-i18next";
 
 interface FooterLink {
   label: string;
@@ -39,6 +40,8 @@ const itemVariants: Variants = {
 };
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   const currentYear = new Date().getFullYear();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     quickLinks: false,
@@ -50,38 +53,47 @@ export default function Footer() {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const footerSections: FooterSectionData[] = [
-    {
-      id: "quickLinks",
-      title: "Trang Chủ",
-      links: [
-        { label: "Ngành nghề", path: "#" },
-        { label: "Giải pháp", path: "#" },
-        { label: "Tài nguyên", path: "#" },
-        { label: "Hỗ trợ", path: "#" },
-      ],
-    },
-    {
-      id: "company",
-      title: "Công ty",
-      links: [
-        { label: "Liên hệ", path: "#" },
-        { label: "Về Chúng Tôi", path: "/about" },
-        { label: "Tuyển Dụng", path: "#" },
-        { label: "Blog", path: "#" },
-      ],
-    },
-    {
-      id: "support",
-      title: "Hỗ trợ",
-      links: [
-        { label: "Trung Tâm Trợ Giúp", path: "#" },
-        { label: "Tài Liệu", path: "#" },
-        { label: "Chính Sách Bảo Mật", path: "#" },
-        { label: "Điều Khoản Sử Dụng", path: "#" },
-      ],
-    },
-  ];
+  const footerSections: FooterSectionData[] = useMemo(
+    () => [
+      {
+        id: "quickLinks",
+        title: t("footer.sections.quick_links.title"),
+        links: [
+          { label: t("footer.sections.quick_links.items.industry"), path: "#" },
+          {
+            label: t("footer.sections.quick_links.items.solutions"),
+            path: "#",
+          },
+          {
+            label: t("footer.sections.quick_links.items.resources"),
+            path: "#",
+          },
+          { label: t("footer.sections.quick_links.items.support"), path: "#" },
+        ],
+      },
+      {
+        id: "company",
+        title: t("footer.sections.company.title"),
+        links: [
+          { label: t("footer.sections.company.items.contact"), path: "#" },
+          { label: t("footer.sections.company.items.about"), path: "/about" },
+          { label: t("footer.sections.company.items.careers"), path: "#" },
+          { label: t("footer.sections.company.items.blog"), path: "#" },
+        ],
+      },
+      {
+        id: "support",
+        title: t("footer.sections.support.title"),
+        links: [
+          { label: t("footer.sections.support.items.help_center"), path: "#" },
+          { label: t("footer.sections.support.items.docs"), path: "#" },
+          { label: t("footer.sections.support.items.privacy"), path: "#" },
+          { label: t("footer.sections.support.items.terms"), path: "#" },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const socialLinks: SocialLink[] = [
     {
@@ -108,52 +120,33 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)]">
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[#0a0a0a]"></div>
-
-        {/* Circuit Pattern SVG */}
-        <div className="absolute inset-0 opacity-10">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <pattern
-              id="footer-circuit"
-              x="0"
-              y="0"
-              width="100"
-              height="100"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M10,10 L90,10 M10,10 L10,90"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="1"
-                fill="none"
-              />
-              <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.5)" />
-              <circle cx="90" cy="90" r="2" fill="rgba(255,255,255,0.5)" />
-              <path
-                d="M50,50 L90,50 M50,50 L50,90"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="1"
-                fill="none"
-              />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#footer-circuit)" />
-          </svg>
-        </div>
-
-        <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-[#0a0a0a] to-[rgba(10,10,10,0)] z-10"></div>
-
-        <motion.div
-          animate={{ opacity: [0.05, 0.12, 0.05] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.1)] rounded-full blur-[150px] translate-y-[-50%]"
+    <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#000000] selection:bg-[rgba(216,201,123,0.3)] border-t border-white/10">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+        <div
+          className="absolute bottom-0 left-0 w-full h-[150%] opacity-20"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: "50px 50px",
+            transform:
+              "perspective(500px) rotateX(60deg) translateY(100px) scale(2)",
+            transformOrigin: "bottom center",
+            maskImage: "linear-gradient(to top, black 0%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to top, black 0%, transparent 100%)",
+          }}
         />
-        <motion.div
-          animate={{ opacity: [0.05, 0.15, 0.05] }}
-          transition={{ duration: 7, repeat: Infinity }}
-          className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[rgba(30,58,138,0.2)] rounded-full blur-[150px]"
-        />
+
+        <div
+          className="absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)",
+            backgroundSize: "100px 100px",
+          }}
+        ></div>
+
+        <div className="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-black to-transparent"></div>
       </div>
 
       <div className="max-w-[1400px] mx-auto px-5 lg:px-10 relative z-20">
@@ -176,8 +169,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-[400px] mx-auto lg:mx-0 font-light">
-              Nền tảng quản lý sự kiện chuyên nghiệp, giúp bạn tổ chức và quản
-              lý các sự kiện hiệu quả. Kết nối đam mê, kiến tạo tương lai.
+              {t("footer.description")}
             </p>
             <div className="flex gap-3 justify-center lg:justify-start">
               {socialLinks.map((social) => (
@@ -250,21 +242,28 @@ export default function Footer() {
         >
           <p className="text-gray-500 text-xs m-0 font-light">
             &copy; {currentYear}{" "}
-            <span className="text-gray-300 font-medium">Webie Vietnam</span>.
-            All rights reserved.
+            <span className="text-gray-300 font-medium">Webie Vietnam</span>.{" "}
+            {t("footer.bottom.rights")}
           </p>
           <div className="flex items-center gap-6 text-xs font-light">
-            {["Chính Sách Bảo Mật", "Điều Khoản Sử Dụng", "Cookies"].map(
-              (text) => (
-                <a
-                  key={text}
-                  href="#"
-                  className="text-gray-500 hover:text-[#D8C97B] transition-colors"
-                >
-                  {text}
-                </a>
-              ),
-            )}
+            <a
+              href="#"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
+            >
+              {t("footer.bottom.privacy")}
+            </a>
+            <a
+              href="#"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
+            >
+              {t("footer.bottom.terms")}
+            </a>
+            <a
+              href="#"
+              className="text-gray-500 hover:text-[#D8C97B] transition-colors"
+            >
+              {t("footer.bottom.cookies")}
+            </a>
           </div>
         </motion.div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next"; // Import i18n
 import {
   motion,
   useScroll,
@@ -34,6 +35,7 @@ import type { Presenter } from "@/models/presenter";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export default function PublicEventDetail() {
+  const { t, i18n } = useTranslation(); // Init hook
   const { slug } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
@@ -95,13 +97,13 @@ export default function PublicEventDetail() {
           setPresenters(uniquePresenters);
         }
       } catch (error) {
-        toast.error("Không tìm thấy sự kiện");
+        toast.error(t("public_event_detail.toasts.not_found"));
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [slug, user]);
+  }, [slug, user, t]);
 
   const formatTime = (isoTime: string) => {
     return isoTime.split("T")[1].substring(0, 5);
@@ -118,8 +120,8 @@ export default function PublicEventDetail() {
 
     if (isFull) {
       setShakeId(activityId);
-      setTimeout(() => setShakeId(null), 500); 
-      toast.error("Hoạt động này đã hết chỗ!");
+      setTimeout(() => setShakeId(null), 500);
+      toast.error(t("public_event_detail.toasts.activity_full"));
       return;
     }
 
@@ -131,9 +133,10 @@ export default function PublicEventDetail() {
   };
 
   const handleRegister = async () => {
-    if (!user) return toast.warn("Vui lòng đăng nhập để đăng ký!");
+    if (!user)
+      return toast.warn(t("public_event_detail.toasts.login_required"));
     if (!event || selectedActivityIds.length === 0)
-      return toast.warn("Bạn chưa chọn hoạt động nào!");
+      return toast.warn(t("public_event_detail.toasts.no_selection"));
 
     setIsRegistering(true);
     try {
@@ -144,7 +147,7 @@ export default function PublicEventDetail() {
             activityIds: selectedActivityIds,
           }),
         ).unwrap();
-        toast.success("🎉 Đã bổ sung hoạt động thành công!");
+        toast.success(t("public_event_detail.toasts.add_success"));
       } else {
         await dispatch(
           registerForEvent({
@@ -152,13 +155,13 @@ export default function PublicEventDetail() {
             activityIds: selectedActivityIds,
           }),
         ).unwrap();
-        toast.success("🎉 Đăng ký sự kiện thành công!");
+        toast.success(t("public_event_detail.toasts.reg_success"));
       }
 
       setRegisteredActivityIds((prev) => [...prev, ...selectedActivityIds]);
       setSelectedActivityIds([]);
     } catch (error: any) {
-      toast.error(error || "Thao tác thất bại.");
+      toast.error(error || t("public_event_detail.toasts.action_failed"));
     } finally {
       setIsRegistering(false);
     }
@@ -168,9 +171,14 @@ export default function PublicEventDetail() {
   if (!event)
     return (
       <div className="text-white text-center pt-32 h-screen bg-[#050505]">
-        Sự kiện không tồn tại.
+        {t("public_event_detail.not_exist")}
       </div>
     );
+
+  // Định dạng ngày theo ngôn ngữ
+  const displayDate = new Date(event.startDate).toLocaleDateString(
+    i18n.language === "vi" ? "vi-VN" : "en-US",
+  );
 
   return (
     <div className="bg-[#050505] min-h-screen font-noto text-gray-200 selection:bg-[#B5A65F]/30 pb-32">
@@ -183,7 +191,7 @@ export default function PublicEventDetail() {
             <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#B5A65F] transition-all">
               <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
             </div>
-            <span>Quay lại</span>
+            <span>{t("public_event_detail.back")}</span>
           </Link>
           <div className="hidden md:block text-[10px] text-gray-500 font-black tracking-[0.3em] uppercase">
             {event.eventName}
@@ -204,9 +212,7 @@ export default function PublicEventDetail() {
             <div className="flex flex-wrap gap-8 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <FaClock className="text-[#B5A65F]" />
-                <span className="text-white">
-                  {new Date(event.startDate).toLocaleDateString("vi-VN")}
-                </span>
+                <span className="text-white">{displayDate}</span>
               </div>
               <div className="flex items-center gap-2">
                 <FaMapMarkerAlt className="text-[#B5A65F]" />
@@ -243,7 +249,7 @@ export default function PublicEventDetail() {
             <section>
               <div className="flex items-center gap-4 mb-8">
                 <h3 className="text-3xl font-black uppercase tracking-tight text-white">
-                  Lịch trình Sự kiện
+                  {t("public_event_detail.schedule_title")}
                 </h3>
                 <div className="h-px bg-white/10 flex-1"></div>
               </div>
@@ -322,7 +328,7 @@ export default function PublicEventDetail() {
                           className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
                         >
                           <div className="border-4 border-red-800/80 text-red-700 font-black text-4xl uppercase px-6 py-2 -rotate-12 tracking-[0.2em] backdrop-blur-[2px] bg-black/40 shadow-2xl">
-                            HẾT CHỖ
+                            {t("public_event_detail.status.full_stamp")}
                           </div>
                         </motion.div>
                       )}
@@ -372,11 +378,13 @@ export default function PublicEventDetail() {
                               {isUnlimited ? (
                                 <span
                                   className="flex items-center gap-1"
-                                  title="Không giới hạn"
+                                  title={t(
+                                    "public_event_detail.status.unlimited",
+                                  )}
                                 >
                                   <FaInfinity />
                                   <span className="hidden sm:inline">
-                                    Không giới hạn
+                                    {t("public_event_detail.status.unlimited")}
                                   </span>
                                 </span>
                               ) : (
@@ -418,7 +426,7 @@ export default function PublicEventDetail() {
 
                       {isRegistered && (
                         <div className="absolute top-0 right-0 bg-green-900/90 text-green-300 text-[9px] font-bold px-4 py-1.5 rounded-bl-xl border-l border-b border-green-500/30 z-20">
-                          ĐÃ ĐĂNG KÝ
+                          {t("public_event_detail.status.registered_stamp")}
                         </div>
                       )}
                     </motion.div>
@@ -430,7 +438,7 @@ export default function PublicEventDetail() {
             <section>
               <div className="flex items-center gap-4 mb-8 pt-8 border-t border-white/10">
                 <h3 className="text-2xl font-black uppercase tracking-tight text-white">
-                  Khách mời
+                  {t("public_event_detail.guests_title")}
                 </h3>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -471,7 +479,7 @@ export default function PublicEventDetail() {
                     </div>
                     <div className="text-right">
                       <div className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">
-                        Vé tham dự
+                        {t("public_event_detail.ticket_card.title")}
                       </div>
                       <div className="text-base font-black font-mono tracking-tighter">
                         #EVN-{event.eventId}
@@ -486,7 +494,7 @@ export default function PublicEventDetail() {
                   <div className="space-y-4 border-t-2 border-black/5 pt-6">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400 uppercase font-bold tracking-wider text-[10px]">
-                        Số lượng session đã chọn
+                        {t("public_event_detail.ticket_card.selected_count")}
                       </span>
                       <span className="font-black text-xl">
                         {selectedActivityIds.length}
@@ -494,16 +502,18 @@ export default function PublicEventDetail() {
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400 uppercase font-bold tracking-wider text-[10px]">
-                        Hạng vé
+                        {t("public_event_detail.ticket_card.ticket_class")}
                       </span>
                       <span className="font-bold text-[#B5A65F] uppercase tracking-wider text-xs">
-                        {hasJoinedEvent ? "Premium Member" : "Standard"}
+                        {hasJoinedEvent
+                          ? t("public_event_detail.ticket_card.class_premium")
+                          : t("public_event_detail.ticket_card.class_standard")}
                       </span>
                     </div>
                     {hasJoinedEvent && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-400 uppercase font-bold tracking-wider text-[10px]">
-                          Đã sở hữu
+                          {t("public_event_detail.ticket_card.owned")}
                         </span>
                         <span className="font-bold text-green-600 flex items-center gap-1.5 text-xs">
                           <FaCheckCircle /> {registeredActivityIds.length}
@@ -523,10 +533,10 @@ export default function PublicEventDetail() {
                   <div className="flex justify-between items-end mb-8">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest block mb-2">
-                        Tổng cộng
+                        {t("public_event_detail.ticket_card.total_label")}
                       </span>
                       <span className="text-4xl font-noto font-black tracking-tight">
-                        MIỄN PHÍ
+                        {t("public_event_detail.ticket_card.free")}
                       </span>
                     </div>
                     <div className="text-gray-200 text-4xl opacity-50">
@@ -547,14 +557,14 @@ export default function PublicEventDetail() {
                         `}
                   >
                     {isRegistering
-                      ? "Đang xử lý..."
+                      ? t("public_event_detail.ticket_card.btn_processing")
                       : hasJoinedEvent
-                        ? "XÁC NHẬN THÊM"
-                        : "XÁC NHẬN ĐĂNG KÝ"}
+                        ? t("public_event_detail.ticket_card.btn_confirm_add")
+                        : t("public_event_detail.ticket_card.btn_confirm_reg")}
                   </button>
 
                   <p className="text-center text-[9px] text-gray-400 mt-6 font-medium uppercase tracking-wide opacity-50">
-                    * Vé điện tử sẽ được gửi qua email của bạn
+                    {t("public_event_detail.ticket_card.note")}
                   </p>
                 </div>
               </div>
@@ -574,11 +584,13 @@ export default function PublicEventDetail() {
             >
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-gray-500">
-                  Đã chọn
+                  {t("public_event_detail.mobile_bar.selected_label")}
                 </span>
                 <div className="font-black text-xl">
                   {selectedActivityIds.length}{" "}
-                  <span className="text-xs font-normal">mục</span>
+                  <span className="text-xs font-normal">
+                    {t("public_event_detail.mobile_bar.unit")}
+                  </span>
                 </div>
               </div>
               <button
@@ -586,7 +598,9 @@ export default function PublicEventDetail() {
                 disabled={isRegistering}
                 className="bg-black text-white px-6 py-3 rounded-full font-bold uppercase text-xs tracking-wider"
               >
-                {isRegistering ? "..." : "Xác nhận"}
+                {isRegistering
+                  ? "..."
+                  : t("public_event_detail.mobile_bar.btn_confirm")}
               </button>
             </motion.div>
           </div>

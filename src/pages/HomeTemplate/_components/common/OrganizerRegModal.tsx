@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 
 import LoginModal from "../modals/LoginModal";
 import RegisterModal from "../modals/RegisterModal";
+import { useTranslation, Trans } from "react-i18next";
 
 interface OrganizerRegModalProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth,
@@ -89,7 +92,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
     e.preventDefault();
 
     if (!isAuthenticated) {
-      toast.info("Vui lòng đăng nhập để gửi thông tin đăng ký!", {
+      toast.info(t("organizer_reg_modal.messages.login_required"), {
         theme: "dark",
       });
       setAuthModalType("LOGIN");
@@ -211,7 +214,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                     onClick={onClose}
                     className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase"
                   >
-                    <FaArrowLeft /> Quay lại
+                    <FaArrowLeft /> {t("organizer_reg_modal.back")}
                   </button>
                 </div>
 
@@ -232,23 +235,21 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                       >
                         <div className="mb-10">
                           <h2 className="text-4xl md:text-5xl font-noto font-medium text-white mb-4 leading-none tracking-tight">
-                            TRỞ THÀNH{" "}
+                            {t("organizer_reg_modal.form.title_prefix")}{" "}
                             <span className="text-[#D8C97B]">
-                              ĐỐI TÁC WEBIE
+                              {t("organizer_reg_modal.form.title_highlight")}
                             </span>
                           </h2>
                           <p className="text-zinc-500 text-lg font-light max-w-lg">
-                            Kết nối với mạng lưới tổ chức sự kiện chuyên nghiệp
-                            và mở rộng cơ hội kinh doanh của bạn.
+                            {t("organizer_reg_modal.form.desc")}
                           </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-10">
-                          {/* Hàng 1 */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-2 group">
                               <label className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100">
-                                Họ và Tên
+                                {t("organizer_reg_modal.form.labels.name")}
                               </label>
                               <input
                                 type="text"
@@ -256,13 +257,15 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                                 required
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Nhập họ tên..."
+                                placeholder={t(
+                                  "organizer_reg_modal.form.placeholders.name",
+                                )}
                                 className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-[#D8C97B] transition-all placeholder:text-zinc-700 text-lg rounded-none"
                               />
                             </div>
                             <div className="space-y-2 group">
                               <label className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100">
-                                Số điện thoại
+                                {t("organizer_reg_modal.form.labels.phone")}
                               </label>
                               <input
                                 type="tel"
@@ -270,17 +273,18 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                                 required
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder="Nhập SĐT..."
+                                placeholder={t(
+                                  "organizer_reg_modal.form.placeholders.phone",
+                                )}
                                 className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-[#D8C97B] transition-all placeholder:text-zinc-700 text-lg rounded-none"
                               />
                             </div>
                           </div>
 
-                          {/* Hàng 2 */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-2 group">
                               <label className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100">
-                                Email
+                                {t("organizer_reg_modal.form.labels.email")}
                               </label>
                               <input
                                 type="email"
@@ -288,20 +292,24 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                                 required
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="example@email.com"
+                                placeholder={t(
+                                  "organizer_reg_modal.form.placeholders.email",
+                                )}
                                 className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-[#D8C97B] transition-all placeholder:text-zinc-700 text-lg rounded-none"
                               />
                             </div>
                             <div className="space-y-2 group">
                               <label className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100">
-                                Tên Tổ Chức
+                                {t("organizer_reg_modal.form.labels.org_name")}
                               </label>
                               <input
                                 type="text"
                                 name="orgName"
                                 value={formData.orgName}
                                 onChange={handleChange}
-                                placeholder="Tên công ty..."
+                                placeholder={t(
+                                  "organizer_reg_modal.form.placeholders.org_name",
+                                )}
                                 className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-[#D8C97B] transition-all placeholder:text-zinc-700 text-lg rounded-none"
                               />
                             </div>
@@ -309,14 +317,16 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
 
                           <div className="space-y-2 group">
                             <label className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100">
-                              Lời nhắn
+                              {t("organizer_reg_modal.form.labels.message")}
                             </label>
                             <textarea
                               name="message"
                               rows={2}
                               value={formData.message}
                               onChange={handleChange}
-                              placeholder="Nội dung cần hỗ trợ..."
+                              placeholder={t(
+                                "organizer_reg_modal.form.placeholders.message",
+                              )}
                               className="w-full bg-transparent border-b border-zinc-800 py-3 text-white focus:outline-none focus:border-[#D8C97B] transition-all placeholder:text-zinc-700 text-lg rounded-none resize-none"
                             />
                           </div>
@@ -331,7 +341,8 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                                 <FaSpinner className="animate-spin text-lg" />
                               ) : (
                                 <>
-                                  <FaPaperPlane /> Gửi Thông Tin Ngay
+                                  <FaPaperPlane />{" "}
+                                  {t("organizer_reg_modal.form.submit_btn")}
                                 </>
                               )}
                             </button>
@@ -359,16 +370,16 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                           <FaCheckCircle className="text-8xl drop-shadow-[0_0_30px_rgba(216,201,123,0.4)]" />
                         </motion.div>
                         <h3 className="text-5xl font-serif text-white mb-4">
-                          Đã Gửi Thành Công!
+                          {t("organizer_reg_modal.success.title")}
                         </h3>
                         <p className="text-zinc-400 mb-10 text-lg font-light">
-                          Chúng tôi sẽ liên hệ trong vòng 24h làm việc.
+                          {t("organizer_reg_modal.success.desc")}
                         </p>
                         <button
                           onClick={onClose}
                           className="px-10 py-3 border border-zinc-700 hover:border-[#D8C97B] hover:bg-[#D8C97B] hover:text-black text-white uppercase text-xs font-bold tracking-[0.2em] transition-all"
                         >
-                          Hoàn tất
+                          {t("organizer_reg_modal.success.btn")}
                         </button>
                       </motion.div>
                     )}
@@ -385,14 +396,14 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                 <div className="space-y-16">
                   <div>
                     <h3 className="text-5xl font-serif text-white mb-6">
-                      Liên Hệ
+                      {t("organizer_reg_modal.sidebar.title")}
                     </h3>
                     <div className="w-16 h-1 bg-[#D8C97B]" />
                   </div>
                   <div className="space-y-12">
                     <div className="group">
                       <h4 className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] mb-3">
-                        Hotline
+                        {t("organizer_reg_modal.sidebar.hotline")}
                       </h4>
                       <p className="text-4xl text-white font-light group-hover:text-[#D8C97B] transition-colors cursor-pointer">
                         +84 969 838 467
@@ -400,7 +411,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                     </div>
                     <div className="group">
                       <h4 className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] mb-3">
-                        Email
+                        {t("organizer_reg_modal.sidebar.email")}
                       </h4>
                       <p className="text-2xl text-white font-light underline decoration-zinc-700 underline-offset-8 group-hover:decoration-[#D8C97B] transition-all cursor-pointer">
                         Huyen.dang@webie.com.vn
@@ -408,12 +419,12 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
                     </div>
                     <div className="group">
                       <h4 className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.2em] mb-3">
-                        Văn Phòng
+                        {t("organizer_reg_modal.sidebar.office")}
                       </h4>
                       <div className="flex gap-4 items-start">
                         <FaMapMarkerAlt className="text-xl text-[#D8C97B] mt-1" />
                         <p className="text-zinc-400 text-lg">
-                          Số 53, đường 57, An Phú <br /> TP Thủ Đức, TP.HCM
+                          <Trans i18nKey="organizer_reg_modal.sidebar.address" />
                         </p>
                       </div>
                     </div>
@@ -447,7 +458,7 @@ const OrganizerRegModal: React.FC<OrganizerRegModalProps> = ({
               onClose={() => setAuthModalType("NONE")}
               onSwitchToRegister={() => setAuthModalType("REGISTER")}
               onSwitchToForgot={() => {
-                toast.info("Chức năng đang cập nhật");
+                toast.info(t("organizer_reg_modal.messages.feature_update"));
               }}
             />
           </div>

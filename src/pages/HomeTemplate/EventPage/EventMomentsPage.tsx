@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import {
@@ -73,10 +74,11 @@ const getWebSocketUrl = () => {
   return `${rootUrl}/ws`;
 };
 
+// Modified helper to return null instead of hardcoded string if no specific message
 const getErrorMessage = (error: any) => {
   if (error?.response?.data?.message) return error.response.data.message;
   if (typeof error?.response?.data === "string") return error.response.data;
-  return "Có lỗi xảy ra, vui lòng thử lại.";
+  return null; // Return null to let component use i18n fallback
 };
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -86,6 +88,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   title,
   message,
 }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
@@ -108,13 +111,13 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               onClick={onClose}
               className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-colors"
             >
-              Hủy
+              {t("event_moments.modal_delete.btn_cancel")}
             </button>
             <button
               onClick={onConfirm}
               className="flex-1 py-3 bg-red-600 hover:bg-red-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-colors shadow-lg shadow-red-900/30"
             >
-              Xóa
+              {t("event_moments.modal_delete.btn_delete")}
             </button>
           </div>
         </div>
@@ -130,6 +133,7 @@ const EditModal: React.FC<EditModalProps> = ({
   initialCaption,
   initialImage,
 }) => {
+  const { t } = useTranslation();
   const [caption, setCaption] = useState(initialCaption);
   useEffect(() => {
     setCaption(initialCaption);
@@ -147,7 +151,8 @@ const EditModal: React.FC<EditModalProps> = ({
       >
         <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-white/2">
           <h3 className="text-sm font-bold text-white uppercase flex gap-2 items-center tracking-wider">
-            <FaPen className="text-[#D4AF37]" /> Chỉnh sửa bài viết
+            <FaPen className="text-[#D4AF37]" />{" "}
+            {t("event_moments.modal_edit.title")}
           </h3>
           <button
             onClick={onClose}
@@ -171,7 +176,7 @@ const EditModal: React.FC<EditModalProps> = ({
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             className="w-full bg-[#222] border border-white/10 rounded-xl p-4 text-zinc-100 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 outline-none min-h-[120px] text-sm resize-none leading-relaxed"
-            placeholder="Nội dung bài viết..."
+            placeholder={t("event_moments.modal_edit.placeholder")}
           />
         </div>
 
@@ -180,13 +185,13 @@ const EditModal: React.FC<EditModalProps> = ({
             onClick={onClose}
             className="px-5 py-2.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 uppercase transition-all"
           >
-            Hủy
+            {t("event_moments.modal_edit.btn_cancel")}
           </button>
           <button
             onClick={() => onSave(caption)}
             className="px-6 py-2.5 bg-[#D4AF37] text-black text-xs font-bold rounded-lg hover:bg-[#c9b96e] uppercase shadow-[0_0_15px_rgba(212,175,55,0.3)] transition-all"
           >
-            Lưu thay đổi
+            {t("event_moments.modal_edit.btn_save")}
           </button>
         </div>
       </motion.div>
@@ -200,6 +205,7 @@ const MomentCard: React.FC<MomentCardProps> = ({
   onDeleteRequest,
   onEdit,
 }) => {
+  const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const hasImage = !!moment.imageUrl && moment.imageUrl !== "";
@@ -266,7 +272,8 @@ const MomentCard: React.FC<MomentCardProps> = ({
                     }}
                     className="w-full text-left px-4 py-3 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
                   >
-                    <FaPen size={10} className="text-[#D4AF37]" /> Sửa bài
+                    <FaPen size={10} className="text-[#D4AF37]" />{" "}
+                    {t("event_moments.card.menu_edit")}
                   </button>
                   <button
                     onClick={() => {
@@ -275,7 +282,7 @@ const MomentCard: React.FC<MomentCardProps> = ({
                     }}
                     className="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-white/10 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
                   >
-                    <FaTrash size={10} /> Xóa bài
+                    <FaTrash size={10} /> {t("event_moments.card.menu_delete")}
                   </button>
                 </motion.div>
               )}
@@ -311,6 +318,7 @@ const MomentCard: React.FC<MomentCardProps> = ({
 };
 
 export default function EventMomentsPage() {
+  const { t } = useTranslation();
   const { eventSlug } = useParams<{ eventSlug: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const { myRegistrations } = useSelector((state: RootState) => state.events);
@@ -324,10 +332,11 @@ export default function EventMomentsPage() {
       user?.name || "User"
     }`;
 
-  // States
   const [realEventId, setRealEventId] = useState<number | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
-  const [eventName, setEventName] = useState<string>("Đang tải...");
+  const [eventName, setEventName] = useState<string>(
+    t("event_moments.header.loading_event"),
+  );
 
   const [moments, setMoments] = useState<Moment[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -346,6 +355,11 @@ export default function EventMomentsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const tabs = [
+    { id: "ALL", label: t("event_moments.tabs.all") },
+    { id: "MINE", label: t("event_moments.tabs.mine") },
+  ];
 
   useEffect(() => {
     if (!eventSlug) return;
@@ -467,7 +481,7 @@ export default function EventMomentsPage() {
 
   const handleUpload = async () => {
     if ((!caption.trim() && !fileToUpload) || !realEventId)
-      return toast.warning("Chưa nhập nội dung");
+      return toast.warning(t("event_moments.errors.no_content"));
     setIsUploading(true);
     try {
       let imageUrl = "";
@@ -480,13 +494,13 @@ export default function EventMomentsPage() {
         imageUrl = res.data?.url || res.data || res;
       }
       await momentApi.createMoment(realEventId, { caption, imageUrl });
-      toast.success("Đã đăng bài thành công!");
+      toast.success(t("event_moments.success.posted"));
       setCaption("");
       setPreviewImg(null);
       setFileToUpload(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
-      toast.error(getErrorMessage(err));
+      toast.error(getErrorMessage(err) || t("event_moments.errors.general"));
     } finally {
       setIsUploading(false);
     }
@@ -496,9 +510,9 @@ export default function EventMomentsPage() {
     if (deleteId && realEventId) {
       try {
         await momentApi.deleteMoment(realEventId, deleteId);
-        toast.success("Đã xóa.");
+        toast.success(t("event_moments.success.deleted"));
       } catch (err) {
-        toast.error(getErrorMessage(err));
+        toast.error(getErrorMessage(err) || t("event_moments.errors.general"));
       } finally {
         setDeleteId(null);
       }
@@ -513,9 +527,9 @@ export default function EventMomentsPage() {
           imageUrl: editingMoment.imageUrl || "",
         });
         setEditingMoment(null);
-        toast.success("Cập nhật thành công.");
+        toast.success(t("event_moments.success.updated"));
       } catch (err) {
-        toast.error(getErrorMessage(err));
+        toast.error(getErrorMessage(err) || t("event_moments.errors.general"));
       }
     }
   };
@@ -567,7 +581,7 @@ export default function EventMomentsPage() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_10px_#D4AF37] animate-pulse"></span>
                 <p className="text-[#D4AF37] text-[11px] font-bold uppercase tracking-[0.2em]">
-                  Live Feed
+                  {t("event_moments.header.live_feed")}
                 </p>
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight max-w-3xl leading-none drop-shadow-xl">
@@ -577,10 +591,7 @@ export default function EventMomentsPage() {
           </div>
 
           <div className="relative p-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full flex z-10 shadow-lg">
-            {[
-              { id: "ALL", label: "Cộng đồng" },
-              { id: "MINE", label: "Bài của tôi" },
-            ].map((tab) => {
+            {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
@@ -612,7 +623,7 @@ export default function EventMomentsPage() {
           <div className="py-20 flex flex-col items-center gap-4">
             <FaSpinner className="text-[#D4AF37] animate-spin text-3xl" />
             <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-              Đang kết nối máy chủ...
+              {t("event_moments.header.connecting")}
             </span>
           </div>
         ) : (
@@ -647,7 +658,7 @@ export default function EventMomentsPage() {
                         onFocus={() => setIsInputFocused(true)}
                         onBlur={() => setIsInputFocused(false)}
                         onChange={(e) => setCaption(e.target.value)}
-                        placeholder={`Chia sẻ cảm nghĩ, hình ảnh về sự kiện này...`}
+                        placeholder={t("event_moments.input.placeholder")}
                         className="w-full bg-transparent text-lg text-white placeholder:text-zinc-500 outline-none resize-none min-h-[60px] leading-relaxed font-noto"
                       />
 
@@ -689,7 +700,7 @@ export default function EventMomentsPage() {
                               <FaImage className="text-sm" />
                             </div>
                             <span className="text-zinc-400 group-hover:text-white text-xs font-bold uppercase tracking-wide">
-                              Thêm Ảnh
+                              {t("event_moments.input.btn_photo")}
                             </span>
                           </button>
                           <input
@@ -714,7 +725,8 @@ export default function EventMomentsPage() {
                             <FaSpinner className="animate-spin" />
                           ) : (
                             <>
-                              <FaPaperPlane className="text-xs" /> Đăng bài
+                              <FaPaperPlane className="text-xs" />{" "}
+                              {t("event_moments.input.btn_post")}
                             </>
                           )}
                         </button>
@@ -751,7 +763,7 @@ export default function EventMomentsPage() {
                   <FaCamera className="text-3xl text-zinc-600" />
                 </div>
                 <p className="text-zinc-400 font-bold uppercase tracking-widest text-sm">
-                  Chưa có bài viết nào
+                  {t("event_moments.list.empty")}
                 </p>
               </div>
             )}
@@ -762,7 +774,7 @@ export default function EventMomentsPage() {
                   onClick={() => fetchMoments(false)}
                   className="px-10 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] transition-all text-zinc-400"
                 >
-                  Tải thêm
+                  {t("event_moments.list.load_more")}
                 </button>
               </div>
             )}
@@ -780,8 +792,8 @@ export default function EventMomentsPage() {
           isOpen={!!deleteId}
           onClose={() => setDeleteId(null)}
           onConfirm={handleConfirmDelete}
-          title="Xóa khoảnh khắc?"
-          message="Bài viết này sẽ biến mất vĩnh viễn khỏi dòng thời gian sự kiện."
+          title={t("event_moments.modal_delete.title")}
+          message={t("event_moments.modal_delete.message")}
         />
       </div>
     </div>

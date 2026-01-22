@@ -123,10 +123,10 @@ export default function ManageEvents() {
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
 
   const [orgStatus, setOrgStatus] = useState({ locked: false, approved: true });
+
   // Mặc định isChecking true nếu là Organizer để tránh nhấp nháy
   const [isChecking, setIsChecking] = useState(user?.role === "ORGANIZER");
 
-  // ✅ FIX: Logic check status mới nhất bằng API /me/status
   useEffect(() => {
     if (user?.role === "ORGANIZER") {
       setIsChecking(true);
@@ -660,6 +660,7 @@ export default function ManageEvents() {
                   key={event.eventId}
                   className={`group relative flex flex-col bg-[#1a1a1a] rounded-3xl border overflow-hidden transition-all ${borderClass}`}
                 >
+                  {/* Banner Image Area */}
                   <div className="relative h-64 w-full bg-black">
                     <OptimizedImage
                       src={event.bannerImageUrl}
@@ -674,6 +675,7 @@ export default function ManageEvents() {
                       }`}
                     />
                     <div className="absolute top-4 right-4 z-10">
+                      {/* VẪN GIỮ CÁI NÀY ĐỂ NHẬN BIẾT TRẠNG THÁI (NHÃN NHỎ) */}
                       <StatusBadge
                         status={event.status}
                         startDate={event.startDate}
@@ -682,6 +684,7 @@ export default function ManageEvents() {
                     </div>
                   </div>
 
+                  {/* Body Content */}
                   <div className="flex-1 px-8 pt-2 pb-6 flex flex-col gap-3 relative z-10 -mt-16">
                     <h3
                       className={`text-2xl font-bold line-clamp-2 min-h-16 ${
@@ -705,40 +708,7 @@ export default function ManageEvents() {
                       </div>
                     </div>
 
-                    {event.status === "REJECTED" && (
-                      <div className="mt-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex gap-3 items-start animate-pulse">
-                        <FaExclamationCircle className="text-red-500 mt-0.5 shrink-0 text-lg" />
-                        <div className="text-xs text-red-400">
-                          <span className="font-bold block mb-1 uppercase tracking-wide">
-                            Yêu cầu bị từ chối
-                          </span>
-                          <span className="text-gray-300">Lý do: </span>
-                          {event.reason || "Vi phạm chính sách cộng đồng. "}
-                        </div>
-                      </div>
-                    )}
-
-                    {event.status === "PENDING_APPROVAL" && (
-                      <div className="mt-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl flex gap-3 items-center">
-                        <div className="shrink-0">
-                          {isSAdmin ? (
-                            <FaExclamationCircle className="text-blue-400 text-lg animate-pulse" />
-                          ) : (
-                            <FaHourglassHalf className="text-blue-400 animate-spin-slow text-lg" />
-                          )}
-                        </div>
-                        <div className="text-xs text-blue-300">
-                          <span className="font-bold block mb-1 uppercase tracking-wide">
-                            {isSAdmin
-                              ? "Yêu cầu phê duyệt"
-                              : "Đang chờ phê duyệt"}
-                          </span>
-                          {isSAdmin
-                            ? "Sự kiện này đang chờ bạn kiểm duyệt.  Vui lòng kiểm tra."
-                            : "Sự kiện đang được Admin xem xét. Vui lòng chờ."}
-                        </div>
-                      </div>
-                    )}
+                    {/* ✅ ĐÃ XÓA BANNER TỪ CHỐI/CHỜ DUYỆT Ở ĐÂY */}
                   </div>
 
                   <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex items-center justify-between gap-2">

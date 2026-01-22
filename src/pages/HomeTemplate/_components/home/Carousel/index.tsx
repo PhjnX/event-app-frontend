@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import {
   motion,
   AnimatePresence,
@@ -7,7 +9,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { FaChevronLeft, FaChevronRight, FaArrowRight } from "react-icons/fa";
+import { FaArrowRight } from "react-icons/fa";
 import { SLIDES, type Slide } from "./slide";
 
 import LoginModal from "../../modals/LoginModal";
@@ -16,33 +18,26 @@ import OrganizerRegModal from "../../common/OrganizerRegModal";
 const Device3D = ({ slide }: { slide: Slide }) => {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
-
   const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
   const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
-
   const rotateX = useTransform(mouseYSpring, [0, 1], ["25deg", "-25deg"]);
   const rotateY = useTransform(mouseXSpring, [0, 1], ["-25deg", "25deg"]);
-
   const shadowX = useTransform(mouseXSpring, [0, 1], [20, -20]);
   const shadowY = useTransform(mouseYSpring, [0, 1], [20, -20]);
-
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - rect.left) / rect.width);
     y.set((e.clientY - rect.top) / rect.height);
   };
-
   const handleMouseLeave = () => {
     x.set(0.5);
     y.set(0.5);
   };
-
   const deviceWidth = {
     phone: "w-[200px] sm:w-[240px] md:w-[300px]",
     tablet: "w-[280px] sm:w-[360px] md:w-[450px]",
     laptop: "w-[340px] sm:w-[500px] md:w-[700px]",
   }[slide.deviceType];
-
   return (
     <motion.div
       initial={{ opacity: 0, x: 50, scale: 0.9 }}
@@ -89,16 +84,12 @@ const SlideBackground = ({
   isActive: boolean;
 }) => (
   <div
-    className={`absolute inset-0 transition-opacity duration-1000 ${
-      isActive ? "opacity-100 z-10" : "opacity-0 z-0"
-    }`}
+    className={`absolute inset-0 transition-opacity duration-1000 ${isActive ? "opacity-100 z-10" : "opacity-0 z-0"}`}
   >
     <img
       src={slide.image}
       alt={slide.title}
-      className={`w-full h-full object-cover transform transition-transform duration-10000 ${
-        isActive ? "scale-110" : "scale-100"
-      }`}
+      className={`w-full h-full object-cover transform transition-transform duration-10000 ${isActive ? "scale-110" : "scale-100"}`}
     />
     <div className="absolute inset-0 bg-linear-to-r from-black via-black/60 to-transparent" />
     <div className="lg:hidden absolute inset-0 bg-black/40" />
@@ -106,19 +97,15 @@ const SlideBackground = ({
 );
 
 export default function CarouselHero() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { t } = useTranslation();
 
-  // State quản lý các Modal
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev === SLIDES.length - 1 ? 0 : prev + 1));
   }, []);
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? SLIDES.length - 1 : prev - 1));
-  };
 
   useEffect(() => {
     const interval = setInterval(nextSlide, 8000);
@@ -211,22 +198,24 @@ export default function CarouselHero() {
             className="text-center lg:text-left order-1 mt-4 lg:mt-0"
           >
             <h1 className="font-noto text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold mb-5 leading-[1.2] uppercase tracking-tighter drop-shadow-2xl text-white">
-              {currentSlide.title} <br />
-              <span className="text-[#B5A65F]">{currentSlide.highlight}</span>
+              {t(currentSlide.title as any)} <br />
+              <span className="text-[#B5A65F]">
+                {t(currentSlide.highlight as any)}
+              </span>
             </h1>
 
             <p className="text-sm md:text-base mb-8 text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light drop-shadow-md font-noto">
-              {currentSlide.subtitle}
+              {t(currentSlide.subtitle as any)}
             </p>
 
             <div className="flex flex-wrap gap-4 font-noto justify-center lg:justify-start">
               {renderButton(
-                currentSlide.btnPrimary,
+                t(currentSlide.btnPrimary as any),
                 currentSlide.pathPrimary,
                 "primary",
               )}
               {renderButton(
-                currentSlide.btnSecondary,
+                t(currentSlide.btnSecondary as any),
                 currentSlide.pathSecondary,
                 "secondary",
               )}
@@ -243,46 +232,6 @@ export default function CarouselHero() {
         </div>
       </div>
 
-      <div className="absolute bottom-6 lg:bottom-10 left-0 w-full lg:w-auto lg:left-12 z-30 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6">
-        <div className="flex gap-2">
-          {SLIDES.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              aria-label={`Go to slide ${index + 1}`}
-              className={`h-1 rounded-full transition-all duration-500 ${
-                index === currentIndex
-                  ? "w-12 bg-[#B5A65F]"
-                  : "w-4 bg-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.5)]"
-              }`}
-            />
-          ))}
-        </div>
-
-        <div className="gap-3 hidden sm:flex">
-          <button
-            onClick={prevSlide}
-            aria-label="Previous slide"
-            className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
-          >
-            <FaChevronLeft
-              size={14}
-              className="group-hover:-translate-x-0.5 transition-transform"
-            />
-          </button>
-          <button
-            onClick={nextSlide}
-            aria-label="Next slide"
-            className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.1)] flex items-center justify-center hover:bg-[#B5A65F] hover:text-black transition-all group"
-          >
-            <FaChevronRight
-              size={14}
-              className="group-hover:translate-x-0.5 transition-transform"
-            />
-          </button>
-        </div>
-      </div>
-
       <div className="absolute bottom-0 left-0 w-full h-32 bg-linear-to-t from-[#050505] to-transparent z-20 pointer-events-none" />
 
       <LoginModal
@@ -291,7 +240,6 @@ export default function CarouselHero() {
         onSwitchToRegister={() => setLoginModalOpen(false)}
         onSwitchToForgot={() => setLoginModalOpen(false)}
       />
-
       <OrganizerRegModal
         isOpen={isOrgModalOpen}
         onClose={() => setIsOrgModalOpen(false)}

@@ -1,19 +1,53 @@
 import React from "react";
 import { motion, useSpring, useInView, type Variants } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface StatItem {
   id: number;
   value: number;
   suffix: string;
-  label: string;
+  labelKey: string;
 }
 
 const STATS: StatItem[] = [
-  { id: 1, value: 5, suffix: "+", label: "Năm kinh nghiệm" },
-  { id: 2, value: 150, suffix: "+", label: "Dự án thành công" },
-  { id: 3, value: 50, suffix: "+", label: "Đối tác chiến lược" },
-  { id: 4, value: 99, suffix: "%", label: "Tỉ lệ hài lòng" },
+  {
+    id: 1,
+    value: 5,
+    suffix: "+",
+    labelKey: "value_page.impact_numbers.stats.1",
+  },
+  {
+    id: 2,
+    value: 150,
+    suffix: "+",
+    labelKey: "value_page.impact_numbers.stats.2",
+  },
+  {
+    id: 3,
+    value: 50,
+    suffix: "+",
+    labelKey: "value_page.impact_numbers.stats.3",
+  },
+  {
+    id: 4,
+    value: 99,
+    suffix: "%",
+    labelKey: "value_page.impact_numbers.stats.4",
+  },
 ];
+
+const BackgroundDecoration = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <div
+      className="absolute inset-0 opacity-[0.1]"
+      style={{
+        backgroundImage: `radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)`,
+        backgroundSize: "30px 30px",
+      }}
+    />
+    <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020202]"></div>
+  </div>
+);
 
 const NumberCounter = ({
   value,
@@ -56,20 +90,27 @@ const cardVariants: Variants = {
 };
 
 const ImpactNumbers: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
-    <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-white/5">
-      <div className="container mx-auto px-4">
+    <section className="py-24 bg-[#020202] font-noto text-white border-t border-white/5 relative overflow-hidden">
+      <BackgroundDecoration />
+
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false }}
           className="text-center mb-20"
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold uppercase mb-4">
-            DẤU ẤN <span className="text-[#D8C97B]">THỰC TẾ</span>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold uppercase mb-4 drop-shadow-xl">
+            {t("value_page.impact_numbers.title")}{" "}
+            <span className="text-[#D8C97B]">
+              {t("value_page.impact_numbers.highlight")}
+            </span>
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Con số không biết nói dối
+            {t("value_page.impact_numbers.subtitle")}
           </p>
         </motion.div>
 
@@ -85,9 +126,9 @@ const ImpactNumbers: React.FC = () => {
               className="text-center group"
             >
               <NumberCounter value={stat.value} suffix={stat.suffix} />
-              <div className="h-0.5 w-12 bg-[#D8C97B]/50 mx-auto my-4 group-hover:w-24 transition-all duration-500"></div>
+              <div className="h-0.5 w-12 bg-[#D8C97B]/50 mx-auto my-4 group-hover:w-24 transition-all duration-500 shadow-[0_0_10px_#D8C97B]"></div>
               <p className="text-gray-400 uppercase tracking-widest text-sm font-bold group-hover:text-white transition-colors">
-                {stat.label}
+                {t(stat.labelKey as any)}
               </p>
             </motion.div>
           ))}

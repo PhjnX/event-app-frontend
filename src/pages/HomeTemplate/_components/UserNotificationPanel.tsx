@@ -12,12 +12,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // Import hook i18n
 import {
   useUserNotifications,
   type UserNotification,
 } from "@/hooks/useUserNotifications";
 
 const UserNotificationPanel = () => {
+  const { t, i18n } = useTranslation(); // Khởi tạo hook
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -47,19 +49,34 @@ const UserNotificationPanel = () => {
   };
 
   const formatTime = (dateString: string) => {
-    if (!dateString) return "Vừa xong";
+    if (!dateString) return t("user_notification_panel.time.just_now");
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return "Vừa xong";
+    if (diffInSeconds < 60) return t("user_notification_panel.time.just_now");
+
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+    if (diffInMinutes < 60) {
+      return t("user_notification_panel.time.minutes_ago", {
+        count: diffInMinutes,
+      });
+    }
+
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} giờ trước`;
+    if (diffInHours < 24) {
+      return t("user_notification_panel.time.hours_ago", {
+        count: diffInHours,
+      });
+    }
+
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN", {
+    if (diffInDays < 7) {
+      return t("user_notification_panel.time.days_ago", { count: diffInDays });
+    }
+
+    // Format ngày theo ngôn ngữ hiện tại
+    return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -114,7 +131,8 @@ const UserNotificationPanel = () => {
     return (
       <div className="mt-2 flex flex-col gap-1.5">
         <div className="flex items-center gap-1 text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
-          <ListChecks className="w-3 h-3" /> Hoạt động đăng ký:
+          <ListChecks className="w-3 h-3" />
+          {t("user_notification_panel.activity_label")}
         </div>
         <div className="flex flex-wrap gap-1.5">
           {displayed.map((act, idx) => (
@@ -127,7 +145,9 @@ const UserNotificationPanel = () => {
           ))}
           {remaining > 0 && (
             <span className="inline-block px-2 py-0.5 rounded-md bg-[#D8C97B]/10 border border-[#D8C97B]/20 text-[11px] text-[#D8C97B]">
-              +{remaining} khác
+              {t("user_notification_panel.activity_others", {
+                count: remaining,
+              })}
             </span>
           )}
         </div>
@@ -166,10 +186,12 @@ const UserNotificationPanel = () => {
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
             <h3 className="font-bold text-white text-base tracking-wide flex items-center gap-2">
-              Thông báo
+              {t("user_notification_panel.title")}
               {unreadCount > 0 && (
                 <span className="text-[10px] bg-[#D8C97B] text-black px-2 py-0.5 rounded-full font-extrabold">
-                  {unreadCount} mới
+                  {t("user_notification_panel.new_badge", {
+                    count: unreadCount,
+                  })}
                 </span>
               )}
             </h3>
@@ -178,7 +200,8 @@ const UserNotificationPanel = () => {
                 onClick={markAllAsRead}
                 className="text-xs text-[#D8C97B] hover:text-[#f0e68c] hover:underline flex items-center gap-1 transition-colors"
               >
-                <Check className="w-3 h-3" /> Đánh dấu đã đọc
+                <Check className="w-3 h-3" />{" "}
+                {t("user_notification_panel.mark_all_read")}
               </button>
             )}
           </div>
@@ -191,7 +214,7 @@ const UserNotificationPanel = () => {
                   <CalendarClock className="w-10 h-10 opacity-30" />
                 </div>
                 <p className="text-sm font-medium text-gray-400">
-                  Bạn chưa có thông báo nào
+                  {t("user_notification_panel.empty_state")}
                 </p>
               </div>
             ) : (
@@ -257,7 +280,7 @@ const UserNotificationPanel = () => {
               }}
               className="text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white transition-colors py-1 block w-full"
             >
-              Xem tất cả vé của tôi
+              {t("user_notification_panel.view_all_tickets")}
             </button>
           </div>
         </div>

@@ -5,11 +5,11 @@ import config from "./config/index.ts";
 import { Provider } from "react-redux";
 import store from "./store";
 import "flowbite";
-
+import "./i18n";
 console.log("App Config:", config);
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <App />
-  </Provider>
+  </Provider>,
 );

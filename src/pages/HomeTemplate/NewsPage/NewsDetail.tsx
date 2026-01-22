@@ -28,6 +28,7 @@ import {
   MapPin,
 } from "lucide-react";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { useTranslation } from "react-i18next";
 
 const styles = `
   @keyframes zoomSlow {
@@ -51,6 +52,7 @@ const styles = `
 `;
 
 const LoadingScreen = () => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col h-screen w-full items-center justify-center bg-[#0a0a0a] z-50 fixed inset-0">
       <div className="relative flex items-center justify-center">
@@ -75,7 +77,7 @@ const LoadingScreen = () => {
         animate={{ opacity: [0.4, 1, 0.4] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
-        Loading Content
+        {t("news_page.detail.loading")}
       </motion.div>
     </div>
   );
@@ -97,16 +99,18 @@ const useScrollProgress = () => {
 };
 
 const NewsContentRenderer = ({ content }: { content: string }) => {
+  const { t } = useTranslation();
   let blocks = [];
   try {
     const data = JSON.parse(content);
     blocks = data.blocks || [];
   } catch (e) {
     return (
-      <p className="text-red-500 py-4 font-noto">Lỗi hiển thị nội dung.</p>
+      <p className="text-red-500 py-4 font-noto">
+        {t("news_page.detail.error")}
+      </p>
     );
   }
-
   return (
     <div className="space-y-6 font-noto text-gray-800">
       {blocks.map((block: any) => {
@@ -116,11 +120,7 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
             return (
               <Tag
                 key={block.id}
-                className={`font-bold text-gray-900 mt-8 mb-4 leading-tight font-noto ${
-                  block.data.level === 2
-                    ? "text-2xl md:text-3xl border-l-4 border-[#B5A65F] pl-4"
-                    : "text-xl md:text-2xl"
-                }`}
+                className={`font-bold text-gray-900 mt-8 mb-4 leading-tight font-noto ${block.data.level === 2 ? "text-2xl md:text-3xl border-l-4 border-[#B5A65F] pl-4" : "text-xl md:text-2xl"}`}
               >
                 {block.data.text}
               </Tag>
@@ -215,16 +215,16 @@ const RightSidebar = ({
   relatedPosts: any[];
   upcomingEvent: any;
 }) => {
+  const { t, i18n } = useTranslation();
+
   return (
     <div className="space-y-8 font-noto">
-      {/* Box 1: Intro */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">
-          Về Webie News
+          {t("news_page.detail.sidebar.about_title")}
         </h4>
         <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-          Chuyên trang cập nhật xu hướng công nghệ sự kiện, bí quyết tổ chức và
-          những câu chuyện thành công.
+          {t("news_page.detail.sidebar.about_desc")}
         </p>
         <div className="flex flex-wrap gap-2">
           {["#EventTech", "#AI", "#Hybrid", "#Tips"].map((tag) => (
@@ -242,7 +242,7 @@ const RightSidebar = ({
         <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-2">
           <TrendingUp size={18} className="text-[#B5A65F]" />
           <h4 className="font-bold text-gray-900 uppercase text-sm tracking-wider">
-            Tin nổi bật
+            {t("news_page.detail.sidebar.related_title")}
           </h4>
         </div>
         <div className="space-y-6">
@@ -268,14 +268,16 @@ const RightSidebar = ({
                     {post.title}
                   </h5>
                   <span className="text-[10px] text-gray-400 mt-1 block font-bold uppercase">
-                    {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                    {new Date(post.createdAt).toLocaleDateString(
+                      i18n.language === "en" ? "en-US" : "vi-VN",
+                    )}
                   </span>
                 </div>
               </Link>
             ))
           ) : (
             <p className="text-gray-400 text-xs text-center italic">
-              Đang cập nhật...
+              {t("news_page.detail.sidebar.updating")}
             </p>
           )}
         </div>
@@ -298,14 +300,16 @@ const RightSidebar = ({
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
               <div className="bg-[#B5A65F] w-fit px-2 py-1 rounded text-[10px] font-black uppercase mb-2 text-black">
-                Sự kiện sắp tới
+                {t("news_page.detail.sidebar.upcoming_event_label")}
               </div>
               <h4 className="text-xl font-bold leading-tight mb-2 drop-shadow-md line-clamp-2">
                 {upcomingEvent.eventName || upcomingEvent.title}
               </h4>
               <div className="flex items-center gap-2 text-xs text-gray-300">
                 <Calendar size={12} className="text-[#B5A65F]" />
-                {new Date(upcomingEvent.startDate).toLocaleDateString("vi-VN")}
+                {new Date(upcomingEvent.startDate).toLocaleDateString(
+                  i18n.language === "en" ? "en-US" : "vi-VN",
+                )}
               </div>
               {upcomingEvent.location && (
                 <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
@@ -324,10 +328,10 @@ const RightSidebar = ({
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex flex-col justify-end p-6 text-white">
               <span className="text-[#B5A65F] text-xs font-bold uppercase mb-2">
-                Webie Events
+                {t("news_page.detail.sidebar.ads_title")}
               </span>
               <h4 className="text-xl font-bold leading-tight">
-                Đăng ký tham gia các sự kiện đẳng cấp ngay hôm nay!
+                {t("news_page.detail.sidebar.ads_desc")}
               </h4>
             </div>
           </>
@@ -338,6 +342,7 @@ const RightSidebar = ({
 };
 
 const NewsDetail = () => {
+  const { t, i18n } = useTranslation();
   const { slug } = useParams();
   const dispatch = useDispatch<AppDispatch>();
 
@@ -414,7 +419,7 @@ const NewsDetail = () => {
                 to="/news"
                 className="inline-flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-full transition-all text-sm font-bold uppercase tracking-wider border border-white/20"
               >
-                <ArrowLeft size={16} /> Quay lại
+                <ArrowLeft size={16} /> {t("news_page.detail.back")}
               </Link>
             </div>
           </div>
@@ -433,23 +438,23 @@ const NewsDetail = () => {
                 <div className="flex items-center gap-2">
                   <Calendar size={16} className="text-[#B5A65F]" />
                   <span>
-                    {new Date(postDetail.createdAt).toLocaleDateString("vi-VN")}
+                    {new Date(postDetail.createdAt).toLocaleDateString(
+                      i18n.language === "en" ? "en-US" : "vi-VN",
+                    )}
                   </span>
                 </div>
                 <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
                 <div className="flex items-center gap-2">
                   <Clock size={16} className="text-[#B5A65F]" />
-                  <span>5 phút đọc</span>
+                  <span>{t("news_page.detail.read_time")}</span>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-30">
           <div className="flex flex-col lg:flex-row gap-12">
-            {/* Sidebar Left */}
             <div className="hidden lg:block w-16 shrink-0 pt-2">
               <div className="sticky top-32 flex flex-col gap-4 items-center">
                 <span className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 mb-2">
@@ -485,17 +490,18 @@ const NewsDetail = () => {
             <div className="flex-1 bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100 min-w-0">
               <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase tracking-wider mb-8 overflow-hidden">
                 <Link to="/" className="hover:text-[#B5A65F] shrink-0">
-                  Trang chủ
+                  {t("news_page.detail.breadcrumb.home")}
                 </Link>
                 <ChevronRight size={12} />
                 <Link to="/news" className="hover:text-[#B5A65F] shrink-0">
-                  Tin tức
+                  {t("news_page.detail.breadcrumb.news")}
                 </Link>
                 <ChevronRight size={12} />
-                <span className="text-[#B5A65F] truncate">Chi tiết</span>
+                <span className="text-[#B5A65F] truncate">
+                  {t("news_page.detail.breadcrumb.detail")}
+                </span>
               </div>
 
-              {/* Sapo */}
               <div className="bg-[#FAFAFA] border-l-4 border-[#B5A65F] p-6 mb-10 rounded-r-lg">
                 <p className="text-xl font-noto italic text-gray-700 leading-relaxed">
                   {postDetail.summary}

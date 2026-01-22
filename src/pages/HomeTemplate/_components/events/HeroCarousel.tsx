@@ -6,8 +6,11 @@ import { FaArrowRight, FaSpinner } from "react-icons/fa";
 import type { AppDispatch, RootState } from "@/store";
 import { fetchFeaturedEvents } from "@/store/slices/eventSlice";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { useTranslation } from "react-i18next";
 
 export default function HeroCarousel() {
+  const { t } = useTranslation();
+
   const dispatch = useDispatch<AppDispatch>();
   const { featuredEvents, isLoading } = useSelector(
     (state: RootState) => state.events,
@@ -34,7 +37,7 @@ export default function HeroCarousel() {
       <div className="h-[80vh] min-h-[600px] w-full bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
         <FaSpinner className="animate-spin text-[#D8C97B] text-4xl" />
         <p className="text-[#D8C97B] font-mono text-sm tracking-widest animate-pulse">
-          LOADING EVENTS...
+          {t("events_page.hero.loading")}
         </p>
       </div>
     );
@@ -47,14 +50,18 @@ export default function HeroCarousel() {
   const safeIndex = currentSlide % displayData.length;
   const currentData = displayData[safeIndex];
 
-  const eventName = currentData.eventName || "Sự kiện hấp dẫn";
+  const eventName =
+    currentData.eventName || t("events_page.hero.default_title");
+
   const description =
     currentData.description ||
     (currentData as any).description ||
-    "Khám phá ngay các sự kiện nổi bật nhất tại Webie.";
+    t("events_page.hero.default_desc");
+
   const image =
     currentData.bannerImageUrl ||
     "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070";
+
   const link = `/event/${currentData.slug || currentData.eventId}`;
 
   return (
@@ -99,7 +106,7 @@ export default function HeroCarousel() {
               >
                 <span className="w-10 h-0.5 bg-[#D8C97B]"></span>
                 <span className="text-[#D8C97B] font-bold text-sm tracking-[0.3em] uppercase">
-                  Featured Event
+                  {t("events_page.hero.label")}
                 </span>
               </motion.div>
 
@@ -130,7 +137,9 @@ export default function HeroCarousel() {
                   to={link}
                   className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white/5 border border-[#D8C97B]/50 backdrop-blur-md text-white font-bold text-sm uppercase tracking-widest rounded-full overflow-hidden transition-all hover:bg-[#D8C97B] hover:text-black hover:border-[#D8C97B] hover:shadow-[0_0_30px_rgba(216,201,123,0.4)]"
                 >
-                  <span className="relative z-10">Xem Chi Tiết</span>
+                  <span className="relative z-10">
+                    {t("events_page.hero.btn_detail")}
+                  </span>
                   <FaArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </motion.div>

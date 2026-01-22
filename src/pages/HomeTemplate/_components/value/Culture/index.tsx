@@ -6,6 +6,7 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import cultureImage1 from "@/assets/images/culture_1.webp";
 import cultureImage2 from "@/assets/images/culture_2.webp";
@@ -36,12 +37,29 @@ const revealVariants: Variants = {
   },
 };
 
+const BackgroundDecoration = () => (
+  <div
+    className="absolute inset-0 z-0 pointer-events-none"
+    style={{
+      backgroundColor: "#0a0a0a",
+      backgroundImage:
+        "radial-gradient(rgba(255, 255, 255, 0.15) 1px, rgba(0, 0, 0, 0) 1px)",
+      backgroundSize: "30px 30px",
+      maskImage:
+        "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
+      WebkitMaskImage:
+        "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
+    }}
+  ></div>
+);
+
 const CultureSection: React.FC = () => {
+  const { t } = useTranslation();
+
   const baseX = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Logic tự động chạy Marquee
   useAnimationFrame((_t, delta) => {
     if (!isDragging) {
       const moveBy = -0.003 * delta;
@@ -49,7 +67,6 @@ const CultureSection: React.FC = () => {
     }
   });
 
-  // Logic xử lý khi người dùng kéo (Pan)
   const handlePan = (_e: any, info: any) => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.offsetWidth;
@@ -61,8 +78,9 @@ const CultureSection: React.FC = () => {
   const x = useTransform(baseX, (v) => `${wrap(0, -50, v)}%`);
 
   return (
-    <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-[rgba(255,255,255,0.05)] overflow-hidden selection:bg-[rgba(216,201,123,0.3)]">
-      {/* 1. HEADER SECTION */}
+    <section className="py-24 bg-[#0a0a0a] font-noto text-white border-t border-[rgba(255,255,255,0.05)] overflow-hidden selection:bg-[rgba(216,201,123,0.3)] relative">
+      <BackgroundDecoration />
+
       <div className="container mx-auto px-4 mb-16 relative z-10">
         <motion.div
           variants={revealVariants}
@@ -71,19 +89,21 @@ const CultureSection: React.FC = () => {
           viewport={{ once: false, amount: 0.5 }}
           className="text-center"
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6">
-            WEBIE <span className="text-[#D8C97B]">DNA</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6 drop-shadow-xl font-noto">
+            {t("value_page.culture.title")}{" "}
+            <span className="text-[#D8C97B]">
+              {t("value_page.culture.highlight")}
+            </span>
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto hover:text-white transition-colors duration-300 font-light">
-            Chúng tôi không chỉ viết code, chúng tôi xây dựng cộng đồng những
-            người đam mê sáng tạo
+            {t("value_page.culture.desc")}
           </p>
         </motion.div>
       </div>
 
-      <div className="relative w-full overflow-hidden mt-10">
-        <div className="absolute inset-y-0 left-0 w-24 bg-linear-to-r from-[#0a0a0a] to-[rgba(10,10,10,0)] z-20 pointer-events-none"></div>
-        <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-[rgba(10,10,10,0)] z-20 pointer-events-none"></div>
+      <div className="relative w-full overflow-hidden mt-10 z-10">
+        <div className="absolute inset-y-0 left-0 w-24 bg-linear-to-r from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-24 bg-linear-to-l from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
 
         <motion.div
           ref={containerRef}

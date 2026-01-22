@@ -1,4 +1,6 @@
 import { motion, type Variants } from "framer-motion";
+import { useTranslation } from "react-i18next";
+
 import { PARTNERS } from "./partners";
 import type { Partner } from "@/pages/HomeTemplate/_components/home/models/partner";
 
@@ -19,6 +21,28 @@ const itemVariants: Variants = {
     transition: { type: "spring", stiffness: 100, damping: 10 },
   },
 };
+
+const textVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: "easeOut" },
+  },
+};
+
+const BackgroundDecoration = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <div
+      className="absolute inset-0 opacity-[0.05]"
+      style={{
+        backgroundImage: `radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)`,
+        backgroundSize: "30px 30px",
+      }}
+    />
+    <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020202]"></div>
+  </div>
+);
 
 const PartnerCard = ({ partner }: { partner: Partner }) => (
   <motion.div
@@ -52,7 +76,7 @@ const PartnerCard = ({ partner }: { partner: Partner }) => (
   </motion.div>
 );
 
-const JoinCard = () => (
+const JoinCard = ({ label }: { label: string }) => (
   <motion.div
     variants={itemVariants}
     whileHover={{ scale: 1.02, borderColor: "#D8C97B" }}
@@ -62,48 +86,57 @@ const JoinCard = () => (
       <span className="text-2xl font-light mb-1">+</span>
     </div>
     <span className="text-xs md:text-sm font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100">
-      Hợp tác ngay
+      {label}
     </span>
   </motion.div>
 );
 
 export default function PartnersSection() {
+  const { t } = useTranslation();
+
   return (
-    <section className="relative py-24 text-white font-noto overflow-hidden bg-grid-pattern">
+    <section className="relative py-24 text-white font-noto overflow-hidden bg-[#020202]">
+      <BackgroundDecoration />
+
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ y: 20, scale: 0.9 }}
-          whileInView={{ y: 0, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 10,
-          }}
-          className="text-center mb-16 max-w-4xl mx-auto relative pt-10"
-        >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto">
-            KHÁCH HÀNG{" "}
-            <span className="text-[#D8C97B] block md:inline">TIÊU BIỂU</span>
-          </h2>
-          <p className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto">
-            Chúng tôi vinh dự được đồng hành cùng các doanh nghiệp và tổ chức
-            hàng đầu trên cả nước, mang lại giá trị bền vững.
-          </p>
-        </motion.div>
+        <div className="text-center mb-16 max-w-4xl mx-auto relative pt-10">
+          <motion.h2
+            variants={textVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.5 }}
+            className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto"
+          >
+            {t("home.partners.title")}{" "}
+            <span className="text-[#D8C97B] block md:inline">
+              {t("home.partners.highlight")}
+            </span>
+          </motion.h2>
+
+          <motion.p
+            variants={textVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto"
+          >
+            {t("home.partners.description")}
+          </motion.p>
+        </div>
 
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.2 }}
+          viewport={{ once: false, amount: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
         >
           {PARTNERS.map((partner) => (
             <PartnerCard key={partner.id} partner={partner} />
           ))}
 
-          <JoinCard />
+          <JoinCard label={t("home.partners.join_now")} />
         </motion.div>
       </div>
     </section>

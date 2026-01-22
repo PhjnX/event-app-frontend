@@ -10,6 +10,7 @@ import { modalVariants } from "@/constants/motions";
 
 import GoogleLogo from "@/assets/images/google-color.svg";
 import LogoApp from "@/assets/images/Logo_EMS.webp";
+import { useTranslation } from "react-i18next";
 
 const GOOGLE_LOGIN_URL =
   "https://event-app-y77p.onrender.com/oauth2/authorization/google";
@@ -27,6 +28,7 @@ export default function LoginModal({
   onSwitchToRegister,
   onSwitchToForgot,
 }: LoginModalProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
 
   const { isLoading, error, isAuthenticated } = useSelector(
@@ -49,14 +51,14 @@ export default function LoginModal({
     e.preventDefault();
 
     if (!email.trim() || !password) {
-      toast.warning("Vui lòng nhập Email và Mật khẩu.");
+      toast.warning(t("auth_modals.validation.required_all"));
       return;
     }
 
     const resultAction = await dispatch(loginUser({ email, password }));
 
     if (loginUser.fulfilled.match(resultAction)) {
-      toast.success("Đăng nhập thành công! 🎉");
+      toast.success(t("auth_modals.login.success_msg"));
     } else {
       const rawMsg = (resultAction.payload as string) || "";
 
@@ -65,9 +67,9 @@ export default function LoginModal({
         rawMsg.includes("Lỗi hệ thống") ||
         rawMsg.includes("User not found")
       ) {
-        toast.error("Email hoặc mật khẩu không chính xác!");
+        toast.error(t("auth_modals.validation.bad_credentials"));
       } else {
-        toast.error(rawMsg || "Đăng nhập thất bại. Vui lòng thử lại.");
+        toast.error(rawMsg || t("auth_modals.validation.login_failed"));
       }
     }
   };
@@ -109,11 +111,11 @@ export default function LoginModal({
                     className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(216,201,123,0.4)]"
                   />
                   <h2 className="text-3xl font-bold text-white uppercase tracking-tight">
-                    Đăng Nhập
+                    {t("auth_modals.login.title")}
                   </h2>
                 </div>
                 <p className="text-gray-400 text-sm font-light">
-                  Chào mừng bạn quay trở lại với Webie EMS!
+                  {t("auth_modals.login.subtitle")}
                 </p>
               </div>
 
@@ -126,7 +128,7 @@ export default function LoginModal({
               <form className="space-y-5" onSubmit={handleLogin}>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-wider ml-1">
-                    Email
+                    {t("auth_modals.common.email")}
                   </label>
                   <div className="relative group">
                     <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -135,7 +137,7 @@ export default function LoginModal({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="example@email.com"
+                      placeholder={t("auth_modals.common.placeholders.email")}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                       required
                     />
@@ -145,14 +147,14 @@ export default function LoginModal({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center ml-1">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase tracking-wider">
-                      Mật khẩu
+                      {t("auth_modals.common.password")}
                     </label>
                     <button
                       type="button"
                       onClick={onSwitchToForgot}
                       className="text-xs text-gray-500 hover:text-[#D8C97B] transition-colors hover:underline cursor-pointer font-medium"
                     >
-                      Quên mật khẩu?
+                      {t("auth_modals.login.forgot_password")}
                     </button>
                   </div>
                   <div className="relative group">
@@ -162,7 +164,9 @@ export default function LoginModal({
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder={t(
+                        "auth_modals.common.placeholders.password",
+                      )}
                       className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-12 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                       required
                     />
@@ -189,14 +193,16 @@ export default function LoginModal({
                   {isLoading ? (
                     <span className="inline-block w-5 h-5 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin mr-2"></span>
                   ) : null}
-                  {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
+                  {isLoading
+                    ? t("auth_modals.common.processing")
+                    : t("auth_modals.login.btn_submit")}
                 </button>
               </form>
 
               <div className="flex items-center gap-4 my-6">
                 <div className="h-px bg-[rgba(255,255,255,0.1)] flex-1"></div>
                 <span className="text-gray-500 text-xs uppercase font-bold tracking-tighter">
-                  Hoặc
+                  {t("auth_modals.common.or")}
                 </span>
                 <div className="h-px bg-[rgba(255,255,255,0.1)] flex-1"></div>
               </div>
@@ -210,16 +216,16 @@ export default function LoginModal({
                   alt="Google"
                   className="w-5 h-5 object-contain"
                 />
-                <span>Đăng nhập với Google</span>
+                <span>{t("auth_modals.login.google_login")}</span>
               </a>
 
               <p className="text-center text-gray-500 text-sm mt-8 font-light">
-                Chưa có tài khoản?{" "}
+                {t("auth_modals.login.no_account")}{" "}
                 <button
                   onClick={onSwitchToRegister}
                   className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
                 >
-                  Đăng ký ngay
+                  {t("auth_modals.login.register_now")}
                 </button>
               </p>
             </div>

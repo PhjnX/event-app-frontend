@@ -88,7 +88,6 @@ const activitySlice = createSlice({
   name: "activities",
   initialState,
   reducers: {
-    // FIX: Giữ lại logic xóa dữ liệu ở đây nhưng không export action ra ngoài
     clearActivities: (state) => {
       state.data = [];
     },
@@ -141,6 +140,5 @@ const activitySlice = createSlice({
   },
 });
 
-// FIX: Bỏ clearActivities khỏi danh sách export để dọn sạch lỗi knip
 export const {} = activitySlice.actions;
 export default activitySlice.reducer;

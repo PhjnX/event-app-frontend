@@ -1,5 +1,6 @@
 import { FaSearch } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface FilterBarProps {
   searchTerm: string;
@@ -10,6 +11,8 @@ export default function FilterBar({
   searchTerm,
   setSearchTerm,
 }: FilterBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="relative -mt-10 lg:-mt-14 z-40 px-4 container mx-auto font-noto mb-20">
       <motion.div
@@ -28,14 +31,14 @@ export default function FilterBar({
 
             <input
               type="text"
-              placeholder="Bạn đang tìm kiếm sự kiện gì?"
+              placeholder={t("events_page.filter_bar.placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-transparent text-white placeholder-gray-500 text-base md:text-lg font-medium py-3 focus:outline-none tracking-wide"
             />
 
-            <button className="hidden md:block px-8 py-3 ml-2 bg-[#D8C97B] hover:bg-[#cbbd70] text-black font-bold text-sm uppercase tracking-widest rounded-full transition-all shadow-lg hover:shadow-[#D8C97B]/40 transform active:scale-95">
-              Tìm Kiếm
+            <button className="hidden md:flex items-center justify-center whitespace-nowrap px-8 py-3 ml-2 bg-[#D8C97B] hover:bg-[#cbbd70] text-black font-bold text-sm uppercase tracking-widest rounded-full transition-all shadow-lg hover:shadow-[#D8C97B]/40 transform active:scale-95">
+              {t("events_page.filter_bar.search_btn")}
             </button>
           </div>
         </div>

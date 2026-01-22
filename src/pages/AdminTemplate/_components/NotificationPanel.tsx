@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   fetchAdminNotifications,
-  fetchOrganizerNotifications, 
+  fetchOrganizerNotifications,
   markAsRead,
   markAllAsRead,
 } from "@/store/slices/notificationSlice";
@@ -23,9 +23,12 @@ import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
 import { toast } from "react-toastify";
 
+// Định nghĩa kiểu dữ liệu linh hoạt hơn để hứng được trường rejectionReason
 type NotificationData = {
   unlockReason?: string;
   reason?: string;
+  rejectionReason?: string; // ✅ THÊM TRƯỜNG NÀY
+  editRequestReason?: string; // ✅ THÊM TRƯỜNG NÀY ĐỀ PHÒNG
   eventId?: string;
   slug?: string;
   [key: string]: any;
@@ -65,8 +68,8 @@ const NotificationPanel = () => {
   };
 
   useEffect(() => {
-    loadNotifications(); 
-    const interval = setInterval(loadNotifications, 30000); 
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
   }, [dispatch, isSAdmin, isOrganizer]);
 
@@ -92,11 +95,11 @@ const NotificationPanel = () => {
       case "UNLOCK_REQUEST":
         return <Unlock className="w-5 h-5 text-orange-400" />;
       case "NEW_REGISTRATION":
-        return <UserPlus className="w-5 h-5 text-green-400" />; 
+        return <UserPlus className="w-5 h-5 text-green-400" />;
       case "EVENT_APPROVED":
-        return <CheckCircle className="w-5 h-5 text-emerald-400" />; 
+        return <CheckCircle className="w-5 h-5 text-emerald-400" />;
       case "EVENT_REJECTED":
-        return <XCircle className="w-5 h-5 text-red-400" />; 
+        return <XCircle className="w-5 h-5 text-red-400" />;
       case "ACCOUNT_LOCKED":
         return <Lock className="w-5 h-5 text-red-500" />;
       default:
@@ -122,11 +125,9 @@ const NotificationPanel = () => {
         break;
       case "EVENT_APPROVED":
       case "EVENT_REJECTED":
-        if (notification.data?.slug) {
-          navigate(`/admin/events/${notification.data.slug}`);
-        } else {
-          navigate("/admin/events");
-        }
+        navigate("/admin/events"); // Về danh sách events để thấy/edit sự kiện
+        break;
+      default:
         break;
     }
     setIsOpen(false);
@@ -145,6 +146,18 @@ const NotificationPanel = () => {
     if (minutes < 60) return `${minutes} phút trước`;
     if (hours < 24) return `${hours} giờ trước`;
     return `${days} ngày trước`;
+  };
+
+  // ✅ Hàm helper để lấy nội dung lý do từ nhiều tên trường khác nhau
+  const getReasonText = (notification: Notification) => {
+    const data = notification.data || {};
+    // Ưu tiên theo thứ tự: rejectionReason (từ backend) -> reason (thông dụng) -> unlockReason (cho acc lock)
+    return (
+      data.rejectionReason ||
+      data.reason ||
+      data.editRequestReason ||
+      data.unlockReason
+    );
   };
 
   return (
@@ -199,63 +212,76 @@ const NotificationPanel = () => {
                 <p className="text-sm">Không có thông báo mới</p>
               </div>
             ) : (
-              (items as Notification[]).map((notification) => (
-                <div
-                  key={notification.id}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`flex items-start gap-3 p-4 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${
-                    !notification.read ? "bg-[#D8C97B]/5" : ""
-                  }`}
-                >
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/5">
-                    {getIcon(notification.type)}
+              (items as Notification[]).map((notification) => {
+                const reasonContent = getReasonText(notification);
+                const hasReason = reasonContent && reasonContent.trim() !== "";
+                const isRejected = notification.type === "EVENT_REJECTED";
+
+                return (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`flex items-start gap-3 p-4 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${
+                      !notification.read ? "bg-[#D8C97B]/5" : ""
+                    }`}
+                  >
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/5">
+                      {getIcon(notification.type)}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white mb-1">
+                        {notification.title}
+                      </p>
+
+                      <p
+                        className="text-sm text-gray-400 leading-relaxed"
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          overflowWrap: "break-word",
+                          display: "block",
+                        }}
+                      >
+                        {notification.message}
+                      </p>
+
+                      {/* ✅ HIỂN THỊ LÝ DO: Dùng cho Unlock hoặc Event Rejected */}
+                      {hasReason &&
+                        (notification.type === "UNLOCK_REQUEST" ||
+                          isRejected) && (
+                          <div
+                            className={`text-xs mt-2 italic p-2 rounded border border-dashed ${
+                              isRejected
+                                ? "text-red-400 bg-red-500/10 border-red-500/30"
+                                : "text-[#D8C97B] bg-[#D8C97B]/10 border-[#D8C97B]/20"
+                            }`}
+                            style={{
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                              display: "block",
+                            }}
+                          >
+                            {isRejected && (
+                              <span className="font-bold not-italic text-[10px] uppercase opacity-80 mr-1">
+                                Lý do:
+                              </span>
+                            )}
+                            "{reasonContent}"
+                          </div>
+                        )}
+
+                      <p className="text-[10px] text-zinc-500 mt-2 font-mono">
+                        {formatTime(notification.createdAt)}
+                      </p>
+                    </div>
+
+                    {!notification.read && (
+                      <div className="w-2 h-2 bg-[#D8C97B] rounded-full shrink-0 mt-2 shadow-[0_0_8px_rgba(216,201,123,0.5)]" />
+                    )}
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white mb-1">
-                      {notification.title}
-                    </p>
-
-                    <p
-                      className="text-sm text-gray-400 leading-relaxed"
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        overflowWrap: "break-word",
-                        display: "block",
-                      }}
-                    >
-                      {notification.message}
-                    </p>
-
-                    {notification.type === "UNLOCK_REQUEST" &&
-                      (notification.data?.unlockReason ||
-                        notification.data?.reason) && (
-                        <div
-                          className="text-xs text-[#D8C97B] mt-2 italic bg-[#D8C97B]/10 p-2 rounded border border-[#D8C97B]/20"
-                          style={{
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            display: "block",
-                          }}
-                        >
-                          "
-                          {notification.data.unlockReason ||
-                            notification.data.reason}
-                          "
-                        </div>
-                      )}
-
-                    <p className="text-[10px] text-zinc-500 mt-2 font-mono">
-                      {formatTime(notification.createdAt)}
-                    </p>
-                  </div>
-
-                  {!notification.read && (
-                    <div className="w-2 h-2 bg-[#D8C97B] rounded-full shrink-0 mt-2 shadow-[0_0_8px_rgba(216,201,123,0.5)]" />
-                  )}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

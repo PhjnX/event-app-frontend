@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FaHandshake,
@@ -7,189 +7,181 @@ import {
   FaEnvelope,
   FaMapMarkerAlt,
 } from "react-icons/fa";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import OrganizerRegModal from "../../common/OrganizerRegModal";
-import OptimizedImage from "@/components/ui/OptimizedImage";
-import EventContact from "@/assets/images/event_contact.webp";
-const BackgroundDecoration = () => (
-  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-    <div className="absolute inset-0 bg-[#0a0a0a]"></div>
+import { useTranslation, Trans } from "react-i18next";
 
-    <div
-      className="absolute inset-0 opacity-[0.05]"
-      style={{
-        backgroundImage:
-          "linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)",
-        backgroundSize: "40px 40px",
-      }}
-    ></div>
+import iconMarker from "leaflet/dist/images/marker-icon.png";
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
-    <motion.div
-      animate={{ opacity: [0.1, 0.2, 0.1] }}
-      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[#D8C97B] rounded-full blur-[200px] opacity-[0.08]"
-    />
-  </div>
-);
+const defaultIcon = L.icon({
+  iconUrl: iconMarker,
+  iconRetinaUrl: iconRetina,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41],
+});
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+};
 
 const InfoCard = ({
   icon,
   title,
   value,
-  delay,
 }: {
   icon: any;
   title: string;
   value: string;
-  delay: number;
 }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 20 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay, duration: 0.5 }}
-    className="flex items-center gap-5 p-5 rounded-xl border border-white/5 bg-white/2 hover:bg-white/5 hover:border-[#D8C97B]/30 transition-all group"
-  >
-    <div className="w-12 h-12 rounded-full bg-[#D8C97B]/10 flex items-center justify-center text-[#D8C97B] group-hover:bg-[#D8C97B] group-hover:text-black transition-all duration-300 shadow-[0_0_15px_rgba(216,201,123,0.1)] shrink-0">
+  <div className="flex items-center gap-4 p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:border-[#D8C97B]/50 transition-all duration-300">
+    <div className="w-10 h-10 rounded-full bg-[#D8C97B]/10 flex items-center justify-center text-[#D8C97B] border border-[#D8C97B]/20 shrink-0">
       {icon}
     </div>
     <div>
-      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-[#D8C97B] transition-colors">
+      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5">
         {title}
-      </h4>
-      <p className="text-white font-medium text-lg leading-tight">{value}</p>
+      </p>
+      <p className="text-zinc-100 font-medium text-sm md:text-base leading-tight">
+        {value}
+      </p>
     </div>
-  </motion.div>
+  </div>
 );
 
 export default function RegistrationSection() {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const officePosition: [number, number] = [10.78505, 106.74805];
 
   return (
     <section
       id="contact"
-      className="relative py-20 lg:py-28 bg-[#0a0a0a] overflow-hidden text-white font-noto"
+      className="relative py-20 bg-black overflow-hidden text-white font-noto"
     >
-      <BackgroundDecoration />
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] bg-size-[20px_20px] opacity-[0.05] pointer-events-none"></div>
 
-      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
-        {/* --- 1. HEADER (STYLE GIỐNG HÌNH BẠN GỬI) --- */}
-        <div className="text-center mb-16 lg:mb-24 relative">
-          {/* Vòng tròn trang trí nhỏ (giống hình) */}
-          <div className="absolute -top-10 left-10 w-6 h-6 rounded-full border border-[#D8C97B]/30 hidden md:block opacity-50"></div>
+      <div className="container mx-auto px-4 md:px-8 relative z-10 max-w-7xl">
+        <motion.div
+          className="text-center mb-12 md:mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-4">
+            <span className="text-white">{t("home.contact.title")}</span>{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#FFEBB5]">
+              {t("home.contact.highlight")}
+            </span>
+          </h2>
+          <p className="text-zinc-500 text-lg font-light max-w-2xl mx-auto">
+            {t("home.contact.description")}
+          </p>
+        </motion.div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-noto font-bold uppercase tracking-wide mb-6"
-          >
-            <span className="text-white">LIÊN HỆ</span>{" "}
-            <span className="text-[#D8C97B]">HỢP TÁC</span>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-zinc-400 text-lg md:text-xl font-noto "
-          >
-            "Trở thành đối tác chiến lược và cùng Webie kiến tạo sự kiện đẳng
-            cấp."
-          </motion.p>
-        </div>
-
-        {/* --- 2. BODY CONTENT (LAYOUT MỚI: CTA & INFO) --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* --- LEFT SIDE: INTRODUCTION & CTA BUTTON --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col items-center lg:items-start text-center lg:text-left"
+            transition={{ duration: 0.6 }}
+            className="h-[450px] lg:h-full min-h-[500px] w-full relative rounded-3xl overflow-hidden shadow-[0_0_40px_-10px_rgba(255,255,255,0.1)] border border-zinc-700"
           >
-            <h3 className="text-3xl font-bold mb-6">Bạn là Ban Tổ Chức?</h3>
-            <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-lg font-light">
-              Gia nhập mạng lưới đối tác của chúng tôi để tiếp cận công nghệ
-              quản lý sự kiện tiên tiến, hệ thống Check-in Face ID và cộng đồng
-              sinh viên năng động.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto">
-              <button
-                onClick={() => setShowModal(true)}
-                className="group relative px-10 py-5 rounded-xl bg-linear-to-r from-[#D8C97B] to-[#cbb865] text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(216,201,123,0.3)] hover:shadow-[0_0_50px_rgba(216,201,123,0.5)] transition-all transform hover:-translate-y-1 overflow-hidden"
+            {isClient && (
+              <MapContainer
+                center={officePosition}
+                zoom={16}
+                scrollWheelZoom={false}
+                className="w-full h-full z-10"
               >
-                <div className="absolute inset-0 bg-white/30 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out skew-y-12"></div>
-                <span className="relative flex items-center justify-center gap-3">
-                  <FaHandshake className="text-lg" />
-                  Đăng Ký Ngay
-                </span>
-              </button>
-
-              <a
-                href="tel:0969838467"
-                className="px-10 py-5 rounded-xl border border-white/10 hover:bg-white/5 text-zinc-300 font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-3 group/link"
-              >
-                Gọi Hotline
-                <FaArrowRight className="group-hover/link:translate-x-1 transition-transform text-[#D8C97B]" />
-              </a>
-            </div>
+                <TileLayer
+                  attribution="&copy; Google Maps"
+                  url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                />
+                <Marker position={officePosition} icon={defaultIcon}>
+                  <Popup>
+                    <div className="text-center p-1">
+                      <b className="text-blue-600 block mb-1">
+                        {t("home.contact.map_popup.title")}
+                      </b>
+                      <span className="text-gray-600 text-xs">
+                        <Trans i18nKey="home.contact.map_popup.address" />
+                      </span>
+                    </div>
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            )}
           </motion.div>
 
-          <div className="w-full relative">
-            <div className="absolute -left-10 top-0 bottom-0 w-px bg-linear-to-b from-transparent via-[#D8C97B]/30 to-transparent hidden lg:block"></div>
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col justify-center gap-8 lg:pl-6"
+          >
+            <div>
+              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                {t("home.contact.for_organizers.title")}{" "}
+                <span className="text-[#D8C97B]">
+                  {t("home.contact.for_organizers.highlight")}
+                </span>
+              </h3>
+              <p className="text-zinc-400 leading-relaxed mb-8">
+                {t("home.contact.for_organizers.desc")}
+              </p>
+
+              <div className="flex flex-wrap gap-4 mb-10">
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="px-8 py-3.5 bg-[#D8C97B] hover:bg-[#c9bb70] text-black font-bold rounded-xl shadow-[0_4px_14px_0_rgba(216,201,123,0.39)] transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2"
+                >
+                  <FaHandshake /> {t("home.contact.buttons.register")}
+                </button>
+                <a
+                  href="tel:0969838467"
+                  className="px-8 py-3.5 bg-zinc-900 border border-zinc-700 hover:border-[#D8C97B] text-white hover:text-[#D8C97B] font-bold rounded-xl transition-all flex items-center gap-2 group"
+                >
+                  {t("home.contact.buttons.hotline")}{" "}
+                  <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                </a>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <InfoCard
-                delay={0.2}
-                icon={<FaPhoneAlt />}
-                title="Hotline 24/7"
-                value="+84 969 838 467"
-              />
-              <InfoCard
-                delay={0.3}
-                icon={<FaEnvelope />}
-                title="Email Business"
-                value="Huyen.dang@webie.com.vn"
-              />
-              <InfoCard
-                delay={0.4}
                 icon={<FaMapMarkerAlt />}
-                title="Văn Phòng"
-                value="Số 53, đường 57, An Phú, TP Thủ Đức"
+                title={t("home.contact.info.office.title")}
+                value={t("home.contact.info.office.value")}
+              />
+              <InfoCard
+                icon={<FaPhoneAlt />}
+                title={t("home.contact.info.hotline.title")}
+                value={t("home.contact.info.hotline.value")}
+              />
+              <InfoCard
+                icon={<FaEnvelope />}
+                title={t("home.contact.info.email.title")}
+                value={t("home.contact.info.email.value")}
               />
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-8 rounded-xl overflow-hidden h-40 border border-white/10 relative group"
-            >
-              <div className="group relative overflow-hidden">
-                <OptimizedImage
-                  src={EventContact}
-                  alt="Event"
-                  width={1200}
-                  height={400}
-                  aspectRatio="21/9"
-                  objectFit="cover"
-                  imgClassName="opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
-                  className="rounded-xl"
-                  priority={false}
-                />
-              </div>
-              <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
-              <div className="absolute bottom-4 left-5">
-                <p className="text-[#D8C97B] text-[10px] font-bold uppercase tracking-widest">
-                  Webie Event Tech
-                </p>
-              </div>
-            </motion.div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

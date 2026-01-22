@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next"; // Import i18n
 import {
   motion,
   AnimatePresence,
@@ -23,19 +24,23 @@ import type { AppDispatch, RootState } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import LoadingScreen from "../_components/common/LoadingSrceen";
 
-const formatDate = (dateString: string) => {
+// Hàm helper để định dạng ngày theo ngôn ngữ
+const formatDate = (dateString: string, locale: string) => {
   if (!dateString)
     return { day: "00", month: "DEC", time: "--:--", fullDate: "" };
+
   const date = new Date(dateString);
+  const localeStr = locale === "vi" ? "vi-VN" : "en-US";
+
   return {
     day: date.getDate().toString().padStart(2, "0"),
-    month: date.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+    month: date.toLocaleString(localeStr, { month: "short" }).toUpperCase(),
     year: date.getFullYear(),
-    time: date.toLocaleTimeString("vi-VN", {
+    time: date.toLocaleTimeString(localeStr, {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    fullDate: date.toLocaleDateString("en-US", {
+    fullDate: date.toLocaleDateString(localeStr, {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -45,12 +50,15 @@ const formatDate = (dateString: string) => {
 };
 
 const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
-  const dateInfo = formatDate(ticket.eventStartDate);
+  const { t, i18n } = useTranslation();
+  // Pass current language to date formatter
+  const dateInfo = formatDate(ticket.eventStartDate, i18n.language);
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
 
   const isExpired = new Date() > new Date(ticket.eventEndDate);
-  const isApproved = ticket.status === "APPROVED";
+  const isApproved =
+    ticket.status === "APPROVED" || ticket.status === "CONFIRMED";
   const isUsed = ticket.status === "CHECKED_IN";
   const canShowQR = (isApproved || isUsed) && !isExpired;
   const showGallery = isApproved || isUsed;
@@ -84,10 +92,21 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Helper render status text
+  const renderStatusLabel = () => {
+    if (isExpired && ticket.status !== "REJECTED")
+      return t("my_registrations.ticket.status.archived");
+
+    // Convert BE status directly to key if possible or switch case
+    const statusKey = ticket.status.toLowerCase();
+    return t(`my_registrations.ticket.status.${statusKey}`, ticket.status);
+  };
+
   const getStatusColor = () => {
     if (isExpired && ticket.status !== "REJECTED") return "bg-zinc-600";
     switch (ticket.status) {
       case "APPROVED":
+      case "CONFIRMED":
         return "bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]";
       case "CHECKED_IN":
         return "bg-emerald-500 shadow-[0_0_10px_#10b981]";
@@ -141,7 +160,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
                       !isExpired && "animate-pulse"
                     }`}
                   ></div>
-                  {isExpired ? "Archived" : ticket.status.replace("_", " ")}
+                  {renderStatusLabel()}
                 </div>
                 <div className="h-px w-8 bg-white/10" />
                 <span className="text-[10px] font-mono text-white/30 tracking-wider">
@@ -162,7 +181,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
               <div className="flex items-center gap-2">
                 <FaMapMarkerAlt className="text-[#D4AF37]" />
                 <span className="truncate max-w-[200px]">
-                  {ticket.location || "TBA"}
+                  {ticket.location || t("my_registrations.ticket.location_tba")}
                 </span>
               </div>
             </div>
@@ -177,12 +196,12 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
           <div className="w-full md:w-[220px] p-4 flex flex-col justify-center gap-4 bg-white/1 backdrop-blur-[2px]">
             <div className="flex flex-row md:flex-col items-center justify-between md:justify-center md:gap-1 text-center border-b md:border-b-0 border-white/5 pb-3 md:pb-0 mb-2 md:mb-0">
               <span className="md:hidden text-xs font-bold text-[#D4AF37] uppercase tracking-widest">
-                Date
+                {t("my_registrations.ticket.date_label")}
               </span>
 
               <div>
                 <div className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.4em] mb-1 md:block hidden">
-                  START
+                  {t("my_registrations.ticket.start_label")}
                 </div>
                 <div className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">
                   {dateInfo.day}
@@ -202,10 +221,10 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
 
             <div className="space-y-2">
               <Link
-                to={`/event/${ticket.eventSlug}`}
+                to={`/events/${ticket.eventSlug}`}
                 className="w-full h-9 bg-white text-black hover:bg-[#D4AF37] transition-all rounded font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 group/btn"
               >
-                View Details
+                {t("my_registrations.ticket.btn_view")}
               </Link>
 
               {canShowQR ? (
@@ -213,12 +232,13 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
                   onClick={() => setShowQrModal(true)}
                   className="w-full h-9 border border-white/10 text-[#D4AF37] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all rounded font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
                 >
-                  <FaQrcode /> Ticket Code
+                  <FaQrcode /> {t("my_registrations.ticket.btn_code")}
                 </button>
               ) : (
                 !isExpired && (
                   <div className="w-full h-9 border border-dashed border-white/10 text-zinc-600 rounded font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
-                    <FaHourglassHalf /> Pending
+                    <FaHourglassHalf />{" "}
+                    {t("my_registrations.ticket.btn_pending")}
                   </div>
                 )
               )}
@@ -229,7 +249,8 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
                   className="block w-full text-center mt-1"
                 >
                   <span className="text-[9px] text-zinc-500 hover:text-white border-b border-transparent hover:border-white transition-colors uppercase tracking-widest flex items-center justify-center gap-1">
-                    <FaCamera size={10} /> Event Gallery
+                    <FaCamera size={10} />{" "}
+                    {t("my_registrations.ticket.btn_gallery")}
                   </span>
                 </Link>
               )}
@@ -291,7 +312,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
                 className="bg-[#111] border border-dashed border-zinc-800 rounded px-4 py-3 flex items-center justify-between cursor-pointer hover:border-[#D4AF37] transition-colors mb-4 group/copy"
               >
                 <span className="text-[10px] text-zinc-500 uppercase font-bold">
-                  Code
+                  {t("my_registrations.modal.code_label")}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[#D4AF37] font-bold text-sm tracking-widest">
@@ -312,7 +333,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
                 onClick={() => setShowQrModal(false)}
                 className="text-zinc-500 hover:text-white text-[10px] font-bold uppercase tracking-widest"
               >
-                Close Overlay
+                {t("my_registrations.modal.close")}
               </button>
             </motion.div>
           </div>
@@ -323,6 +344,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
 };
 
 export default function MyRegistrationsPage() {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const { myRegistrations, isLoading } = useSelector(
     (state: RootState) => state.events,
@@ -343,7 +365,8 @@ export default function MyRegistrationsPage() {
   const status = {
     active: (myRegistrations || []).filter(
       (t: any) =>
-        new Date(t.eventEndDate) >= new Date() && t.status === "APPROVED",
+        new Date(t.eventEndDate) >= new Date() &&
+        (t.status === "APPROVED" || t.status === "CONFIRMED"),
     ).length,
     total: (myRegistrations || []).length,
   };
@@ -365,14 +388,14 @@ export default function MyRegistrationsPage() {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#D4AF37]"></span>
                   </span>
                   <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-[0.3em] font-noto">
-                    Member Access
+                    {t("my_registrations.title.access_badge")}
                   </span>
                 </div>
                 <h1 className="text-6xl md:text-8xl font-black text-white ">
-                  TICKET
+                  {t("my_registrations.title.main_wallet")}
                   <br />
                   <span className="inline-block pt-2 pb-2  text-transparent bg-clip-text bg-linear-to-r from-[#D4AF37] to-[#F2C94C] opacity-90">
-                    WALLET.
+                    {t("my_registrations.title.main_ticket")}
                   </span>
                 </h1>
               </div>
@@ -384,7 +407,7 @@ export default function MyRegistrationsPage() {
                     {status.active}
                   </div>
                   <div className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest text-right mt-1">
-                    Active Passes
+                    {t("my_registrations.stats.active_passes")}
                   </div>
                 </div>
 
@@ -395,7 +418,7 @@ export default function MyRegistrationsPage() {
                     {status.total}
                   </div>
                   <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest text-right mt-1">
-                    Total History
+                    {t("my_registrations.stats.total_history")}
                   </div>
                 </div>
               </div>
@@ -414,7 +437,11 @@ export default function MyRegistrationsPage() {
                       : "text-zinc-600 hover:text-[#D4AF37]"
                   }`}
                 >
-                  <span className="relative z-10">{tab} EVENTS</span>
+                  <span className="relative z-10">
+                    {tab === "UPCOMING"
+                      ? t("my_registrations.tabs.upcoming")
+                      : t("my_registrations.tabs.past")}
+                  </span>
 
                   {activeTab === tab && (
                     <motion.div
@@ -454,14 +481,14 @@ export default function MyRegistrationsPage() {
                 >
                   <FaTicketAlt className="text-4xl text-zinc-700 mx-auto mb-4" />
                   <h3 className="text-zinc-400 font-bold uppercase tracking-widest text-sm">
-                    No Tickets Found
+                    {t("my_registrations.empty.title")}
                   </h3>
                   {activeTab === "UPCOMING" && (
                     <Link
                       to="/events"
                       className="mt-4 inline-block text-[10px] font-black uppercase text-[#D4AF37] border-b border-[#D4AF37]"
                     >
-                      Find Events
+                      {t("my_registrations.empty.btn_find")}
                     </Link>
                   )}
                 </motion.div>

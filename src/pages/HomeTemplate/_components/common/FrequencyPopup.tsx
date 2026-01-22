@@ -8,8 +8,11 @@ import OptimizedImage from "@/components/ui/OptimizedImage";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { ROLES } from "@/constants";
+import { useTranslation } from "react-i18next";
 
 const FrequencyPopup = () => {
+  const { t } = useTranslation();
+
   const [isVisible, setIsVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -94,7 +97,7 @@ const FrequencyPopup = () => {
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#D8C97B] animate-pulse" />
                     <span className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-[0.25em]">
-                      Exclusive Invitation
+                      {t("frequency_popup.label")}
                     </span>
                   </motion.div>
 
@@ -104,14 +107,13 @@ const FrequencyPopup = () => {
                     transition={{ delay: 0.3 }}
                   >
                     <h2 className="text-4xl md:text-6xl font-black text-white leading-snug mb-2">
-                      TRỞ THÀNH <br />
+                      {t("frequency_popup.title_prefix")} <br />
                       <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] via-[#FFF5C2] to-[#D8C97B] drop-shadow-sm">
-                        ĐỐI TÁC WEBIE
+                        {t("frequency_popup.title_highlight")}
                       </span>
                     </h2>
                     <p className="text-zinc-200 text-sm md:text-base font-light leading-relaxed max-w-md mt-4 border-l-2 border-[#D8C97B]/30 pl-4">
-                      Tham gia vào mạng lưới tổ chức sự kiện chuyên nghiệp và mở
-                      khóa hệ sinh thái đặc quyền không giới hạn.
+                      {t("frequency_popup.desc")}
                     </p>
                   </motion.div>
 
@@ -127,7 +129,8 @@ const FrequencyPopup = () => {
                     >
                       <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-linear-to-r from-transparent to-white opacity-30 group-hover:animate-shine" />
                       <span className="relative flex items-center justify-center gap-2">
-                        <FaHandshake className="text-lg" /> ĐĂNG KÝ NGAY
+                        <FaHandshake className="text-lg" />{" "}
+                        {t("frequency_popup.btn_register")}
                       </span>
                     </button>
 
@@ -135,7 +138,7 @@ const FrequencyPopup = () => {
                       onClick={() => setIsVisible(false)}
                       className="group px-6 py-4 rounded-xl border border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-sm font-bold transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
                     >
-                      Để sau nhé
+                      {t("frequency_popup.btn_later")}
                       <FaArrowRight className="text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-[#D8C97B]" />
                     </button>
                   </motion.div>

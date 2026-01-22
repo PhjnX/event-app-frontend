@@ -1,0 +1,731 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "values": "Our Values",
+    "events": "Events",
+    "news": "News",
+    "contact": "Contact",
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "partner_reg": "Partner Registration",
+    "my_tickets": "My Tickets",
+    "profile": "My Profile",
+    "change_pass": "Change Password",
+    "logout": "Logout"
+  },
+  "msg": {
+    "logout_success": "Logged out successfully 👋",
+    "lang_changed": "Language changed to English"
+  },
+  "home": {
+    "hero": {
+      "slides": {
+        "1": {
+          "title": "ELEVATE YOUR",
+          "highlight": "TECH EVENTS.",
+          "subtitle": "Experience professional event management on a mobile platform. Elevate the experience from registration to quick check-in with just one touch.",
+          "btnPrimary": "EXPLORE EVENTS",
+          "btnSecondary": "LOGIN"
+        },
+        "2": {
+          "title": "CONNECT &",
+          "highlight": "NETWORK.",
+          "subtitle": "Optimized interface on tablets allows you to easily browse speaker lists and connect with industry experts in the most intuitive way.",
+          "btnPrimary": "VIEW SPEAKERS",
+          "btnSecondary": "ABOUT US"
+        },
+        "3": {
+          "title": "STREAMLINE",
+          "highlight": "MANAGEMENT.",
+          "subtitle": "For Organizers: Control every detail of the event activities, manage schedules, and report real-time metrics on a specialized laptop interface.",
+          "btnPrimary": "CONTACT US",
+          "btnSecondary": "CREATE EVENT"
+        }
+      }
+    },
+    "features": {
+      "title": "SOLUTION",
+      "highlight": "COMPREHENSIVE MANAGEMENT",
+      "description": "Replace cumbersome manual processes with the power of technology. Precisely control from <1>registration</1>, <3>check-in</3> to <5>reporting</5> after the event.",
+      "items": {
+        "1": {
+          "title": "SUPER FAST QR CHECK-IN",
+          "desc": "Scan Check-in QR code in just 01s/person. Completely eliminate queuing at the reception desk."
+        },
+        "2": {
+          "title": "CENTRALIZED DATABASE",
+          "desc": "Store information of thousands of guests on a single system. No worries about data loss."
+        },
+        "3": {
+          "title": "REAL-TIME ANALYTICS",
+          "desc": "Update the actual number of participants instantly (Real-time) on intuitive charts."
+        },
+        "4": {
+          "title": "E-TICKETS & INVITATIONS",
+          "desc": "Automatically send tickets via Email/App. Each ticket is a unique identifier, absolutely preventing fake tickets."
+        },
+        "5": {
+          "title": "SMART REGISTRATION FORM",
+          "desc": "Customize registration forms easily. Automatically close the form when the ticket limit is reached."
+        },
+        "6": {
+          "title": "DIGITAL CERTIFICATION",
+          "desc": "Exclusive feature: Automatically issue participation certificates after the event ends."
+        }
+      }
+    },
+    "partners": {
+      "title": "FEATURED",
+      "highlight": "CLIENTS",
+      "description": "We are honored to accompany leading businesses and organizations across the country, delivering sustainable value.",
+      "join_now": "Collaborate Now"
+    },
+    "about": {
+      "title": "ABOUT",
+      "subtitle": "WEBIE VIETNAM",
+      "description": "Strategic partner in digital transformation for educational activities and events.",
+      "content": {
+        "text": "<0>W</0>ebie Vietnam is more than just a tech company; we are the perfect blend of <2>creative thinking</2> and <4>technological solutions</4>. We are committed to delivering the most seamless and world-class event experiences.",
+        "stats": {
+          "projects": "Projects",
+          "satisfaction": "Satisfaction",
+          "support": "Support"
+        },
+        "btn_more": "VIEW MORE"
+      },
+      "slides": {
+        "1": {
+          "label": "COLLECTIVE STRENGTH",
+          "title": "15+ Core Experts",
+          "desc": "A young, creative, and passionate team."
+        },
+        "2": {
+          "label": "LEADERSHIP VISION",
+          "title": "Pioneering Strategy",
+          "desc": "Leading innovation in event technology."
+        },
+        "3": {
+          "label": "PROVEN TRACK RECORD",
+          "title": "50+ Successful Events",
+          "desc": "Seamless operation, world-class experience."
+        }
+      }
+    },
+    "events_section": {
+      "title": "FEATURED",
+      "highlight": "EVENTS",
+      "subtitle": "Stay updated with the most exciting activities and notable events happening at the EMS system.",
+      "drag_hint": "Drag to explore",
+      "view_all": "View All",
+      "card": {
+        "organizer_default": "TIT EVENT",
+        "location_default": "Online",
+        "details": "View Details"
+      }
+    },
+    "news_section": {
+      "title": "LATEST",
+      "highlight": "NEWS",
+      "subtitle": "\"Stay updated with technology news, educational trends, and outstanding activities at Webie Vietnam.\"",
+      "loading": "Loading news...",
+      "view_all": "View all news",
+      "card": {
+        "category_default": "News",
+        "details": "Read more"
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "highlight": "Partnership",
+      "description": "Connect with Webie Vietnam to create world-class and professional events.",
+      "for_organizers": {
+        "title": "For",
+        "highlight": "Organizers",
+        "desc": "Join our strategic partner network. Access Event Management 4.0 technology, high-speed Face ID Check-in system, and connect with a dynamic community."
+      },
+      "buttons": {
+        "register": "REGISTER NOW",
+        "hotline": "HOTLINE"
+      },
+      "info": {
+        "office": {
+          "title": "Office",
+          "value": "28 Mai Chi Tho St., An Phu Ward, Thu Duc City"
+        },
+        "hotline": {
+          "title": "Hotline 24/7",
+          "value": "+84 969 838 467"
+        },
+        "email": {
+          "title": "Business Email",
+          "value": "Huyen.dang@webie.com.vn"
+        }
+      },
+      "map_popup": {
+        "title": "Webie Vietnam Office",
+        "address": "28 Mai Chi Tho St.,<br/>Thu Duc City, HCMC"
+      }
+    }
+  },
+  "footer": {
+    "description": "Professional event management platform, helping you organize and manage events efficiently. Connecting passion, creating the future.",
+    "sections": {
+      "quick_links": {
+        "title": "Home",
+        "items": {
+          "industry": "Industries",
+          "solutions": "Solutions",
+          "resources": "Resources",
+          "support": "Support"
+        }
+      },
+      "company": {
+        "title": "Company",
+        "items": {
+          "contact": "Contact",
+          "about": "About Us",
+          "careers": "Careers",
+          "blog": "Blog"
+        }
+      },
+      "support": {
+        "title": "Support",
+        "items": {
+          "help_center": "Help Center",
+          "docs": "Documentation",
+          "privacy": "Privacy Policy",
+          "terms": "Terms of Use"
+        }
+      }
+    },
+    "bottom": {
+      "rights": "All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "cookies": "Cookies"
+    }
+  },
+  "about_page": {
+    "hero": {
+      "title_first": "Event Manager",
+      "title_second": "System",
+      "created_by": "Created by",
+      "description": "We create comprehensive technology solutions to optimize management processes for the education and event ecosystem in Vietnam.",
+      "scroll": "Scroll"
+    },
+    "timeline": {
+      "title": "OUR",
+      "highlight": "JOURNEY",
+      "subtitle": "Growing in the journey of digital event transformation with Webie Vietnam.",
+      "items": {
+        "1": {
+          "year": "2022",
+          "title": "INCEPTION",
+          "desc": "Webie Vietnam was born, providing practical digital transformation solutions."
+        },
+        "2": {
+          "year": "2024",
+          "title": "ESTABLISHMENT",
+          "desc": "Transformed into a professional Agency with standardized operating procedures."
+        },
+        "3": {
+          "year": "2025",
+          "title": "HEADQUARTERS",
+          "desc": "Opened new office - A hub connecting personal branding and technology."
+        },
+        "4": {
+          "year": "FUTURE",
+          "title": "EXPANSION",
+          "desc": "Expanding scale, making an EdTech Event mark on the regional map."
+        }
+      }
+    },
+    "vision": {
+      "title": "VISION",
+      "and": "&",
+      "mission": "MISSION",
+      "subtitle": "\"We don't just organize events; we create digital legacies for the future.\"",
+      "vision_card": {
+        "title": "Vision",
+        "desc": "To become the pioneering icon in the <0>EdTech Event</0> sector in Southeast Asia. We redefine how people connect and learn through technology."
+      },
+      "mission_card": {
+        "title": "Mission",
+        "desc": "To build a comprehensive digital ecosystem, helping educational organizations optimize operations and enhance user experience.",
+        "values": {
+          "1": "Continuous innovation.",
+          "2": "Customer-centric approach.",
+          "3": "Transparency and efficiency."
+        }
+      }
+    },
+    "team": {
+      "title": "THE",
+      "highlight": "CREATORS",
+      "subtitle": "\"Pioneering spirit, distinct thinking, and a passionate heart.\"",
+      "members": {
+        "1": {
+          "role": "CEO & FOUNDER",
+          "quote": "Technology is the key to unlocking limitless experiences.",
+          "desc": "She laid the foundation for Webie's digitalization vision. She believes that educational events should be operated like a work of art: Precise and Emotional."
+        },
+        "2": {
+          "role": "CHIEF TECHNOLOGY OFFICER",
+          "quote": "System stability is the most prestigious commitment to our customers.",
+          "desc": "Chief Architect of the Webie Event system. He is responsible for building the secure technology core, handling millions of concurrent accesses, and integrating AI into the check-in process."
+        },
+        "3": {
+          "role": "CHIEF TECHNOLOGY OFFICER",
+          "quote": "If we stop today, we will be left behind tomorrow.",
+          "desc": "In charge of Research & Development (R&D). He always seeks the latest technologies (Blockchain, VR/AR) to apply in practice, helping Webie always stay one step ahead of the market."
+        }
+      }
+    },
+    "customer_section": {
+      "trusted_by": "Trusted by",
+      "more": "More",
+      "slogan": {
+        "title": "WEBIE - WE WILL BE",
+        "main": "We will be your creative force.",
+        "sub": "\"Webie doesn't just create solutions, we deliver results.\"",
+        "since": "Since 2025"
+      }
+    }
+  },
+  "value_page": {
+    "hero": {
+      "title_line1": "YOUR VERSION",
+      "title_line2": "OUR CREATION",
+      "subtitle": "\"Webie's mission is to bridge the gap between humans and technology through breakthrough experiences.\""
+    },
+    "core_values": {
+      "title": "CORE",
+      "highlight": "VALUES",
+      "subtitle": "The compass guiding every action and decision at Webie Vietnam.",
+      "items": {
+        "1": {
+          "title": "PIONEERING",
+          "en_title": "INNOVATION",
+          "desc": "Refusing to follow the beaten path. We continuously experiment with the latest technologies (AI, Blockchain) to reshape the future."
+        },
+        "2": {
+          "title": "DEDICATION",
+          "en_title": "COMMITMENT",
+          "desc": "Customer-centricity is key. We measure success not by revenue, but by the satisfaction of our partners."
+        },
+        "3": {
+          "title": "INTEGRITY",
+          "en_title": "TRUST",
+          "desc": "Transparent in every commitment, honest in every report. Webie builds sustainable trust through practical actions."
+        },
+        "4": {
+          "title": "VELOCITY",
+          "en_title": "SPEED",
+          "desc": "In the digital era, delay is failure. We optimize processes to deliver the fastest solutions without sacrificing quality."
+        }
+      }
+    },
+    "culture": {
+      "title": "WEBIE",
+      "highlight": "DNA",
+      "desc": "We don't just write code; we build a community of creative enthusiasts."
+    },
+    "impact_numbers": {
+      "title": "REAL",
+      "highlight": "IMPACT",
+      "subtitle": "Numbers don't lie",
+      "stats": {
+        "1": "Years of Experience",
+        "2": "Successful Projects",
+        "3": "Strategic Partners",
+        "4": "Satisfaction Rate"
+      }
+    },
+    "founders_pledge": {
+      "quote": "At Webie, we don't just sell software. We sell <0>peace of mind</0> and <2>perfect experiences</2>. If the product fails to deliver real value to the customer, I consider it my own failure.",
+      "signature": "Huyen Dang",
+      "name": "Dang Vu Thi My Huyen",
+      "role": "Founder & CEO"
+    }
+  },
+  "events_page": {
+    "hero": {
+      "loading": "LOADING EVENTS...",
+      "label": "Featured Event",
+      "default_title": "Exciting Event",
+      "default_desc": "Discover the most outstanding events at Webie.",
+      "btn_detail": "View Details"
+    },
+    "filter_bar": {
+      "placeholder": "What event are you looking for?",
+      "search_btn": "Search"
+    },
+    "events_grid": {
+      "title": "UPCOMING",
+      "highlight": "EVENTS",
+      "result_count": "Found {{count}} matching results",
+      "error": "Failed to load events. Please try again later.",
+      "empty": "No events found",
+      "card": {
+        "status_default": "Upcoming",
+        "location_default": "Online",
+        "details": "Details"
+      }
+    },
+    "all_events": {
+      "title": "EXPLORE",
+      "highlight": "ALL",
+      "subtitle_suffix": "EVENTS",
+      "found_result": "Found <0>{{count}}</0> events matching your criteria.",
+      "not_found": "No events found matching \"{{term}}\".",
+      "default_organizer": "Webie",
+      "location_default": "Online"
+    },
+    "featured_presenters": {
+      "title": "FEATURED",
+      "highlight": "SPEAKERS",
+      "subtitle": "Meet the top experts sharing their knowledge at the event",
+      "default_title": "Speaker",
+      "default_bio": "Leading expert in the field of technology and events."
+    },
+    "newsletter": {
+      "title": "Subscribe to Newsletter",
+      "desc": "Get the earliest notifications about tech events and exclusive offers.",
+      "no_spam": "No spam.",
+      "input_placeholder": "Please login to continue",
+      "btn_subscribe": "Subscribe",
+      "btn_login": "Login",
+      "note_login": "* You need to login to verify your email.",
+      "note_auth": "* The system will use your account email.",
+      "success": {
+        "title": "Subscription Successful",
+        "email_label": "Registered Email",
+        "message": "Thank you for joining us. The latest updates will be sent to your inbox."
+      },
+      "messages": {
+        "success": "Newsletter subscription successful!",
+        "already_exists": "You have already subscribed.",
+        "error": "An error occurred.",
+        "feature_dev": "Feature under development"
+      }
+    }
+  },
+  "news_page": {
+    "hero_slider": {
+      "spotlight": "Spotlight",
+      "read_article": "Read More"
+    },
+    "weekly_highlights": {
+      "subtitle": "Update the hottest news of the week",
+      "title": "WEEKLY",
+      "highlight": "HIGHLIGHTS NEWS"
+    },
+    "explore": {
+      "subtitle": "Archive of all articles",
+      "title": "EXPLORE",
+      "highlight": "MORE NEWS"
+    },
+    "card": {
+      "label": "News",
+      "view_details": "Read more"
+    },
+    "empty": "No articles found",
+    "quote": "\"Journalism is the first rough draft of history. We write the truth, bare and inspiring.\"",
+    "gallery": "Webie News Gallery",
+    "detail": {
+      "loading": "LOADING...",
+      "error": "Error displaying content.",
+      "back": "Back",
+      "read_time": "5 min read",
+      "breadcrumb": {
+        "home": "Home",
+        "news": "News",
+        "detail": "Detail"
+      },
+      "sidebar": {
+        "about_title": "About Webie News",
+        "about_desc": "Updating event technology trends, organizing tips, and success stories.",
+        "related_title": "Featured News",
+        "updating": "Updating...",
+        "upcoming_event_label": "Upcoming Event",
+        "ads_title": "Webie Events",
+        "ads_desc": "Register for world-class events today!"
+      }
+    }
+  },
+  "organizer_reg_modal": {
+    "back": "Back",
+    "form": {
+      "title_prefix": "BECOME A",
+      "title_highlight": "WEBIE PARTNER",
+      "desc": "Connect with a professional event organization network and expand your business opportunities.",
+      "labels": {
+        "name": "Full Name",
+        "phone": "Phone Number",
+        "email": "Email",
+        "org_name": "Organization Name",
+        "message": "Message"
+      },
+      "placeholders": {
+        "name": "Enter full name...",
+        "phone": "Enter phone number...",
+        "email": "example@email.com",
+        "org_name": "Company name...",
+        "message": "Content needing support..."
+      },
+      "submit_btn": "Send Information Now"
+    },
+    "success": {
+      "title": "Sent Successfully!",
+      "desc": "We will contact you within 24 working hours.",
+      "btn": "Complete"
+    },
+    "sidebar": {
+      "title": "Contact",
+      "hotline": "Hotline",
+      "email": "Email",
+      "office": "Office",
+      "address": "No. 53, Street 57, An Phu<br/>Thu Duc City, HCMC"
+    },
+    "messages": {
+      "login_required": "Please login to submit registration information!",
+      "feature_update": "Feature is updating"
+    }
+  },
+  "frequency_popup": {
+    "label": "Exclusive Invitation",
+    "title_prefix": "BECOME A",
+    "title_highlight": "WEBIE PARTNER",
+    "desc": "Join a professional event organization network and unlock an unlimited privileged ecosystem.",
+    "btn_register": "REGISTER NOW",
+    "btn_later": "Maybe Later"
+  },
+  "auth_modals": {
+    "common": {
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "otp": "OTP Code",
+      "or": "Or",
+      "processing": "Processing...",
+      "back": "Back",
+      "placeholders": {
+        "email": "example@email.com",
+        "password": "••••••••",
+        "otp": "Enter 6-digit code...",
+        "name": "John Doe"
+      }
+    },
+    "validation": {
+      "required_all": "Please fill in all information.",
+      "required_email": "Please enter your Email.",
+      "password_mismatch": "Passwords do not match!",
+      "password_length": "New password must be at least 6 characters.",
+      "otp_required": "Please enter verification code.",
+      "login_failed": "Login failed. Please try again.",
+      "bad_credentials": "Incorrect email or password!"
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Welcome back to Webie EMS!",
+      "forgot_password": "Forgot password?",
+      "btn_submit": "Login",
+      "google_login": "Login with Google",
+      "no_account": "No account yet?",
+      "register_now": "Register now",
+      "success_msg": "Login successful! 🎉"
+    },
+    "register": {
+      "title_step1": "Register",
+      "title_step2": "Verify Email",
+      "subtitle_step1": "Join Webie EMS today",
+      "subtitle_step2": "Please enter the OTP sent to {{email}}",
+      "label_name": "Full Name",
+      "btn_next": "Continue",
+      "btn_verify": "Complete Registration",
+      "back_prev": "Back to previous step",
+      "have_account": "Already have an account?",
+      "btn_login": "Login",
+      "success_step1": "Registration successful! Verification code sent to email.",
+      "success_step2": "Verification successful! You can login now."
+    },
+    "change_password": {
+      "title": "Change Password",
+      "subtitle": "Protect your account with a strong password",
+      "label_current": "Current Password",
+      "label_new": "New Password",
+      "label_confirm": "Confirm New Password",
+      "btn_submit": "Confirm Change",
+      "success_msg": "Password changed successfully!"
+    },
+    "forgot_password": {
+      "title_step1": "Forgot Password?",
+      "title_step2": "Reset Password",
+      "subtitle_step1": "Enter registered email to receive OTP code.",
+      "subtitle_step2": "Enter OTP from email and set a new password.",
+      "label_reg_email": "Registered Email",
+      "label_new_pass": "New Password",
+      "btn_send": "Send OTP",
+      "btn_sending": "Sending...",
+      "btn_reset": "Confirm Password Reset",
+      "back_login": "Back to Login",
+      "back_step1": "Back to Step 1",
+      "success_sent": "OTP sent to your email!",
+      "success_reset": "Password reset successful! Please login again."
+    }
+  },
+  "user_notification_panel": {
+    "title": "Notifications",
+    "new_badge": "{{count}} new",
+    "mark_all_read": "Mark all as read",
+    "empty_state": "You have no notifications",
+    "activity_label": "Registration activities:",
+    "activity_others": "+{{count}} others",
+    "view_all_tickets": "View all my tickets",
+    "time": {
+      "just_now": "Just now",
+      "minutes_ago": "{{count}} mins ago",
+      "hours_ago": "{{count}} hours ago",
+      "days_ago": "{{count}} days ago"
+    }
+  },
+  "notifications": {
+    "reg_submitted_title": "Registration Successful",
+    "reg_submitted_msg": "You successfully registered for: \"{{eventName}}\"",
+    "reg_approved_title": "Ticket Approved! 🎉",
+    "reg_approved_msg": "Your request to join \"{{eventName}}\" has been approved.",
+    "reg_rejected_title": "Registration Rejected",
+    "reg_rejected_msg": "Unfortunately, request for \"{{eventName}}\" was unsuccessful.",
+    "reason_prefix": "Reason: {{reason}}",
+    "new_event_title": "New Event Coming Soon! 📅",
+    "new_event_msg": "Check out: \"{{eventName}}\" - Don't miss out!",
+    "new_post_title": "New Article 📰"
+  },
+  "public_event_detail": {
+    "toasts": {
+      "not_found": "Event not found",
+      "activity_full": "This activity is full!",
+      "login_required": "Please log in to register!",
+      "no_selection": "You haven't selected any activities!",
+      "add_success": "🎉 Activities added successfully!",
+      "reg_success": "🎉 Event registration successful!",
+      "action_failed": "Operation failed."
+    },
+    "not_exist": "Event does not exist.",
+    "back": "Back",
+    "schedule_title": "Event Schedule",
+    "status": {
+      "full_stamp": "SOLD OUT",
+      "registered_stamp": "REGISTERED",
+      "unlimited": "Unlimited"
+    },
+    "guests_title": "Special Guests",
+    "ticket_card": {
+      "title": "Entry Ticket",
+      "selected_count": "Selected sessions",
+      "ticket_class": "Ticket Class",
+      "class_premium": "Premium Member",
+      "class_standard": "Standard",
+      "owned": "Owned",
+      "total_label": "Total",
+      "free": "FREE",
+      "btn_processing": "Processing...",
+      "btn_confirm_add": "CONFIRM ADD",
+      "btn_confirm_reg": "CONFIRM REGISTRATION",
+      "note": "* E-ticket will be sent to your email"
+    },
+    "mobile_bar": {
+      "selected_label": "Selected",
+      "unit": "items",
+      "btn_confirm": "Confirm"
+    }
+  },
+  "my_registrations": {
+    "title": {
+      "access_badge": "Member Access",
+      "main_wallet": "TICKET",
+      "main_ticket": "WALLET."
+    },
+    "stats": {
+      "active_passes": "Active Passes",
+      "total_history": "Total History"
+    },
+    "tabs": {
+      "upcoming": "UPCOMING EVENTS",
+      "past": "PAST EVENTS"
+    },
+    "ticket": {
+      "status": {
+        "archived": "Archived",
+        "approved": "Approved",
+        "checked_in": "Checked In",
+        "rejected": "Rejected",
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "label": "Status"
+      },
+      "location_tba": "TBA",
+      "date_label": "Date",
+      "start_label": "START",
+      "btn_view": "View Details",
+      "btn_code": "Ticket Code",
+      "btn_pending": "Pending",
+      "btn_gallery": "Event Gallery"
+    },
+    "modal": {
+      "code_label": "Code",
+      "close": "Close Overlay"
+    },
+    "empty": {
+      "title": "No Tickets Found",
+      "btn_find": "Find Events"
+    }
+  },
+  "event_moments": {
+    "header": {
+      "live_feed": "Live Feed",
+      "loading_event": "Loading...",
+      "connecting": "Connecting to server...",
+      "back_tickets": "My Tickets"
+    },
+    "tabs": {
+      "all": "Community",
+      "mine": "My Moments"
+    },
+    "input": {
+      "placeholder": "Share your thoughts, photos about this event...",
+      "btn_photo": "Add Photo",
+      "btn_post": "Post"
+    },
+    "card": {
+      "menu_edit": "Edit",
+      "menu_delete": "Delete"
+    },
+    "modal_edit": {
+      "title": "Edit Moment",
+      "placeholder": "Post content...",
+      "btn_cancel": "Cancel",
+      "btn_save": "Save Changes"
+    },
+    "modal_delete": {
+      "title": "Delete Moment?",
+      "message": "This post will be permanently removed from the event timeline.",
+      "btn_cancel": "Cancel",
+      "btn_delete": "Delete"
+    },
+    "list": {
+      "empty": "No moments yet",
+      "load_more": "Load more"
+    },
+    "errors": {
+      "general": "An error occurred, please try again.",
+      "no_content": "Content required"
+    },
+    "success": {
+      "posted": "Posted successfully!",
+      "deleted": "Deleted.",
+      "updated": "Updated successfully."
+    }
+  }
+}

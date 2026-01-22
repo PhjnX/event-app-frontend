@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next"; // Import hook i18n
 import {
   fetchMyRegistrations,
   fetchPublicEvents,
@@ -35,6 +36,7 @@ const isRecent = (dateString: string, days = 3) => {
 };
 
 export const useUserNotifications = () => {
+  const { t } = useTranslation(); // Khởi tạo translation function
   const dispatch = useDispatch<AppDispatch>();
 
   const { myRegistrations } = useSelector((state: RootState) => state.events);
@@ -77,8 +79,10 @@ export const useUserNotifications = () => {
       notifs.push({
         id: `reg-submit-${reg.registrationId}`,
         type: "REGISTRATION_SUBMITTED",
-        title: "Đăng ký thành công",
-        message: `Bạn đã đăng ký tham gia: "${reg.eventName}"`,
+        title: t("notifications.reg_submitted_title"),
+        message: t("notifications.reg_submitted_msg", {
+          eventName: reg.eventName,
+        }),
         time: reg.createdAt,
         read: readIds.includes(`reg-submit-${reg.registrationId}`),
         link: "/my-tickets",
@@ -92,8 +96,10 @@ export const useUserNotifications = () => {
         notifs.push({
           id: `reg-approved-${reg.registrationId}`,
           type: "REGISTRATION_APPROVED",
-          title: "Vé đã được duyệt! 🎉",
-          message: `Yêu cầu tham gia "${reg.eventName}" đã được chấp thuận.`,
+          title: t("notifications.reg_approved_title"),
+          message: t("notifications.reg_approved_msg", {
+            eventName: reg.eventName,
+          }),
           time: reg.updatedAt,
           read: readIds.includes(`reg-approved-${reg.registrationId}`),
           link: "/my-tickets",
@@ -103,11 +109,18 @@ export const useUserNotifications = () => {
           },
         });
       } else if (reg.status === "REJECTED") {
+        const baseMsg = t("notifications.reg_rejected_msg", {
+          eventName: reg.eventName,
+        });
+        const reasonMsg = reg.rejectionReason
+          ? ` ${t("notifications.reason_prefix", { reason: reg.rejectionReason })}`
+          : "";
+
         notifs.push({
           id: `reg-rejected-${reg.registrationId}`,
           type: "REGISTRATION_REJECTED",
-          title: "Đăng ký bị từ chối",
-          message: `Rất tiếc, yêu cầu cho "${reg.eventName}" không thành công.${reg.rejectionReason ? ` Lý do: ${reg.rejectionReason}` : ""}`,
+          title: t("notifications.reg_rejected_title"),
+          message: `${baseMsg}${reasonMsg}`,
           time: reg.updatedAt,
           read: readIds.includes(`reg-rejected-${reg.registrationId}`),
           link: "/my-tickets",
@@ -123,8 +136,10 @@ export const useUserNotifications = () => {
           notifs.push({
             id: `new-event-${evt.eventId}`,
             type: "NEW_EVENT",
-            title: "Sự kiện mới sắp diễn ra! 📅",
-            message: `Khám phá ngay: "${evt.eventName}" - Đừng bỏ lỡ!`,
+            title: t("notifications.new_event_title"),
+            message: t("notifications.new_event_msg", {
+              eventName: evt.eventName,
+            }),
             time: eventDate,
             read: readIds.includes(`new-event-${evt.eventId}`),
             link: `/events/${evt.slug}`,
@@ -139,8 +154,8 @@ export const useUserNotifications = () => {
           notifs.push({
             id: `new-post-${post.id}`,
             type: "NEW_POST",
-            title: "Tin tức mới 📰",
-            message: post.title,
+            title: t("notifications.new_post_title"),
+            message: post.title, // Tiêu đề bài viết lấy trực tiếp từ API nên giữ nguyên
             time: post.createdAt,
             read: readIds.includes(`new-post-${post.id}`),
             link: `/news/${post.slug}`,
@@ -152,7 +167,7 @@ export const useUserNotifications = () => {
     return notifs.sort(
       (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
     );
-  }, [myRegistrations, publicEvents, publicPosts, readIds, isInitialized]);
+  }, [myRegistrations, publicEvents, publicPosts, readIds, isInitialized, t]); // Thêm 't' vào dependencies
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

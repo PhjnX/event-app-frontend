@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import bgValue from "../../../../../assets/images/background-value.webp";
+import { useTranslation } from "react-i18next";
 
 const textVariants: Variants = {
   hidden: { opacity: 0, scale: 0.8, filter: "blur(20px)" },
@@ -13,15 +14,14 @@ const textVariants: Variants = {
 };
 
 const HeroManifesto: React.FC = () => {
+  const { t } = useTranslation();
   const { scrollY } = useScroll();
 
-  // Hiệu ứng Parallax cho Text và Background
   const yText = useTransform(scrollY, [0, 500], [0, 200]);
   const yBg = useTransform(scrollY, [0, 500], [0, 100]);
 
   return (
     <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-[#0a0a0a] font-noto selection:bg-[rgba(216,201,123,0.3)]">
-      {/* 1. BACKGROUND IMAGE WITH PARALLAX */}
       <motion.div className="absolute inset-0 z-0" style={{ y: yBg }}>
         <motion.img
           src={bgValue}
@@ -84,9 +84,9 @@ const HeroManifesto: React.FC = () => {
             animate="visible"
             className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase leading-snug drop-shadow-2xl"
           >
-            YOUR VERSION <br />
+            {t("value_page.hero.title_line1")} <br />
             <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] via-[#F2E6A0] to-[#D8C97B] animate-gradient-x bg-size-[200%_auto]">
-              OUR CREATION
+              {t("value_page.hero.title_line2")}
             </span>
           </motion.h1>
 
@@ -96,8 +96,7 @@ const HeroManifesto: React.FC = () => {
             transition={{ delay: 0.8, duration: 1 }}
             className="text-gray-200 text-lg md:text-2xl font-light max-w-2xl mx-auto italic drop-shadow-md"
           >
-            "Sứ mệnh của Webie là xóa bỏ khoảng cách giữa con người và công nghệ
-            thông qua những trải nghiệm đột phá."
+            {t("value_page.hero.subtitle")}
           </motion.p>
 
           <motion.div

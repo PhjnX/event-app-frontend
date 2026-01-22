@@ -281,6 +281,7 @@ export const fetchMyRegistrations = createAsyncThunk(
     }
   },
 );
+
 export const fetchRegistrationDetail = createAsyncThunk(
   "events/fetchRegistrationDetail",
   async (registrationId: number, { rejectWithValue }) => {
@@ -396,10 +397,15 @@ export const rejectEvent = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      await apiService.put(`/events/${eventId}/reject`, null, {
-        params: { reason },
-      });
-      return eventId;
+      // API này trả về Object Event đầy đủ (theo Swagger của bạn)
+      const response = await apiService.put<Event>(
+        `/events/${eventId}/reject`,
+        null,
+        {
+          params: { reason },
+        },
+      );
+      return response;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -417,6 +423,7 @@ export const deleteEvent = createAsyncThunk(
     }
   },
 );
+
 export const subscribeNewsletter = createAsyncThunk(
   "events/subscribeNewsletter",
   async (email: string, { rejectWithValue }) => {
@@ -433,6 +440,7 @@ export const subscribeNewsletter = createAsyncThunk(
     }
   },
 );
+
 const eventSlice = createSlice({
   name: "events",
   initialState,
@@ -448,6 +456,7 @@ const eventSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Basic
       .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
         state.myRegistrations = action.payload;
       })
@@ -467,6 +476,7 @@ const eventSlice = createSlice({
         state.selectedEvents = action.payload;
       })
 
+      // Registration Details
       .addCase(fetchRegistrationDetail.pending, (state) => {
         state.isDetailLoading = true;
         state.selectedRegistrationDetail = null;
@@ -480,6 +490,7 @@ const eventSlice = createSlice({
         state.selectedRegistrationDetail = null;
       })
 
+      // Fetch Registrations List
       .addCase(fetchEventRegistrations.pending, (state) => {
         state.isLoading = true;
       })
@@ -492,6 +503,45 @@ const eventSlice = createSlice({
         state.registrations = [];
       })
 
+      // --- CÁC ACTIONS QUẢN LÝ SỰ KIỆN (NEW/UPDATE) ---
+
+      // 1. DELETE
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+        // Xóa item khỏi danh sách state.data dựa trên slug trả về
+        state.data = state.data.filter((e) => e.slug !== action.payload);
+      })
+
+      // 2. SUBMIT (Gửi duyệt)
+      .addCase(submitEventForApproval.fulfilled, (state, action) => {
+        // Cập nhật trạng thái item thành PENDING_APPROVAL
+        const index = state.data.findIndex((e) => e.slug === action.payload);
+        if (index !== -1) {
+          state.data[index].status = "PENDING_APPROVAL";
+        }
+      })
+
+      // 3. APPROVE
+      .addCase(approveEvent.fulfilled, (state, action) => {
+        // action.payload là id
+        const index = state.data.findIndex((e) => e.eventId === action.payload);
+        if (index !== -1) {
+          state.data[index].status = "PUBLISHED"; // Hoặc "APPROVED" tùy luồng business của bạn
+        }
+      })
+
+      // 4. REJECT (Fix chính cho lỗi không hiện lý do)
+      .addCase(rejectEvent.fulfilled, (state, action) => {
+        // action.payload lúc này là Full Object Event trả về từ API
+        // nên nó sẽ chứa cả field reason mới
+        const index = state.data.findIndex(
+          (e) => e.eventId === action.payload.eventId,
+        );
+        if (index !== -1) {
+          state.data[index] = action.payload; // Gán đè để cập nhật reason & status mới nhất
+        }
+      })
+
+      // Reset khi Logout
       .addCase(logoutUser.fulfilled, () => initialState);
   },
 });

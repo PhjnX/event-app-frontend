@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import { SLIDE_DATA } from "./data";
 import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";
+import { useTranslation, Trans } from "react-i18next";
 
 const ImageSlider = ({
   currentSlide,
@@ -12,6 +13,8 @@ const ImageSlider = ({
   currentSlide: AboutSlide;
   currentIndex: number;
 }) => {
+  const { t } = useTranslation();
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -50 }}
@@ -27,7 +30,7 @@ const ImageSlider = ({
           <motion.img
             key={currentSlide.id}
             src={currentSlide.image}
-            alt={currentSlide.label}
+            alt={t(currentSlide.label as any)}
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -39,7 +42,6 @@ const ImageSlider = ({
 
       <div className="absolute -bottom-10 -right-4 md:-right-12 z-20 w-72">
         <div className="relative bg-[rgba(15,15,15,0.95)] backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.1)] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
-          {/* Thanh bên trái - Đã đổi sang màu vàng #D8C97B */}
           <motion.div
             animate={{ backgroundColor: "#D8C97B" }}
             className="absolute left-0 top-0 bottom-0 w-1"
@@ -54,7 +56,6 @@ const ImageSlider = ({
               transition={{ duration: 0.4 }}
             >
               <div className="flex items-center gap-3 mb-3">
-                {/* Icon - Đã đổi sang màu vàng #D8C97B */}
                 <div
                   className="p-2 rounded-lg bg-[rgba(255,255,255,0.05)] text-lg"
                   style={{ color: "#D8C97B" }}
@@ -62,20 +63,19 @@ const ImageSlider = ({
                   {currentSlide.icon}
                 </div>
                 <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">
-                  {currentSlide.label}
+                  {t(currentSlide.label as any)}
                 </span>
               </div>
               <h3 className="text-white text-xl font-bold leading-tight mb-1">
-                {currentSlide.title}
+                {t(currentSlide.title as any)}
               </h3>
               <p className="text-gray-500 text-sm line-clamp-2 font-light">
-                {currentSlide.desc}
+                {t(currentSlide.desc as any)}
               </p>
             </motion.div>
           </AnimatePresence>
 
           <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[rgba(255,255,255,0.1)]">
-            {/* Thanh tiến trình bên dưới - Đã đổi sang màu vàng #D8C97B */}
             <motion.div
               key={currentIndex}
               initial={{ width: "0%" }}
@@ -92,6 +92,8 @@ const ImageSlider = ({
 };
 
 const ContentSection = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="pl-0 lg:pl-10 relative mt-4">
       <motion.div
@@ -101,27 +103,30 @@ const ContentSection = () => {
         transition={{ duration: 0.8 }}
       >
         <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed text-justify font-light">
-          <span className="text-5xl font-bold text-[#D8C97B] float-left mr-3 leading-[0.8] mt-2 font-noto">
-            W
-          </span>
-          ebie Vietnam không chỉ đơn thuần là một công ty công nghệ, chúng tôi
-          là sự kết hợp hoàn hảo giữa{" "}
-          <span className="text-white font-medium border-b border-[#D8C97B]">
-            tư duy sáng tạo
-          </span>{" "}
-          và{" "}
-          <span className="text-white font-medium border-b border-[#D8C97B]">
-            giải pháp công nghệ
-          </span>
-          . Chúng tôi cam kết mang lại những trải nghiệm sự kiện liền mạch và
-          đẳng cấp nhất.
+          <Trans
+            i18nKey="home.about.content.text"
+            components={{
+              0: (
+                <span className="text-5xl font-bold text-[#D8C97B] float-left mr-3 leading-[0.8] mt-2 font-noto" />
+              ),
+              2: (
+                <span className="text-white font-medium border-b border-[#D8C97B]" />
+              ),
+              4: (
+                <span className="text-white font-medium border-b border-[#D8C97B]" />
+              ),
+            }}
+          />
         </p>
 
         <div className="flex gap-8 mb-10 border-t border-[rgba(255,255,255,0.1)] pt-6">
           {[
-            { value: "50+", label: "Dự án" },
-            { value: "100%", label: "Hài lòng" },
-            { value: "24/7", label: "Hỗ trợ" },
+            { value: "50+", label: t("home.about.content.stats.projects") },
+            {
+              value: "100%",
+              label: t("home.about.content.stats.satisfaction"),
+            },
+            { value: "24/7", label: t("home.about.content.stats.support") },
           ].map((item, index) => (
             <div key={index}>
               <h4 className="text-3xl font-bold text-white font-noto">
@@ -145,7 +150,7 @@ const ContentSection = () => {
           >
             <div className="absolute top-0 -left-full w-full h-full bg-linear-to-r from-[rgba(255,255,255,0)] via-[rgba(255,255,255,0.5)] to-[rgba(255,255,255,0)] -skew-x-12 z-10 animate-shine-infinite group-hover/btn:animate-shine-fast" />
             <span className="relative z-20 flex items-center gap-2">
-              TÌM HIỂU THÊM{" "}
+              {t("home.about.content.btn_more")}{" "}
               <FaArrowRight className="group-hover/btn:translate-x-1 transition-transform duration-300" />
             </span>
           </Link>
@@ -156,6 +161,7 @@ const ContentSection = () => {
 };
 
 const AboutSection = () => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -183,21 +189,30 @@ const AboutSection = () => {
         }}
       ></div>
 
-      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-[#D8C97B] rounded-full blur-[150px] opacity-[0.08] z-0 pointer-events-none"></div>
-
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
-        <div className="flex flex-col items-center text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight drop-shadow-2xl uppercase tracking-tight font-noto">
-            VỀ CHÚNG TÔI{" "}
+        <div className="flex flex-col items-center text-center mb-16">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight drop-shadow-2xl uppercase tracking-tight font-noto"
+          >
+            {t("home.about.title")}{" "}
             <span className="text-[#D8C97B] block md:inline">
-              WEBIE VIETNAM
+              {t("home.about.subtitle")}
             </span>
-          </h2>
+          </motion.h2>
 
-          <p className="text-base md:text-xl text-gray-400 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light">
-            Đối tác chiến lược trong việc chuyển đổi số các hoạt động giáo dục
-            và sự kiện.
-          </p>
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="text-base md:text-xl text-gray-400 leading-relaxed max-w-3xl drop-shadow-md mx-auto font-light"
+          >
+            {t("home.about.description")}
+          </motion.p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">

@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { modalVariants } from "@/constants/motions";
 import LogoApp from "@/assets/images/Logo_EMS.webp";
 import apiService from "../../../../../services/apiService";
+import { useTranslation } from "react-i18next";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export default function ForgotPasswordModal({
   onClose,
   onSwitchToLogin,
 }: ForgotPasswordModalProps) {
+  const { t } = useTranslation();
+
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -46,14 +49,14 @@ export default function ForgotPasswordModal({
     const cleanEmail = email.trim();
 
     if (!cleanEmail) {
-      toast.warning("Vui lòng nhập email!");
+      toast.warning(t("auth_modals.validation.required_email"));
       return;
     }
 
     setIsLoading(true);
     try {
       await apiService.post("/users/forgot-password", { email: cleanEmail });
-      toast.success("Đã gửi OTP về email của bạn!");
+      toast.success(t("auth_modals.forgot_password.success_sent"));
       setStep(2);
     } catch (error: any) {
       const msg =
@@ -71,12 +74,12 @@ export default function ForgotPasswordModal({
     const cleanOtp = otp.trim();
 
     if (!cleanOtp || !newPassword || !confirmPassword) {
-      toast.warning("Vui lòng nhập đầy đủ thông tin!");
+      toast.warning(t("auth_modals.validation.required_all"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp!");
+      toast.error(t("auth_modals.validation.password_mismatch"));
       return;
     }
 
@@ -89,7 +92,7 @@ export default function ForgotPasswordModal({
         confirmPassword: confirmPassword,
       });
 
-      toast.success("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
+      toast.success(t("auth_modals.forgot_password.success_reset"));
       onClose();
       onSwitchToLogin();
     } catch (error: any) {
@@ -139,12 +142,14 @@ export default function ForgotPasswordModal({
                   className="w-12 h-12 object-contain mb-4 filter drop-shadow-[0_0_8px_rgba(216,201,123,0.4)]"
                 />
                 <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight">
-                  {step === 1 ? "Quên Mật Khẩu?" : "Đặt Lại Mật Khẩu"}
+                  {step === 1
+                    ? t("auth_modals.forgot_password.title_step1")
+                    : t("auth_modals.forgot_password.title_step2")}
                 </h2>
                 <p className="text-gray-400 text-sm px-4 font-light">
                   {step === 1
-                    ? "Nhập email đã đăng ký để nhận mã xác thực OTP."
-                    : "Nhập mã OTP từ email và thiết lập mật khẩu mới."}
+                    ? t("auth_modals.forgot_password.subtitle_step1")
+                    : t("auth_modals.forgot_password.subtitle_step2")}
                 </p>
               </div>
 
@@ -152,7 +157,7 @@ export default function ForgotPasswordModal({
                 <form className="space-y-6" onSubmit={handleSendOTP}>
                   <div className="space-y-2 text-left">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Email đăng ký
+                      {t("auth_modals.forgot_password.label_reg_email")}
                     </label>
                     <div className="relative group">
                       <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -160,7 +165,7 @@ export default function ForgotPasswordModal({
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@example.com"
+                        placeholder={t("auth_modals.common.placeholders.email")}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -171,14 +176,16 @@ export default function ForgotPasswordModal({
                     disabled={isLoading}
                     className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed uppercase text-sm tracking-widest"
                   >
-                    {isLoading ? "Đang gửi..." : "Gửi Mã OTP"}
+                    {isLoading
+                      ? t("auth_modals.forgot_password.btn_sending")
+                      : t("auth_modals.forgot_password.btn_send")}
                   </button>
                 </form>
               ) : (
                 <form className="space-y-5" onSubmit={handleResetPassword}>
                   <div className="space-y-2 text-left">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Mã xác thực OTP
+                      {t("auth_modals.common.otp")}
                     </label>
                     <div className="relative group">
                       <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -186,7 +193,7 @@ export default function ForgotPasswordModal({
                         type="text"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
-                        placeholder="Nhập mã 6 chữ số..."
+                        placeholder={t("auth_modals.common.placeholders.otp")}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -194,7 +201,7 @@ export default function ForgotPasswordModal({
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Mật khẩu mới
+                      {t("auth_modals.forgot_password.label_new_pass")}
                     </label>
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -202,7 +209,9 @@ export default function ForgotPasswordModal({
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder={t(
+                          "auth_modals.common.placeholders.password",
+                        )}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -210,7 +219,7 @@ export default function ForgotPasswordModal({
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Xác nhận mật khẩu
+                      {t("auth_modals.common.confirm_password")}
                     </label>
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -218,7 +227,9 @@ export default function ForgotPasswordModal({
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder={t(
+                          "auth_modals.common.placeholders.password",
+                        )}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -229,7 +240,9 @@ export default function ForgotPasswordModal({
                     disabled={isLoading}
                     className="w-full bg-[#D8C97B] hover:bg-[#c4b56f] text-black font-bold py-3.5 rounded-xl transition-all hover:-translate-y-1 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed uppercase text-sm tracking-widest"
                   >
-                    {isLoading ? "Đang xử lý..." : "Xác Nhận Đổi Mật Khẩu"}
+                    {isLoading
+                      ? t("auth_modals.common.processing")
+                      : t("auth_modals.forgot_password.btn_reset")}
                   </button>
                 </form>
               )}
@@ -239,7 +252,9 @@ export default function ForgotPasswordModal({
                 className="mt-8 flex items-center justify-center gap-2 text-gray-400 hover:text-[#D8C97B] text-sm transition-all cursor-pointer mx-auto hover:underline font-medium"
               >
                 <FaArrowLeft size={12} />
-                {step === 1 ? "Quay lại đăng nhập" : "Quay lại bước 1"}
+                {step === 1
+                  ? t("auth_modals.forgot_password.back_login")
+                  : t("auth_modals.forgot_password.back_step1")}
               </button>
             </div>
           </motion.div>

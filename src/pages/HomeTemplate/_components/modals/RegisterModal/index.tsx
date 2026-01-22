@@ -21,6 +21,7 @@ import {
 import { modalVariants } from "@/constants/motions";
 
 import LogoApp from "@/assets/images/Logo_EMS.webp";
+import { useTranslation } from "react-i18next";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export default function RegisterModal({
   onClose,
   onSwitchToLogin,
 }: RegisterModalProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const { isLoading, error } = useSelector((state: RootState) => state.auth);
 
@@ -62,7 +64,6 @@ export default function RegisterModal({
       });
       setVerificationCode("");
       setLocalError(null);
-      // Reset hiển thị mật khẩu
       setShowPassword(false);
       setShowConfirmPassword(false);
       dispatch(clearError());
@@ -77,17 +78,17 @@ export default function RegisterModal({
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.username || !formData.email || !formData.password) {
-      setLocalError("Vui lòng điền đầy đủ thông tin.");
+      setLocalError(t("auth_modals.validation.required_all"));
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setLocalError("Mật khẩu xác nhận không khớp!");
+      setLocalError(t("auth_modals.validation.password_mismatch"));
       return;
     }
 
     const resultAction = await dispatch(registerUser(formData));
     if (registerUser.fulfilled.match(resultAction)) {
-      toast.success("Đăng ký thành công! Mã xác thực đã được gửi về email.");
+      toast.success(t("auth_modals.register.success_step1"));
       setStep(2);
       dispatch(clearError());
     }
@@ -96,7 +97,7 @@ export default function RegisterModal({
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verificationCode.trim()) {
-      setLocalError("Vui lòng nhập mã xác thực.");
+      setLocalError(t("auth_modals.validation.otp_required"));
       return;
     }
 
@@ -107,7 +108,7 @@ export default function RegisterModal({
 
     const resultAction = await dispatch(verifyUser(verifyData));
     if (verifyUser.fulfilled.match(resultAction)) {
-      toast.success("Xác thực thành công! Bạn có thể đăng nhập ngay.");
+      toast.success(t("auth_modals.register.success_step2"));
       onSwitchToLogin();
     }
   };
@@ -149,13 +150,17 @@ export default function RegisterModal({
                     className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(216,201,123,0.4)]"
                   />
                   <h2 className="text-3xl font-bold text-white uppercase tracking-tight">
-                    {step === 1 ? "Đăng Ký" : "Xác Thực Email"}
+                    {step === 1
+                      ? t("auth_modals.register.title_step1")
+                      : t("auth_modals.register.title_step2")}
                   </h2>
                 </div>
                 <p className="text-gray-400 text-sm font-light">
                   {step === 1
-                    ? "Tham gia cùng Webie EMS ngay hôm nay"
-                    : `Vui lòng nhập mã OTP đã gửi tới ${formData.email}`}
+                    ? t("auth_modals.register.subtitle_step1")
+                    : t("auth_modals.register.subtitle_step2", {
+                        email: formData.email,
+                      })}
                 </p>
               </div>
 
@@ -169,7 +174,7 @@ export default function RegisterModal({
                 <form className="space-y-4" onSubmit={handleRegister}>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Họ và Tên
+                      {t("auth_modals.register.label_name")}
                     </label>
                     <div className="relative group">
                       <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -178,7 +183,7 @@ export default function RegisterModal({
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
-                        placeholder="Nguyễn Văn A"
+                        placeholder={t("auth_modals.common.placeholders.name")}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -187,7 +192,7 @@ export default function RegisterModal({
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Email
+                      {t("auth_modals.common.email")}
                     </label>
                     <div className="relative group">
                       <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -196,7 +201,7 @@ export default function RegisterModal({
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="name@example.com"
+                        placeholder={t("auth_modals.common.placeholders.email")}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -205,7 +210,7 @@ export default function RegisterModal({
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Mật khẩu
+                      {t("auth_modals.common.password")}
                     </label>
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -214,7 +219,9 @@ export default function RegisterModal({
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="••••••••"
+                        placeholder={t(
+                          "auth_modals.common.placeholders.password",
+                        )}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-12 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -234,7 +241,7 @@ export default function RegisterModal({
 
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Nhập lại mật khẩu
+                      {t("auth_modals.common.confirm_password")}
                     </label>
                     <div className="relative group">
                       <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -243,7 +250,9 @@ export default function RegisterModal({
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        placeholder="••••••••"
+                        placeholder={t(
+                          "auth_modals.common.placeholders.password",
+                        )}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-12 text-white focus:border-[#D8C97B] focus:outline-none transition-all focus:ring-1 focus:ring-[#D8C97B]"
                         required
                       />
@@ -274,7 +283,7 @@ export default function RegisterModal({
                         Đang đăng ký...
                       </>
                     ) : (
-                      "Tiếp tục"
+                      t("auth_modals.register.btn_next")
                     )}
                   </button>
                 </form>
@@ -284,7 +293,7 @@ export default function RegisterModal({
                 <form className="space-y-6" onSubmit={handleVerify}>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-[#D8C97B] uppercase ml-1 tracking-wider">
-                      Mã xác thực (OTP)
+                      {t("auth_modals.common.otp")}
                     </label>
                     <div className="relative group">
                       <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D8C97B] transition-colors" />
@@ -292,7 +301,7 @@ export default function RegisterModal({
                         type="text"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="Nhập mã OTP..."
+                        placeholder={t("auth_modals.common.placeholders.otp")}
                         className="w-full bg-[rgba(0,0,0,0.4)] border border-[rgba(255,255,255,0.1)] rounded-xl py-3 pl-12 pr-4 text-white text-lg tracking-[0.5em] focus:border-[#D8C97B] focus:outline-none transition-all text-center font-bold"
                         autoFocus
                         required
@@ -308,10 +317,10 @@ export default function RegisterModal({
                     {isLoading ? (
                       <>
                         <span className="inline-block w-4 h-4 border-2 border-black border-t-[rgba(0,0,0,0)] rounded-full animate-spin mr-2"></span>
-                        Đang xác thực...
+                        {t("auth_modals.common.processing")}
                       </>
                     ) : (
-                      "Hoàn tất đăng ký"
+                      t("auth_modals.register.btn_verify")
                     )}
                   </button>
 
@@ -321,7 +330,7 @@ export default function RegisterModal({
                       onClick={() => setStep(1)}
                       className="text-gray-500 hover:text-white text-sm underline cursor-pointer transition-colors font-medium"
                     >
-                      Quay lại bước trước
+                      {t("auth_modals.register.back_prev")}
                     </button>
                   </div>
                 </form>
@@ -329,13 +338,13 @@ export default function RegisterModal({
 
               {step === 1 && (
                 <p className="text-center text-gray-500 text-sm mt-6 font-light">
-                  Đã có tài khoản?{" "}
+                  {t("auth_modals.register.have_account")}{" "}
                   <button
                     type="button"
                     onClick={onSwitchToLogin}
                     className="text-[#D8C97B] font-bold hover:underline cursor-pointer"
                   >
-                    Đăng nhập
+                    {t("auth_modals.register.btn_login")}
                   </button>
                 </p>
               )}

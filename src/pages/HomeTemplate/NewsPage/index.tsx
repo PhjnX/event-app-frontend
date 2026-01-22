@@ -20,6 +20,7 @@ import { type AppDispatch, type RootState } from "../../../store";
 import { fetchPublicPosts } from "../../../store/slices/newsSlice";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
+import { useTranslation } from "react-i18next";
 
 const useScrollProgress = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -38,6 +39,19 @@ const useScrollProgress = () => {
   return scrollProgress;
 };
 
+const formatDate = (dateStr: string, locale: string = "vi") => {
+  try {
+    const loc = locale === "en" ? "en-US" : "vi-VN";
+    return new Date(dateStr).toLocaleDateString(loc, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+};
+
 const RevealOnScroll: React.FC<{
   children: ReactNode;
   delay?: number;
@@ -45,16 +59,15 @@ const RevealOnScroll: React.FC<{
 }> = ({ children, delay = 0, className = "" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
+        setIsVisible(entry.isIntersecting);
       },
       { threshold: 0.1 },
     );
+
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
@@ -66,7 +79,7 @@ const RevealOnScroll: React.FC<{
       ${
         isVisible
           ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-12 blur-sm"
+          : "opacity-0 translate-y-16 blur-sm"
       }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
@@ -75,35 +88,18 @@ const RevealOnScroll: React.FC<{
   );
 };
 
-const formatDate = (dateStr: string) => {
-  try {
-    return new Date(dateStr).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return "";
-  }
-};
-
 const SectionHeader: React.FC<{ subtitle: string; title: ReactNode }> = ({
   subtitle,
   title,
 }) => (
   <RevealOnScroll>
-    <div className="flex flex-col md:flex-row items-end justify-between border-b border-white/10 pb-6 mb-12 gap-4">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="w-8 h-0.5 bg-[#D8C97B]"></span>
-          <span className="text-[#D8C97B] font-bold tracking-[0.2em] text-xs uppercase">
-            {subtitle}
-          </span>
-        </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-none">
-          {title}
-        </h2>
-      </div>
+    <div className="flex flex-col items-center text-center mb-16">
+      <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4 drop-shadow-xl">
+        {title}
+      </h2>
+      <p className="text-gray-400 text-lg font-light max-w-2xl mx-auto">
+        {subtitle}
+      </p>
     </div>
   </RevealOnScroll>
 );
@@ -111,46 +107,50 @@ const SectionHeader: React.FC<{ subtitle: string; title: ReactNode }> = ({
 const NewsCard: React.FC<{ post: any; index: number; label?: string }> = ({
   post,
   label = "News",
-}) => (
-  <Link
-    to={`/news/${post.slug || post.id}`}
-    className="group flex flex-col h-full bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D8C97B]/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
-  >
-    <div className="relative aspect-video overflow-hidden">
-      <OptimizedImage
-        src={post.thumbnailUrl}
-        alt={post.title}
-        width={400}
-        height={225}
-        className="w-full h-full"
-        imgClassName="transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/10">
-        {formatDate(post.createdAt)}
+}) => {
+  const { t, i18n } = useTranslation();
+  return (
+    <Link
+      to={`/news/${post.slug || post.id}`}
+      className="group flex flex-col h-full bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-[#D8C97B]/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl z-10 relative"
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <OptimizedImage
+          src={post.thumbnailUrl}
+          alt={post.title}
+          width={400}
+          height={225}
+          className="w-full h-full"
+          imgClassName="transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/10">
+          {formatDate(post.createdAt, i18n.language)}
+        </div>
       </div>
-    </div>
 
-    <div className="p-5 flex flex-col flex-1">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-wider border border-[#D8C97B]/20 px-2 py-0.5 rounded-sm">
-          {label}
-        </span>
+      <div className="p-5 flex flex-col flex-1">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[#D8C97B] uppercase tracking-wider border border-[#D8C97B]/20 px-2 py-0.5 rounded-sm">
+            {label}
+          </span>
+        </div>
+        <h3 className="text-lg font-bold text-white leading-snug mb-3 group-hover:text-[#D8C97B] transition-colors line-clamp-2">
+          {post.title}
+        </h3>
+        <p className="text-sm text-gray-400 line-clamp-2 mb-4 font-normal flex-1">
+          {post.summary}
+        </p>
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-500 group-hover:text-white transition-colors border-t border-white/5 pt-4 mt-auto">
+          {t("news_page.card.view_details")} <ArrowRight size={12} />
+        </div>
       </div>
-      <h3 className="text-lg font-bold text-white leading-snug mb-3 group-hover:text-[#D8C97B] transition-colors line-clamp-2">
-        {post.title}
-      </h3>
-      <p className="text-sm text-gray-400 line-clamp-2 mb-4 font-normal flex-1">
-        {post.summary}
-      </p>
-      <div className="flex items-center gap-2 text-xs font-bold text-gray-500 group-hover:text-white transition-colors border-t border-white/5 pt-4 mt-auto">
-        Xem chi tiết <ArrowRight size={12} />
-      </div>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
 const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
+  const { t, i18n } = useTranslation();
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -193,7 +193,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
               index === current ? "scale-105" : "scale-100"
             }`}
             style={{
-              backgroundImage: `url(${optimizeImageUrl(p.thumbnailUrl, 1920, 1080)})`, // ✅ TỐI ƯU
+              backgroundImage: `url(${optimizeImageUrl(p.thumbnailUrl, 1920, 1080)})`,
             }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-black/50 to-black/30"></div>
@@ -208,11 +208,12 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
         >
           <div className="flex items-center gap-4 mb-4">
             <div className="bg-[#D8C97B] text-black px-3 py-1 text-[11px] font-black uppercase tracking-widest flex items-center gap-1 shadow-[0_0_15px_#D8C97B]">
-              <Sparkles size={12} fill="black" /> Spotlight
+              <Sparkles size={12} fill="black" />{" "}
+              {t("news_page.hero_slider.spotlight")}
             </div>
             <span className="text-white/80 text-sm font-medium tracking-wide flex items-center gap-2">
               <div className="w-1 h-1 bg-white rounded-full"></div>{" "}
-              {formatDate(post.createdAt)}
+              {formatDate(post.createdAt, i18n.language)}
             </span>
           </div>
 
@@ -234,7 +235,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
               to={`/news/${post.slug || post.id}`}
               className="group flex items-center gap-3 text-white font-bold uppercase tracking-widest text-sm hover:text-[#D8C97B] transition-colors"
             >
-              Đọc bài viết
+              {t("news_page.hero_slider.read_article")}
               <span className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-[#D8C97B] group-hover:text-black group-hover:border-[#D8C97B] transition-all">
                 <ArrowRight size={14} />
               </span>
@@ -252,14 +253,12 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
               <div className="flex gap-2">
                 <button
                   onClick={handlePrev}
-                  aria-label="Previous post"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={handleNext}
-                  aria-label="Next post"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <ChevronRight size={18} />
@@ -274,62 +273,108 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
 };
 
 const WeeklyHighlights: React.FC<{ posts: any[] }> = ({ posts }) => {
+  const { t } = useTranslation();
   if (!posts || posts.length === 0) return null;
 
   return (
-    <section className="py-20 px-6 max-w-[1400px] mx-auto">
-      <SectionHeader
-        subtitle="Weekly Updates"
-        title={
-          <>
-            Tiêu điểm <span className="text-[#D8C97B]">Tuần này</span>
-          </>
-        }
-      />
+    <section className="relative py-24 bg-[#0a0a0a] overflow-hidden text-white font-noto group-section selection:bg-[rgba(216,201,123,0.3)]">
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundColor: "#0a0a0a",
+          backgroundImage:
+            "radial-gradient(rgba(255, 255, 255, 0.15) 1px, rgba(0, 0, 0, 0) 1px)",
+          backgroundSize: "30px 30px",
+          maskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
+        }}
+      ></div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {posts.map((post, index) => (
-          <RevealOnScroll
-            key={`weekly-${post.id}-${index}`}
-            delay={index * 100}
-          >
-            <NewsCard post={post} index={index} label="Trending" />
-          </RevealOnScroll>
-        ))}
+      <div className="container mx-auto px-6 relative z-10 max-w-[1400px]">
+        <SectionHeader
+          subtitle={t("news_page.weekly_highlights.subtitle")}
+          title={
+            <>
+              {t("news_page.weekly_highlights.title")}{" "}
+              <span className="text-[#D8C97B]">
+                {t("news_page.weekly_highlights.highlight")}
+              </span>
+            </>
+          }
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {posts.map((post, index) => (
+            <RevealOnScroll
+              key={`weekly-${post.id}-${index}`}
+              delay={index * 100}
+            >
+              <NewsCard
+                post={post}
+                index={index}
+                label={t("news_page.card.label")}
+              />
+            </RevealOnScroll>
+          ))}
+        </div>
       </div>
     </section>
   );
 };
 
 const ExploreMasonry: React.FC<{ posts: any[] }> = ({ posts }) => {
+  const { t } = useTranslation();
   if (!posts || posts.length === 0) return null;
 
   return (
-    <section className="py-20 px-6 max-w-[1400px] mx-auto border-t border-white/5">
-      <SectionHeader
-        subtitle="The Archive"
-        title={
-          <>
-            Khám phá <span className="text-[#D8C97B]">Toàn bộ</span>
-          </>
-        }
-      />
+    <section className="relative py-20 lg:py-32 bg-[#020202] overflow-hidden font-noto text-white selection:bg-[#D8C97B] selection:text-black">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.1]"
+          style={{
+            backgroundImage: `radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)`,
+            backgroundSize: "30px 30px",
+          }}
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020202]"></div>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-        {posts.map((post, index) => (
-          <RevealOnScroll
-            key={`explore-${post.id}-${index}`}
-            delay={(index % 4) * 50}
-          >
-            <NewsCard post={post} index={index} label="Article" />
-          </RevealOnScroll>
-        ))}
+      <div className="container mx-auto px-6 relative z-10 max-w-[1400px]">
+        <SectionHeader
+          subtitle={t("news_page.explore.subtitle")}
+          title={
+            <>
+              {t("news_page.explore.title")}{" "}
+              <span className="text-[#D8C97B]">
+                {t("news_page.explore.highlight")}
+              </span>
+            </>
+          }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+          {posts.map((post, index) => (
+            <RevealOnScroll
+              key={`explore-${post.id}-${index}`}
+              delay={(index % 4) * 50}
+            >
+              <NewsCard
+                post={post}
+                index={index}
+                label={t("news_page.card.label")}
+              />
+            </RevealOnScroll>
+          ))}
+        </div>
       </div>
     </section>
   );
 };
 
 export default function NewsPage() {
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
   const scrollProgress = useScrollProgress();
@@ -378,7 +423,7 @@ export default function NewsPage() {
           <div className="h-screen flex flex-col items-center justify-center opacity-50">
             <Newspaper size={48} className="text-[#333] mb-4" />
             <h3 className="text-xl font-bold text-gray-500">
-              Chưa có bài viết nào
+              {t("news_page.empty")}
             </h3>
           </div>
         )}
@@ -389,8 +434,7 @@ export default function NewsPage() {
 
             <WeeklyHighlights posts={weeklyHighlights} />
 
-            {/* Quote Break */}
-            <div className="py-24 px-6 bg-[#0a0a0a] border-y border-white/5 my-10">
+            <div className="py-24 px-6 bg-[#0a0a0a] border-y border-white/5 relative">
               <RevealOnScroll>
                 <div className="text-center max-w-4xl mx-auto">
                   <Quote
@@ -398,8 +442,7 @@ export default function NewsPage() {
                     className="text-[#D8C97B] mx-auto mb-6 opacity-60"
                   />
                   <p className="text-2xl md:text-3xl font-light italic text-gray-300 leading-relaxed mb-6">
-                    "Báo chí là bản nháp đầu tiên của lịch sử. Chúng tôi viết
-                    nên sự thật, một cách trần trụi và đầy cảm hứng."
+                    {t("news_page.quote")}
                   </p>
                   <div className="w-16 h-px bg-[#D8C97B] mx-auto opacity-50"></div>
                 </div>
@@ -408,9 +451,9 @@ export default function NewsPage() {
 
             <ExploreMasonry posts={explorePosts} />
 
-            <div className="pb-16 pt-8 text-center opacity-40">
+            <div className="pb-16 pt-8 text-center opacity-40 bg-[#020202]">
               <p className="text-[10px] tracking-[0.2em] uppercase">
-                Webie News Gallery
+                {t("news_page.gallery")}
               </p>
             </div>
           </>

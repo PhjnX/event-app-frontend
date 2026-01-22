@@ -8,66 +8,64 @@ import {
 } from "react-icons/fa";
 import { motion, type Variants, type TargetAndTransition } from "framer-motion";
 
+// 1. IMPORT
+import { useTranslation, Trans } from "react-i18next";
+
 const features = [
   {
     id: 1,
     icon: <FaQrcode className="text-3xl" />,
-    title: "CHECK-IN QR SIÊU TỐC",
-    description:
-      "Quét mã QR Check-in chỉ 01s/người. Xóa bỏ hoàn toàn cảnh xếp hàng ùn tắc tại bàn lễ tân.",
     color: "text-[#D8C97B]",
     bg: "bg-[rgba(216,201,123,0.2)]",
     animType: "pulse",
+    // Dùng Key
+    titleKey: "home.features.items.1.title",
+    descKey: "home.features.items.1.desc",
   },
   {
     id: 2,
     icon: <FaUsers className="text-3xl" />,
-    title: "DATABASE TẬP TRUNG",
-    description:
-      "Lưu trữ thông tin hàng ngàn khách mời trên một hệ thống duy nhất. Không lo thất lạc dữ liệu.",
     color: "text-blue-400",
     bg: "bg-[rgba(96,165,250,0.2)]",
     animType: "float",
+    titleKey: "home.features.items.2.title",
+    descKey: "home.features.items.2.desc",
   },
   {
     id: 3,
     icon: <FaChartPie className="text-3xl" />,
-    title: "REAL-TIME ANALYTICS",
-    description:
-      "Cập nhật số lượng khách tham gia thực tế ngay tức thì (Real-time) trên biểu đồ trực quan.",
     color: "text-green-400",
     bg: "bg-[rgba(74,222,128,0.2)]",
     animType: "spin",
+    titleKey: "home.features.items.3.title",
+    descKey: "home.features.items.3.desc",
   },
   {
     id: 4,
     icon: <FaTicketAlt className="text-3xl" />,
-    title: "VÉ & THƯ MỜI ĐIỆN TỬ",
-    description:
-      "Tự động gửi vé qua Email/App. Mỗi vé là một mã định danh duy nhất, chống vé giả tuyệt đối.",
     color: "text-red-400",
     bg: "bg-[rgba(248,113,113,0.2)]",
     animType: "shake",
+    titleKey: "home.features.items.4.title",
+    descKey: "home.features.items.4.desc",
   },
   {
     id: 5,
     icon: <FaClipboardList className="text-3xl" />,
-    title: "FORM ĐĂNG KÝ SMART",
-    description:
-      "Tùy biến biểu mẫu đăng ký dễ dàng. Tự động đóng form khi đủ số lượng vé giới hạn.",
     color: "text-purple-400",
     bg: "bg-[rgba(192,132,252,0.2)]",
     animType: "wiggle",
+    titleKey: "home.features.items.5.title",
+    descKey: "home.features.items.5.desc",
   },
   {
     id: 6,
     icon: <FaCertificate className="text-3xl" />,
-    title: "CẤP CHỨNG NHẬN SỐ",
-    description:
-      "Tính năng độc quyền: Tự động cấp giấy chứng nhận (Certificate) tham gia sau khi sự kiện kết thúc.",
     color: "text-orange-400",
     bg: "bg-[rgba(251,146,60,0.2)]",
     animType: "bounce",
+    titleKey: "home.features.items.6.title",
+    descKey: "home.features.items.6.desc",
   },
 ];
 
@@ -106,54 +104,78 @@ const iconVariants: Record<string, TargetAndTransition> = {
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
-
 const itemVariants: Variants = {
-  hidden: { y: 40, opacity: 0 },
+  hidden: { y: 30, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: { type: "spring", stiffness: 100, damping: 15 },
   },
 };
+const textVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+};
 
 export default function FeaturesSection() {
+  const { t } = useTranslation();
+
   return (
-    <section
-      className="relative py-24 text-white font-noto overflow-hidden -mt-10 md:-mt-20 z-30 selection:bg-[rgba(216,201,123,0.3)]"
-      style={{
-        backgroundColor: "#0a0a0a",
-        backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.03) 1.5px, rgba(0, 0, 0, 0) 1.5px)`,
-        backgroundSize: "40px 40px",
-      }}
-    >
-      <div className="absolute top-0 left-0 w-full h-40 bg-linear-to-b from-[#0a0a0a] via-[rgba(10,10,10,0.8)] to-[rgba(10,10,10,0)] z-0 pointer-events-none"></div>
+    <section className="relative py-24 text-white font-noto overflow-hidden bg-[#020202] selection:bg-[rgba(216,201,123,0.3)]">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020202]"></div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-[#020202] to-transparent"></div>
+      </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-20 max-w-5xl mx-auto relative pt-10"
-        >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto">
-            GIẢI PHÁP{" "}
+        <div className="text-center mb-20 max-w-5xl mx-auto relative pt-10">
+          <motion.h2
+            variants={textVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.5 }}
+            className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight font-noto"
+          >
+            {t("home.features.title")}{" "}
             <span className="text-[#D8C97B] block md:inline">
-              QUẢN LÝ TOÀN DIỆN
+              {t("home.features.highlight")}
             </span>
-          </h2>
+          </motion.h2>
 
-          <p className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto">
-            Thay thế quy trình thủ công rườm rà bằng sức mạnh công nghệ. Kiểm
-            soát chính xác từ khâu{" "}
-            <span className="text-white font-medium">đăng ký</span>,
-            <span className="text-white font-medium"> check-in</span> đến
-            <span className="text-white font-medium"> báo cáo</span> sau sự
-            kiện.
-          </p>
-        </motion.div>
+          <motion.p
+            variants={textVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto"
+          >
+            {/* KỸ THUẬT DÙNG TRANS ĐỂ GIỮ STYLE HTML TRONG BẢN DỊCH */}
+            <Trans
+              i18nKey="home.features.description"
+              components={{
+                1: (
+                  <span className="text-white font-medium border-b border-[#D8C97B]/30" />
+                ),
+                3: (
+                  <span className="text-white font-medium border-b border-[#D8C97B]/30" />
+                ),
+                5: (
+                  <span className="text-white font-medium border-b border-[#D8C97B]/30" />
+                ),
+              }}
+            />
+          </motion.p>
+        </div>
 
         <motion.div
           variants={containerVariants}
@@ -167,7 +189,7 @@ export default function FeaturesSection() {
               key={item.id}
               variants={itemVariants}
               whileHover={{ y: -8 }}
-              className="group relative bg-[rgba(10,10,10,0.6)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] rounded-2xl p-6 md:p-8 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-300 flex flex-col h-full hover:border-[rgba(216,201,123,0.3)] shadow-xl"
+              className="group relative bg-[rgba(10,10,10,0.6)] backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 hover:bg-white/5 transition-all duration-300 flex flex-col h-full hover:border-[#D8C97B]/40 shadow-xl overflow-hidden"
             >
               <div className="flex items-center justify-between mb-6">
                 <div
@@ -177,21 +199,20 @@ export default function FeaturesSection() {
                     {item.icon}
                   </motion.div>
                 </div>
-                {/* ID Watermark - FIX Warning */}
-                <span className="text-5xl font-black text-[rgba(255,255,255,0.05)] group-hover:text-[rgba(255,255,255,0.1)] transition-colors pointer-events-none select-none font-noto">
+                <span className="text-5xl font-black text-white/5 group-hover:text-white/10 transition-colors pointer-events-none select-none font-noto">
                   0{item.id}
                 </span>
               </div>
 
-              <h3 className="text-lg md:text-xl font-bold uppercase mb-3 text-gray-100 group-hover:text-[#D8C97B] transition-colors">
-                {item.title}
+              {/* Dùng t() với Key và ép kiểu any */}
+              <h3 className="text-lg md:text-xl font-bold uppercase mb-3 text-white group-hover:text-[#D8C97B] transition-colors">
+                {t(item.titleKey as any)}
               </h3>
-              <p className="text-gray-400 text-sm font-light leading-relaxed grow">
-                {item.description}
+              <p className="text-gray-400 text-sm font-light leading-relaxed grow group-hover:text-gray-300 transition-colors">
+                {t(item.descKey as any)}
               </p>
 
-              {/* Bottom Line Indicator */}
-              <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#D8C97B] group-hover:w-full transition-all duration-700 ease-out opacity-0 group-hover:opacity-100"></div>
+              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D8C97B] group-hover:w-full transition-all duration-500 ease-out opacity-0 group-hover:opacity-100"></div>
             </motion.div>
           ))}
         </motion.div>

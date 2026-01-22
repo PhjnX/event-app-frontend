@@ -1,0 +1,731 @@
+{
+  "nav": {
+    "home": "Trang Chủ",
+    "about": "Về Chúng Tôi",
+    "values": "Giá Trị",
+    "events": "Sự Kiện",
+    "news": "Tin Tức",
+    "contact": "Liên hệ",
+    "login": "Đăng nhập",
+    "dashboard": "Trang quản lý",
+    "partner_reg": "Đăng ký Đối tác",
+    "my_tickets": "Vé của tôi",
+    "profile": "Thông tin cá nhân",
+    "change_pass": "Đổi mật khẩu",
+    "logout": "Đăng xuất"
+  },
+  "msg": {
+    "logout_success": "Đã đăng xuất 👋",
+    "lang_changed": "Đã đổi ngôn ngữ sang Tiếng Việt"
+  },
+  "home": {
+    "hero": {
+      "slides": {
+        "1": {
+          "title": "NÂNG TẦM",
+          "highlight": "SỰ KIỆN CÔNG NGHỆ.",
+          "subtitle": "Trải nghiệm quản lý sự kiện chuyên nghiệp trên nền tảng di động. Nâng tầm trải nghiệm từ khâu đăng ký đến check-in nhanh chóng chỉ với một chạm.",
+          "btnPrimary": "KHÁM PHÁ SỰ KIỆN",
+          "btnSecondary": "ĐĂNG NHẬP"
+        },
+        "2": {
+          "title": "KẾT NỐI &",
+          "highlight": "MỞ RỘNG MẠNG LƯỚI.",
+          "subtitle": "Giao diện tối ưu trên máy tính bảng giúp bạn dễ dàng duyệt danh sách diễn giả và kết nối với các chuyên gia đầu ngành một cách trực quan nhất.",
+          "btnPrimary": "XEM DIỄN GIẢ",
+          "btnSecondary": "VỀ CHÚNG TÔI"
+        },
+        "3": {
+          "title": "TỐI ƯU HÓA",
+          "highlight": "QUẢN LÝ.",
+          "subtitle": "Dành cho Ban Tổ Chức: Kiểm soát chi tiết từng hoạt động trong sự kiện, quản lý lịch trình và báo cáo số liệu thời gian thực trên giao diện laptop chuyên sâu.",
+          "btnPrimary": "LIÊN HỆ HỢP TÁC",
+          "btnSecondary": "TẠO SỰ KIỆN"
+        }
+      }
+    },
+    "features": {
+      "title": "GIẢI PHÁP",
+      "highlight": "QUẢN LÝ TOÀN DIỆN",
+      "description": "Thay thế quy trình thủ công rườm rà bằng sức mạnh công nghệ. Kiểm soát chính xác từ khâu <1>đăng ký</1>, <3>check-in</3> đến <5>báo cáo</5> sau sự kiện.",
+      "items": {
+        "1": {
+          "title": "CHECK-IN QR SIÊU TỐC",
+          "desc": "Quét mã QR Check-in chỉ 01s/người. Xóa bỏ hoàn toàn cảnh xếp hàng ùn tắc tại bàn lễ tân."
+        },
+        "2": {
+          "title": "DATABASE TẬP TRUNG",
+          "desc": "Lưu trữ thông tin hàng ngàn khách mời trên một hệ thống duy nhất. Không lo thất lạc dữ liệu."
+        },
+        "3": {
+          "title": "REAL-TIME ANALYTICS",
+          "desc": "Cập nhật số lượng khách tham gia thực tế ngay tức thì (Real-time) trên biểu đồ trực quan."
+        },
+        "4": {
+          "title": "VÉ & THƯ MỜI ĐIỆN TỬ",
+          "desc": "Tự động gửi vé qua Email/App. Mỗi vé là một mã định danh duy nhất, chống vé giả tuyệt đối."
+        },
+        "5": {
+          "title": "FORM ĐĂNG KÝ SMART",
+          "desc": "Tùy biến biểu mẫu đăng ký dễ dàng. Tự động đóng form khi đủ số lượng vé giới hạn."
+        },
+        "6": {
+          "title": "CẤP CHỨNG NHẬN SỐ",
+          "desc": "Tính năng độc quyền: Tự động cấp giấy chứng nhận (Certificate) tham gia sau khi sự kiện kết thúc."
+        }
+      }
+    },
+    "partners": {
+      "title": "KHÁCH HÀNG",
+      "highlight": "TIÊU BIỂU",
+      "description": "Chúng tôi vinh dự được đồng hành cùng các doanh nghiệp và tổ chức hàng đầu trên cả nước, mang lại giá trị bền vững.",
+      "join_now": "Hợp tác ngay"
+    },
+    "about": {
+      "title": "VỀ CHÚNG TÔI",
+      "subtitle": "WEBIE VIETNAM",
+      "description": "Đối tác chiến lược trong việc chuyển đổi số các hoạt động giáo dục và sự kiện.",
+      "content": {
+        "text": "<0>W</0>ebie Vietnam không chỉ đơn thuần là một công ty công nghệ, chúng tôi là sự kết hợp hoàn hảo giữa <2>tư duy sáng tạo</2> và <4>giải pháp công nghệ</4>. Chúng tôi cam kết mang lại những trải nghiệm sự kiện liền mạch và đẳng cấp nhất.",
+        "stats": {
+          "projects": "Dự án",
+          "satisfaction": "Hài lòng",
+          "support": "Hỗ trợ"
+        },
+        "btn_more": "TÌM HIỂU THÊM"
+      },
+      "slides": {
+        "1": {
+          "label": "Sức Mạnh Tập Thể",
+          "title": "15+ Chuyên gia nòng cốt",
+          "desc": "Đội ngũ trẻ, sáng tạo và nhiệt huyết."
+        },
+        "2": {
+          "label": "Tầm Nhìn Lãnh Đạo",
+          "title": "Chiến lược tiên phong",
+          "desc": "Dẫn dắt đổi mới công nghệ sự kiện."
+        },
+        "3": {
+          "label": "Dấu Ấn Thực Tế",
+          "title": "50+ Sự kiện thành công",
+          "desc": "Vận hành trơn tru, trải nghiệm đẳng cấp."
+        }
+      }
+    },
+    "events_section": {
+      "title": "SỰ KIỆN",
+      "highlight": "NỔI BẬT",
+      "subtitle": "Cập nhật những hoạt động sôi nổi và sự kiện đáng chú ý nhất sắp diễn ra tại hệ thống EMS.",
+      "drag_hint": "Kéo để khám phá",
+      "view_all": "Xem Tất Cả",
+      "card": {
+        "organizer_default": "TIT EVENT",
+        "location_default": "Online",
+        "details": "Xem chi tiết"
+      }
+    },
+    "news_section": {
+      "title": "TIN TỨC",
+      "highlight": "MỚI NHẤT",
+      "subtitle": "\"Cập nhật những thông tin công nghệ, xu hướng giáo dục và hoạt động nổi bật tại Webie Vietnam.\"",
+      "loading": "Đang tải tin tức...",
+      "view_all": "Xem tất cả tin tức",
+      "card": {
+        "category_default": "Tin Tức",
+        "details": "Xem chi tiết"
+      }
+    },
+    "contact": {
+      "title": "Liên Hệ",
+      "highlight": "Hợp Tác",
+      "description": "Kết nối với Webie Vietnam để kiến tạo những sự kiện đẳng cấp và chuyên nghiệp.",
+      "for_organizers": {
+        "title": "Dành cho",
+        "highlight": "Ban Tổ Chức",
+        "desc": "Gia nhập mạng lưới đối tác chiến lược. Tiếp cận công nghệ quản lý sự kiện 4.0, hệ thống Check-in Face ID siêu tốc và kết nối cộng đồng năng động."
+      },
+      "buttons": {
+        "register": "ĐĂNG KÝ NGAY",
+        "hotline": "HOTLINE"
+      },
+      "info": {
+        "office": {
+          "title": "Văn Phòng",
+          "value": "Số 28 Mai Chí Thọ, P. An Phú, TP. Thủ Đức"
+        },
+        "hotline": {
+          "title": "Hotline 24/7",
+          "value": "+84 969 838 467"
+        },
+        "email": {
+          "title": "Email Hợp Tác",
+          "value": "Huyen.dang@webie.com.vn"
+        }
+      },
+      "map_popup": {
+        "title": "Văn phòng Webie Vietnam",
+        "address": "28 Đường Mai Chí Thọ,<br/>TP. Thủ Đức, TP.HCM"
+      }
+    }
+  },
+  "footer": {
+    "description": "Nền tảng quản lý sự kiện chuyên nghiệp, giúp bạn tổ chức và quản lý các sự kiện hiệu quả. Kết nối đam mê, kiến tạo tương lai.",
+    "sections": {
+      "quick_links": {
+        "title": "Trang Chủ",
+        "items": {
+          "industry": "Ngành nghề",
+          "solutions": "Giải pháp",
+          "resources": "Tài nguyên",
+          "support": "Hỗ trợ"
+        }
+      },
+      "company": {
+        "title": "Công ty",
+        "items": {
+          "contact": "Liên hệ",
+          "about": "Về Chúng Tôi",
+          "careers": "Tuyển Dụng",
+          "blog": "Blog"
+        }
+      },
+      "support": {
+        "title": "Hỗ trợ",
+        "items": {
+          "help_center": "Trung Tâm Trợ Giúp",
+          "docs": "Tài Liệu",
+          "privacy": "Chính Sách Bảo Mật",
+          "terms": "Điều Khoản Sử Dụng"
+        }
+      }
+    },
+    "bottom": {
+      "rights": "All rights reserved.",
+      "privacy": "Chính Sách Bảo Mật",
+      "terms": "Điều Khoản Sử Dụng",
+      "cookies": "Cookies"
+    }
+  },
+  "about_page": {
+    "hero": {
+      "title_first": "Event Manager",
+      "title_second": "System",
+      "created_by": "Phát triển bởi",
+      "description": "Chúng tôi kiến tạo giải pháp công nghệ toàn diện, giúp tối ưu hóa quy trình quản lý cho hệ sinh thái giáo dục và sự kiện tại Việt Nam.",
+      "scroll": "Cuộn xuống"
+    },
+    "timeline": {
+      "title": "HÀNH TRÌNH",
+      "highlight": "VƯƠN XA",
+      "subtitle": "Vươn mình trong hành trình chuyển đổi số sự kiện cùng Webie Vietnam.",
+      "items": {
+        "1": {
+          "year": "2022",
+          "title": "KHỞI NGUỒN",
+          "desc": "Webie Vietnam ra đời, mang đến giải pháp chuyển đổi số thực chiến."
+        },
+        "2": {
+          "year": "2024",
+          "title": "THÀNH LẬP",
+          "desc": "Chuyển mình thành Agency chuyên nghiệp, quy trình vận hành bài bản."
+        },
+        "3": {
+          "year": "2025",
+          "title": "TRỤ SỞ CHÍNH",
+          "desc": "Khai trương văn phòng - Trung tâm kết nối nhân hiệu và công nghệ."
+        },
+        "4": {
+          "year": "TƯƠNG LAI",
+          "title": "VƯƠN TẦM",
+          "desc": "Mở rộng quy mô, ghi dấu ấn EdTech Event trên bản đồ khu vực."
+        }
+      }
+    },
+    "vision": {
+      "title": "TẦM NHÌN",
+      "and": "&",
+      "mission": "SỨ MỆNH",
+      "subtitle": "\"Chúng tôi không chỉ tổ chức sự kiện, chúng tôi kiến tạo di sản số cho tương lai.\"",
+      "vision_card": {
+        "title": "Tầm Nhìn",
+        "desc": "Trở thành biểu tượng tiên phong trong lĩnh vực <0>EdTech Event</0> tại Đông Nam Á. Chúng tôi định hình lại cách con người kết nối và học tập thông qua công nghệ."
+      },
+      "mission_card": {
+        "title": "Sứ Mệnh",
+        "desc": "Xây dựng hệ sinh thái số toàn diện, giúp các tổ chức giáo dục tối ưu vận hành và nâng cao trải nghiệm người dùng.",
+        "values": {
+          "1": "Đổi mới sáng tạo không ngừng.",
+          "2": "Lấy khách hàng làm trọng tâm.",
+          "3": "Minh bạch và hiệu quả."
+        }
+      }
+    },
+    "team": {
+      "title": "NHỮNG NGƯỜI",
+      "highlight": "KIẾN TẠO",
+      "subtitle": "\"Bản lĩnh tiên phong, tư duy khác biệt và trái tim nhiệt huyết.\"",
+      "members": {
+        "1": {
+          "role": "CEO & FOUNDER",
+          "quote": "Công nghệ là chìa khóa mở ra những trải nghiệm không giới hạn.",
+          "desc": "Chị là người đặt nền móng cho tầm nhìn số hóa của Webie. Chị tin rằng sự kiện giáo dục cần được vận hành như một tác phẩm nghệ thuật: Chính xác và Cảm xúc."
+        },
+        "2": {
+          "role": "CHIEF TECHNOLOGY OFFICER",
+          "quote": "Sự ổn định của hệ thống là lời cam kết uy tín nhất gửi đến khách hàng.",
+          "desc": "Kiến trúc sư trưởng của hệ thống Webie Event. Anh chịu trách nhiệm xây dựng lõi công nghệ bảo mật, xử lý hàng triệu lượt truy cập đồng thời và tích hợp AI vào quy trình check-in."
+        },
+        "3": {
+          "role": "CHIEF TECHNOLOGY OFFICER",
+          "quote": "Nếu hôm nay chúng ta dừng lại, ngày mai chúng ta sẽ bị bỏ lại.",
+          "desc": "Phụ trách mảng Nghiên cứu & Phát triển (R&D). Anh luôn tìm kiếm những công nghệ mới nhất (Blockchain, VR/AR) để ứng dụng vào thực tế, giúp Webie luôn đi trước thị trường một bước."
+        }
+      }
+    },
+    "customer_section": {
+      "trusted_by": "Được tin tưởng bởi",
+      "more": "Xem thêm",
+      "slogan": {
+        "title": "WEBIE - WE WILL BE",
+        "main": "Chúng tôi sẽ là lực lượng sáng tạo của bạn.",
+        "sub": "\"Webie không chỉ tạo ra giải pháp, chúng tôi mang lại kết quả.\"",
+        "since": "Since 2025"
+      }
+    }
+  },
+  "value_page": {
+    "hero": {
+      "title_line1": "YOUR VERSION",
+      "title_line2": "OUR CREATION",
+      "subtitle": "\"Sứ mệnh của Webie là xóa bỏ khoảng cách giữa con người và công nghệ thông qua những trải nghiệm đột phá.\""
+    },
+    "core_values": {
+      "title": "GIÁ TRỊ",
+      "highlight": "CỐT LÕI",
+      "subtitle": "Kim chỉ nam dẫn lối cho mọi hành động và quyết định tại Webie Vietnam",
+      "items": {
+        "1": {
+          "title": "TIÊN PHONG",
+          "en_title": "INNOVATION",
+          "desc": "Không chấp nhận lối mòn. Chúng tôi liên tục thử nghiệm các công nghệ mới nhất (AI, Blockchain) để định hình lại tương lai."
+        },
+        "2": {
+          "title": "TẬN TÂM",
+          "en_title": "DEDICATION",
+          "desc": "Khách hàng là trung tâm. Chúng tôi đo lường thành công không phải bằng doanh thu, mà bằng sự hài lòng của đối tác."
+        },
+        "3": {
+          "title": "CHÍNH TRỰC",
+          "en_title": "INTEGRITY",
+          "desc": "Minh bạch trong từng cam kết, trung thực trong từng báo cáo. Webie xây dựng niềm tin bền vững bằng hành động thực tế."
+        },
+        "4": {
+          "title": "TỐC ĐỘ",
+          "en_title": "VELOCITY",
+          "desc": "Trong kỷ nguyên số, chậm trễ là thất bại. Tối ưu hóa quy trình để mang lại giải pháp nhanh nhất mà không hy sinh chất lượng."
+        }
+      }
+    },
+    "culture": {
+      "title": "WEBIE",
+      "highlight": "DNA",
+      "desc": "Chúng tôi không chỉ viết code, chúng tôi xây dựng cộng đồng những người đam mê sáng tạo"
+    },
+    "impact_numbers": {
+      "title": "DẤU ẤN",
+      "highlight": "THỰC TẾ",
+      "subtitle": "Con số không biết nói dối",
+      "stats": {
+        "1": "Năm kinh nghiệm",
+        "2": "Dự án thành công",
+        "3": "Đối tác chiến lược",
+        "4": "Tỉ lệ hài lòng"
+      }
+    },
+    "founders_pledge": {
+      "quote": "Tại Webie, chúng tôi không bán phần mềm. Chúng tôi bán <0>sự an tâm</0> và <2>trải nghiệm hoàn hảo</2>. Nếu sản phẩm không mang lại giá trị thực cho khách hàng, đó là sự thất bại của chính tôi.",
+      "signature": "Huyền Đặng",
+      "name": "Đặng Vũ Thị Mỹ Huyền",
+      "role": "Founder & CEO"
+    }
+  },
+  "events_page": {
+    "hero": {
+      "loading": "ĐANG TẢI SỰ KIỆN...",
+      "label": "Sự Kiện Nổi Bật",
+      "default_title": "Sự kiện hấp dẫn",
+      "default_desc": "Khám phá ngay các sự kiện nổi bật nhất tại Webie.",
+      "btn_detail": "Xem Chi Tiết"
+    },
+    "filter_bar": {
+      "placeholder": "Bạn đang tìm kiếm sự kiện gì?",
+      "search_btn": "Tìm Kiếm"
+    },
+    "events_grid": {
+      "title": "SỰ KIỆN",
+      "highlight": "SẮP TỚI",
+      "result_count": "Đã tìm thấy {{count}} kết quả phù hợp",
+      "error": "Tải sự kiện thất bại. Vui lòng thử lại sau.",
+      "empty": "Không có sự kiện nào",
+      "card": {
+        "status_default": "Sắp diễn ra",
+        "location_default": "Online",
+        "details": "Chi tiết"
+      }
+    },
+    "all_events": {
+      "title": "KHÁM PHÁ",
+      "highlight": "TẤT CẢ",
+      "subtitle_suffix": "SỰ KIỆN",
+      "found_result": "Tìm thấy <0>{{count}}</0> sự kiện phù hợp với bạn.",
+      "not_found": "Không tìm thấy sự kiện nào khớp với \"{{term}}\".",
+      "default_organizer": "Webie",
+      "location_default": "Online"
+    },
+    "featured_presenters": {
+      "title": "KHÁCH MỜI",
+      "highlight": "NỔI BẬT",
+      "subtitle": "Gặp gỡ những chuyên gia hàng đầu sẽ chia sẻ kiến thức tại sự kiện",
+      "default_title": "Diễn giả",
+      "default_bio": "Chuyên gia hàng đầu trong lĩnh vực công nghệ và sự kiện."
+    },
+    "newsletter": {
+      "title": "Đăng ký nhận tin tức",
+      "desc": "Nhận thông báo sớm nhất về các sự kiện công nghệ và ưu đãi độc quyền.",
+      "no_spam": "Không spam.",
+      "input_placeholder": "Vui lòng đăng nhập để tiếp tục",
+      "btn_subscribe": "Đăng Ký",
+      "btn_login": "Đăng Nhập",
+      "note_login": "* Bạn cần đăng nhập để hệ thống xác thực email.",
+      "note_auth": "* Hệ thống sẽ sử dụng email từ tài khoản của bạn.",
+      "success": {
+        "title": "Đăng Ký Thành Công",
+        "email_label": "Email đã đăng ký",
+        "message": "Cảm ơn bạn đã đồng hành. Thông tin mới nhất sẽ được gửi đến hộp thư của bạn."
+      },
+      "messages": {
+        "success": "Đăng ký nhận tin tức thành công!",
+        "already_exists": "Bạn đã đăng ký nhận tin trước đó rồi.",
+        "error": "Có lỗi xảy ra.",
+        "feature_dev": "Tính năng đang phát triển"
+      }
+    }
+  },
+  "news_page": {
+    "hero_slider": {
+      "spotlight": "Spotlight",
+      "read_article": "Đọc bài viết"
+    },
+    "weekly_highlights": {
+      "subtitle": "Cập nhật những tin tức nóng hổi nhất tuần qua",
+      "title": "TIÊU ĐIỂM",
+      "highlight": "TUẦN NÀY"
+    },
+    "explore": {
+      "subtitle": "Kho lưu trữ toàn bộ bài viết",
+      "title": "KHÁM PHÁ",
+      "highlight": "TOÀN BỘ"
+    },
+    "card": {
+      "label": "Tin tức",
+      "view_details": "Xem chi tiết"
+    },
+    "empty": "Chưa có bài viết nào",
+    "quote": "\"Báo chí là bản nháp đầu tiên của lịch sử. Chúng tôi viết nên sự thật, một cách trần trụi và đầy cảm hứng.\"",
+    "gallery": "Thư viện tin tức Webie",
+    "detail": {
+      "loading": "ĐANG TẢI...",
+      "error": "Lỗi hiển thị nội dung.",
+      "back": "Quay lại",
+      "read_time": "5 phút đọc",
+      "breadcrumb": {
+        "home": "Trang chủ",
+        "news": "Tin tức",
+        "detail": "Chi tiết"
+      },
+      "sidebar": {
+        "about_title": "Về Webie News",
+        "about_desc": "Chuyên trang cập nhật xu hướng công nghệ sự kiện, bí quyết tổ chức và những câu chuyện thành công.",
+        "related_title": "Tin nổi bật",
+        "updating": "Đang cập nhật...",
+        "upcoming_event_label": "Sự kiện sắp tới",
+        "ads_title": "Webie Events",
+        "ads_desc": "Đăng ký tham gia các sự kiện đẳng cấp ngay hôm nay!"
+      }
+    }
+  },
+  "organizer_reg_modal": {
+    "back": "Quay lại",
+    "form": {
+      "title_prefix": "TRỞ THÀNH",
+      "title_highlight": "ĐỐI TÁC WEBIE",
+      "desc": "Kết nối với mạng lưới tổ chức sự kiện chuyên nghiệp và mở rộng cơ hội kinh doanh của bạn.",
+      "labels": {
+        "name": "Họ và Tên",
+        "phone": "Số điện thoại",
+        "email": "Email",
+        "org_name": "Tên Tổ Chức",
+        "message": "Lời nhắn"
+      },
+      "placeholders": {
+        "name": "Nhập họ tên...",
+        "phone": "Nhập SĐT...",
+        "email": "example@email.com",
+        "org_name": "Tên công ty...",
+        "message": "Nội dung cần hỗ trợ..."
+      },
+      "submit_btn": "Gửi Thông Tin Ngay"
+    },
+    "success": {
+      "title": "Đã Gửi Thành Công!",
+      "desc": "Chúng tôi sẽ liên hệ trong vòng 24h làm việc.",
+      "btn": "Hoàn tất"
+    },
+    "sidebar": {
+      "title": "Liên Hệ",
+      "hotline": "Hotline",
+      "email": "Email",
+      "office": "Văn Phòng",
+      "address": "Số 53, đường 57, An Phú<br/>TP Thủ Đức, TP.HCM"
+    },
+    "messages": {
+      "login_required": "Vui lòng đăng nhập để gửi thông tin đăng ký!",
+      "feature_update": "Chức năng đang cập nhật"
+    }
+  },
+  "frequency_popup": {
+    "label": "Lời Mời Đặc Quyền",
+    "title_prefix": "TRỞ THÀNH",
+    "title_highlight": "ĐỐI TÁC WEBIE",
+    "desc": "Tham gia vào mạng lưới tổ chức sự kiện chuyên nghiệp và mở khóa hệ sinh thái đặc quyền không giới hạn.",
+    "btn_register": "ĐĂNG KÝ NGAY",
+    "btn_later": "Để sau nhé"
+  },
+  "auth_modals": {
+    "common": {
+      "email": "Email",
+      "password": "Mật khẩu",
+      "confirm_password": "Xác nhận mật khẩu",
+      "otp": "Mã xác thực (OTP)",
+      "or": "Hoặc",
+      "processing": "Đang xử lý...",
+      "back": "Quay lại",
+      "placeholders": {
+        "email": "example@email.com",
+        "password": "••••••••",
+        "otp": "Nhập mã 6 chữ số...",
+        "name": "Nguyễn Văn A"
+      }
+    },
+    "validation": {
+      "required_all": "Vui lòng nhập đầy đủ thông tin.",
+      "required_email": "Vui lòng nhập Email.",
+      "password_mismatch": "Mật khẩu xác nhận không khớp!",
+      "password_length": "Mật khẩu mới phải có ít nhất 6 ký tự.",
+      "otp_required": "Vui lòng nhập mã xác thực.",
+      "login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
+      "bad_credentials": "Email hoặc mật khẩu không chính xác!"
+    },
+    "login": {
+      "title": "Đăng Nhập",
+      "subtitle": "Chào mừng bạn quay trở lại với Webie EMS!",
+      "forgot_password": "Quên mật khẩu?",
+      "btn_submit": "Đăng Nhập",
+      "google_login": "Đăng nhập với Google",
+      "no_account": "Chưa có tài khoản?",
+      "register_now": "Đăng ký ngay",
+      "success_msg": "Đăng nhập thành công! 🎉"
+    },
+    "register": {
+      "title_step1": "Đăng Ký",
+      "title_step2": "Xác Thực Email",
+      "subtitle_step1": "Tham gia cùng Webie EMS ngay hôm nay",
+      "subtitle_step2": "Vui lòng nhập mã OTP đã gửi tới {{email}}",
+      "label_name": "Họ và Tên",
+      "btn_next": "Tiếp tục",
+      "btn_verify": "Hoàn tất đăng ký",
+      "back_prev": "Quay lại bước trước",
+      "have_account": "Đã có tài khoản?",
+      "btn_login": "Đăng nhập",
+      "success_step1": "Đăng ký thành công! Mã xác thực đã được gửi về email.",
+      "success_step2": "Xác thực thành công! Bạn có thể đăng nhập ngay."
+    },
+    "change_password": {
+      "title": "Đổi Mật Khẩu",
+      "subtitle": "Bảo vệ tài khoản của bạn bằng mật khẩu mạnh",
+      "label_current": "Mật khẩu hiện tại",
+      "label_new": "Mật khẩu mới",
+      "label_confirm": "Xác nhận mật khẩu mới",
+      "btn_submit": "Xác Nhận Thay Đổi",
+      "success_msg": "Đổi mật khẩu thành công!"
+    },
+    "forgot_password": {
+      "title_step1": "Quên Mật Khẩu?",
+      "title_step2": "Đặt Lại Mật Khẩu",
+      "subtitle_step1": "Nhập email đã đăng ký để nhận mã xác thực OTP.",
+      "subtitle_step2": "Nhập mã OTP từ email và thiết lập mật khẩu mới.",
+      "label_reg_email": "Email đăng ký",
+      "label_new_pass": "Mật khẩu mới",
+      "btn_send": "Gửi Mã OTP",
+      "btn_sending": "Đang gửi...",
+      "btn_reset": "Xác Nhận Đổi Mật Khẩu",
+      "back_login": "Quay lại đăng nhập",
+      "back_step1": "Quay lại bước 1",
+      "success_sent": "Đã gửi OTP về email của bạn!",
+      "success_reset": "Đổi mật khẩu thành công! Hãy đăng nhập lại."
+    }
+  },
+  "user_notification_panel": {
+    "title": "Thông báo",
+    "new_badge": "{{count}} mới",
+    "mark_all_read": "Đánh dấu đã đọc",
+    "empty_state": "Bạn chưa có thông báo nào",
+    "activity_label": "Hoạt động đăng ký:",
+    "activity_others": "+{{count}} khác",
+    "view_all_tickets": "Xem tất cả vé của tôi",
+    "time": {
+      "just_now": "Vừa xong",
+      "minutes_ago": "{{count}} phút trước",
+      "hours_ago": "{{count}} giờ trước",
+      "days_ago": "{{count}} ngày trước"
+    }
+  },
+  "notifications": {
+    "reg_submitted_title": "Đăng ký thành công",
+    "reg_submitted_msg": "Bạn đã đăng ký tham gia: \"{{eventName}}\"",
+    "reg_approved_title": "Vé đã được duyệt! 🎉",
+    "reg_approved_msg": "Yêu cầu tham gia \"{{eventName}}\" đã được chấp thuận.",
+    "reg_rejected_title": "Đăng ký bị từ chối",
+    "reg_rejected_msg": "Rất tiếc, yêu cầu cho \"{{eventName}}\" không thành công.",
+    "reason_prefix": "Lý do: {{reason}}",
+    "new_event_title": "Sự kiện mới sắp diễn ra! 📅",
+    "new_event_msg": "Khám phá ngay: \"{{eventName}}\" - Đừng bỏ lỡ!",
+    "new_post_title": "Tin tức mới 📰"
+  },
+  "public_event_detail": {
+    "toasts": {
+      "not_found": "Không tìm thấy sự kiện",
+      "activity_full": "Hoạt động này đã hết chỗ!",
+      "login_required": "Vui lòng đăng nhập để đăng ký!",
+      "no_selection": "Bạn chưa chọn hoạt động nào!",
+      "add_success": "🎉 Đã bổ sung hoạt động thành công!",
+      "reg_success": "🎉 Đăng ký sự kiện thành công!",
+      "action_failed": "Thao tác thất bại."
+    },
+    "not_exist": "Sự kiện không tồn tại.",
+    "back": "Quay lại",
+    "schedule_title": "Lịch trình Sự kiện",
+    "status": {
+      "full_stamp": "HẾT CHỖ",
+      "registered_stamp": "ĐÃ ĐĂNG KÝ",
+      "unlimited": "Không giới hạn"
+    },
+    "guests_title": "Khách mời",
+    "ticket_card": {
+      "title": "Vé tham dự",
+      "selected_count": "Số lượng session đã chọn",
+      "ticket_class": "Hạng vé",
+      "class_premium": "Thành viên Premium",
+      "class_standard": "Tiêu chuẩn",
+      "owned": "Đã sở hữu",
+      "total_label": "Tổng cộng",
+      "free": "MIỄN PHÍ",
+      "btn_processing": "Đang xử lý...",
+      "btn_confirm_add": "XÁC NHẬN THÊM",
+      "btn_confirm_reg": "XÁC NHẬN ĐĂNG KÝ",
+      "note": "* Vé điện tử sẽ được gửi qua email của bạn"
+    },
+    "mobile_bar": {
+      "selected_label": "Đã chọn",
+      "unit": "mục",
+      "btn_confirm": "Xác nhận"
+    }
+  },
+  "my_registrations": {
+    "title": {
+      "access_badge": "Thành viên",
+      "main_wallet": "TICKET",
+      "main_ticket": "WALLET."
+    },
+    "stats": {
+      "active_passes": "Vé đang hiệu lực",
+      "total_history": "Tổng lịch sử"
+    },
+    "tabs": {
+      "upcoming": "SẮP DIỄN RA",
+      "past": "ĐÃ KẾT THÚC"
+    },
+    "ticket": {
+      "status": {
+        "archived": "Lưu trữ",
+        "approved": "Đã duyệt",
+        "checked_in": "Đã check-in",
+        "rejected": "Bị từ chối",
+        "confirmed": "Đã xác nhận",
+        "pending": "Chờ duyệt",
+        "label": "Trạng thái"
+      },
+      "location_tba": "Đang cập nhật",
+      "date_label": "Ngày",
+      "start_label": "BẮT ĐẦU",
+      "btn_view": "Xem chi tiết",
+      "btn_code": "Mã vé",
+      "btn_pending": "Đang xử lý",
+      "btn_gallery": "Thư viện ảnh sự kiện"
+    },
+    "modal": {
+      "code_label": "Mã vé",
+      "close": "Đóng cửa sổ"
+    },
+    "empty": {
+      "title": "Không tìm thấy vé",
+      "btn_find": "Tìm sự kiện"
+    }
+  },
+  "event_moments": {
+    "header": {
+      "live_feed": "Bảng tin trực tiếp",
+      "loading_event": "Đang tải...",
+      "connecting": "Đang kết nối máy chủ...",
+      "back_tickets": "Vé của tôi"
+    },
+    "tabs": {
+      "all": "Cộng đồng",
+      "mine": "Bài của tôi"
+    },
+    "input": {
+      "placeholder": "Chia sẻ cảm nghĩ, hình ảnh về sự kiện này...",
+      "btn_photo": "Thêm Ảnh",
+      "btn_post": "Đăng bài"
+    },
+    "card": {
+      "menu_edit": "Sửa bài",
+      "menu_delete": "Xóa bài"
+    },
+    "modal_edit": {
+      "title": "Chỉnh sửa bài viết",
+      "placeholder": "Nội dung bài viết...",
+      "btn_cancel": "Hủy",
+      "btn_save": "Lưu thay đổi"
+    },
+    "modal_delete": {
+      "title": "Xóa khoảnh khắc?",
+      "message": "Bài viết này sẽ biến mất vĩnh viễn khỏi dòng thời gian sự kiện.",
+      "btn_cancel": "Hủy",
+      "btn_delete": "Xóa"
+    },
+    "list": {
+      "empty": "Chưa có bài viết nào",
+      "load_more": "Tải thêm"
+    },
+    "errors": {
+      "general": "Có lỗi xảy ra, vui lòng thử lại.",
+      "no_content": "Chưa nhập nội dung"
+    },
+    "success": {
+      "posted": "Đã đăng bài thành công!",
+      "deleted": "Đã xóa.",
+      "updated": "Cập nhật thành công."
+    }
+  }
+}
