@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useCheckNavigate as useNavigate } from "@/utils/i18n-router";
 import { type AppDispatch } from "@/store";
 import { createPost, uploadImage } from "../../../store/slices/newsSlice";
 import NewsEditor from "../_components/NewsEditor";

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Bell,
@@ -11,8 +11,12 @@ import {
   CheckCircle,
   XCircle,
   Lock,
+  ChevronDown,
+  Maximize2,
+  FileEdit, // Icon mới cho Edit Request
+  AlertCircle, // Icon cho Reject
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useCheckNavigate as useNavigate } from "@/utils/i18n-router";
 import {
   fetchAdminNotifications,
   fetchOrganizerNotifications,
@@ -21,15 +25,15 @@ import {
 } from "@/store/slices/notificationSlice";
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
-import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Định nghĩa kiểu dữ liệu linh hoạt hơn để hứng được trường rejectionReason
 type NotificationData = {
   unlockReason?: string;
   reason?: string;
-  rejectionReason?: string; // ✅ THÊM TRƯỜNG NÀY
-  editRequestReason?: string; // ✅ THÊM TRƯỜNG NÀY ĐỀ PHÒNG
+  rejectionReason?: string;
+  editRequestReason?: string;
   eventId?: string;
+  organizerId?: string;
   slug?: string;
   [key: string]: any;
 };
@@ -46,6 +50,8 @@ type Notification = {
 
 const NotificationPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
   const panelRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -54,40 +60,131 @@ const NotificationPanel = () => {
     (state: RootState) => state.notifications,
   );
   const { user } = useSelector((state: RootState) => state.auth);
-
   const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
   const isOrganizer =
     user?.role === ROLES.ORGANIZER || user?.role === "ORGANIZER";
 
-  const loadNotifications = () => {
-    if (isSAdmin) {
-      dispatch(fetchAdminNotifications());
-    } else if (isOrganizer) {
-      dispatch(fetchOrganizerNotifications());
-    }
-  };
-
   useEffect(() => {
-    loadNotifications();
-    const interval = setInterval(loadNotifications, 30000);
+    const loadData = () => {
+      if (isSAdmin) dispatch(fetchAdminNotifications());
+      else if (isOrganizer) dispatch(fetchOrganizerNotifications());
+    };
+    loadData();
+    const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, [dispatch, isSAdmin, isOrganizer]);
 
   useEffect(() => {
+    if (!isOpen) setTimeout(() => setVisibleCount(5), 200);
+  }, [isOpen]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target as Node)
-      ) {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node))
         setIsOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const sortedItems = useMemo(
+    () =>
+      [...items].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [items],
+  );
+  const displayedItemsDropdown = useMemo(
+    () => sortedItems.slice(0, visibleCount),
+    [sortedItems, visibleCount],
+  );
+  const hasMoreDropdown = visibleCount < sortedItems.length;
+
+  // --- LOGIC ĐIỀU HƯỚNG MỚI ---
+  const handleNotificationClick = (notification: Notification) => {
+    dispatch(markAsRead(notification.id));
+    const data = notification.data || {};
+
+    switch (notification.type) {
+      // 1. EDIT REQUEST PENDING (Admin click vào)
+      case "EDIT_REQUEST_PENDING":
+        if (data.eventId)
+          navigate(`/admin/events/${data.eventId}/edit-request`); // Hoặc trang detail và tự mở modal duyệt
+        // Ở code trước mình làm là trang Detail tự hiện Panel duyệt, nên chỉ cần link tới Detail:
+        navigate(`/admin/events/${data.slug || data.eventId}`);
+        break;
+
+      // 2. EDIT REQUEST REJECTED (Organizer click vào)
+      case "EDIT_REQUEST_REJECTED":
+        navigate(`/admin/events/${data.slug || data.eventId}`);
+        break;
+
+      case "ORGANIZER_PENDING":
+        if (data.organizerId)
+          navigate(
+            `/admin/organizers?status=PENDING&highlight=${data.organizerId}`,
+          );
+        else navigate("/admin/organizers?status=PENDING");
+        break;
+      case "UNLOCK_REQUEST":
+        if (data.organizerId)
+          navigate(
+            `/admin/organizers?unlockRequest=true&highlight=${data.organizerId}`,
+          );
+        else navigate("/admin/organizers");
+        break;
+      case "EVENT_PENDING":
+        if (data.eventId)
+          navigate(
+            `/admin/events?status=PENDING_APPROVAL&highlight=${data.eventId}`,
+          );
+        else navigate("/admin/events?status=PENDING_APPROVAL");
+        break;
+      case "NEW_REGISTRATION":
+        if (data.eventId)
+          navigate(`/admin/events/${data.eventId}/registrations`);
+        break;
+      case "EVENT_APPROVED":
+      case "EVENT_REJECTED":
+        if (data.eventId)
+          navigate(
+            notification.type === "EVENT_REJECTED"
+              ? `/admin/events?status=REJECTED&highlight=${data.eventId}`
+              : `/admin/events`,
+          );
+        break;
+      case "ACCOUNT_LOCKED":
+        navigate("/admin/profile");
+        break;
+    }
+    setIsOpen(false);
+    setShowAllModal(false);
+  };
+
+  const formatTime = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diffSeconds < 60) return "Vừa xong";
+    const minutes = Math.floor(diffSeconds / 60);
+    if (minutes < 60) return `${minutes} phút trước`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  // --- ICON MỚI CHO EDIT REQUEST ---
   const getIcon = (type: string) => {
     switch (type) {
+      case "EDIT_REQUEST_PENDING":
+        return <FileEdit className="w-5 h-5 text-yellow-500" />;
+      case "EDIT_REQUEST_REJECTED":
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+
       case "ORGANIZER_PENDING":
         return <User className="w-5 h-5 text-blue-400" />;
       case "EVENT_PENDING":
@@ -107,56 +204,79 @@ const NotificationPanel = () => {
     }
   };
 
-  const handleNotificationClick = (notification: any) => {
-    dispatch(markAsRead(notification.id));
-
-    switch (notification.type) {
-      case "ORGANIZER_PENDING":
-      case "UNLOCK_REQUEST":
-        navigate("/admin/organizers");
-        break;
-      case "EVENT_PENDING":
-        navigate("/admin/events");
-        break;
-      case "NEW_REGISTRATION":
-        if (notification.data?.eventId) {
-          navigate(`/admin/events/${notification.data.eventId}/registrations`);
-        }
-        break;
-      case "EVENT_APPROVED":
-      case "EVENT_REJECTED":
-        navigate("/admin/events"); // Về danh sách events để thấy/edit sự kiện
-        break;
-      default:
-        break;
-    }
-    setIsOpen(false);
-  };
-
-  const formatTime = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return "Vừa xong";
-    if (minutes < 60) return `${minutes} phút trước`;
-    if (hours < 24) return `${hours} giờ trước`;
-    return `${days} ngày trước`;
-  };
-
-  // ✅ Hàm helper để lấy nội dung lý do từ nhiều tên trường khác nhau
   const getReasonText = (notification: Notification) => {
     const data = notification.data || {};
-    // Ưu tiên theo thứ tự: rejectionReason (từ backend) -> reason (thông dụng) -> unlockReason (cho acc lock)
     return (
       data.rejectionReason ||
       data.reason ||
       data.editRequestReason ||
       data.unlockReason
+    );
+  };
+
+  const NotificationItem = ({
+    notification,
+  }: {
+    notification: Notification;
+  }) => {
+    const reasonContent = getReasonText(notification);
+    const hasReason = reasonContent && reasonContent.trim() !== "";
+    // Hiển thị lý do cho cả Rejection thường và Edit Rejection
+    const showReasonBox =
+      notification.type === "UNLOCK_REQUEST" ||
+      notification.type === "EVENT_REJECTED" ||
+      notification.type === "EDIT_REQUEST_PENDING" ||
+      notification.type === "EDIT_REQUEST_REJECTED";
+
+    const isErrorType = notification.type.includes("REJECTED");
+
+    return (
+      <div
+        onClick={() => handleNotificationClick(notification)}
+        className={`flex items-start gap-3 p-4 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${
+          !notification.read ? "bg-[#D8C97B]/5" : ""
+        }`}
+      >
+        <div className="shrink-0 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/5">
+          {getIcon(notification.type)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start gap-2">
+            <p
+              className={`text-sm mb-1 ${!notification.read ? "font-bold text-white" : "font-medium text-gray-300"}`}
+            >
+              {notification.title}
+            </p>
+            <span className="text-[10px] text-zinc-500 font-mono shrink-0 whitespace-nowrap pt-0.5">
+              {formatTime(notification.createdAt)}
+            </span>
+          </div>
+          <p className="text-sm text-gray-400 leading-relaxed break-words whitespace-pre-wrap">
+            {notification.message}
+          </p>
+
+          {hasReason && showReasonBox && (
+            <div
+              className={`text-xs mt-2 italic p-2 rounded border border-dashed ${
+                isErrorType
+                  ? "text-red-400 bg-red-500/10 border-red-500/30"
+                  : "text-[#D8C97B] bg-[#D8C97B]/10 border-[#D8C97B]/20"
+              }`}
+            >
+              {(isErrorType ||
+                notification.type === "EDIT_REQUEST_PENDING") && (
+                <span className="font-bold not-italic text-[10px] uppercase opacity-80 mr-1">
+                  Lý do:
+                </span>
+              )}
+              "{reasonContent}"
+            </div>
+          )}
+        </div>
+        {!notification.read && (
+          <div className="w-2 h-2 bg-[#D8C97B] rounded-full shrink-0 mt-2 shadow-[0_0_8px_rgba(216,201,123,0.5)]" />
+        )}
+      </div>
     );
   };
 
@@ -178,8 +298,8 @@ const NotificationPanel = () => {
         <div className="absolute right-0 mt-2 w-96 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-800/50">
             <h3 className="font-bold text-white flex items-center gap-2">
-              <Bell className="w-4 h-4 text-[#D8C97B]" />
-              Thông báo
+              <Bell className="w-4 h-4 text-[#D8C97B]" /> Thông báo (
+              {items.length})
             </h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
@@ -187,20 +307,12 @@ const NotificationPanel = () => {
                   onClick={() => dispatch(markAllAsRead())}
                   className="text-xs text-[#D8C97B] hover:text-[#f0e68c] flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-white/5"
                 >
-                  <CheckCheck className="w-3 h-3" />
-                  Đọc tất cả
+                  <CheckCheck className="w-3 h-3" /> Đọc hết
                 </button>
               )}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-zinc-700 rounded transition-colors text-zinc-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
-
-          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
             {isLoading && items.length === 0 ? (
               <div className="p-8 text-center text-zinc-500 flex flex-col items-center">
                 <div className="w-6 h-6 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin mb-2"></div>
@@ -212,95 +324,104 @@ const NotificationPanel = () => {
                 <p className="text-sm">Không có thông báo mới</p>
               </div>
             ) : (
-              (items as Notification[]).map((notification) => {
-                const reasonContent = getReasonText(notification);
-                const hasReason = reasonContent && reasonContent.trim() !== "";
-                const isRejected = notification.type === "EVENT_REJECTED";
-
-                return (
-                  <div
+              <>
+                {displayedItemsDropdown.map((notification) => (
+                  <NotificationItem
                     key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`flex items-start gap-3 p-4 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${
-                      !notification.read ? "bg-[#D8C97B]/5" : ""
-                    }`}
-                  >
-                    <div className="shrink-0 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/5">
-                      {getIcon(notification.type)}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white mb-1">
-                        {notification.title}
-                      </p>
-
-                      <p
-                        className="text-sm text-gray-400 leading-relaxed"
-                        style={{
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          overflowWrap: "break-word",
-                          display: "block",
-                        }}
-                      >
-                        {notification.message}
-                      </p>
-
-                      {/* ✅ HIỂN THỊ LÝ DO: Dùng cho Unlock hoặc Event Rejected */}
-                      {hasReason &&
-                        (notification.type === "UNLOCK_REQUEST" ||
-                          isRejected) && (
-                          <div
-                            className={`text-xs mt-2 italic p-2 rounded border border-dashed ${
-                              isRejected
-                                ? "text-red-400 bg-red-500/10 border-red-500/30"
-                                : "text-[#D8C97B] bg-[#D8C97B]/10 border-[#D8C97B]/20"
-                            }`}
-                            style={{
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
-                              display: "block",
-                            }}
-                          >
-                            {isRejected && (
-                              <span className="font-bold not-italic text-[10px] uppercase opacity-80 mr-1">
-                                Lý do:
-                              </span>
-                            )}
-                            "{reasonContent}"
-                          </div>
-                        )}
-
-                      <p className="text-[10px] text-zinc-500 mt-2 font-mono">
-                        {formatTime(notification.createdAt)}
-                      </p>
-                    </div>
-
-                    {!notification.read && (
-                      <div className="w-2 h-2 bg-[#D8C97B] rounded-full shrink-0 mt-2 shadow-[0_0_8px_rgba(216,201,123,0.5)]" />
-                    )}
+                    notification={notification as Notification}
+                  />
+                ))}
+                {hasMoreDropdown && (
+                  <div className="p-2 text-center bg-zinc-900 sticky bottom-0 border-t border-zinc-800">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVisibleCount((prev) => prev + 5);
+                      }}
+                      className="text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 px-4 py-2 rounded-full transition-all flex items-center justify-center gap-1 mx-auto w-full"
+                    >
+                      <ChevronDown size={14} /> Tải thêm
+                    </button>
                   </div>
-                );
-              })
+                )}
+              </>
             )}
           </div>
-
           {items.length > 5 && (
             <div className="p-3 border-t border-zinc-700 text-center bg-zinc-800/30">
               <button
                 onClick={() => {
-                  if (isSAdmin) navigate("/admin/notifications");
-                  else toast.info("Tính năng xem tất cả đang phát triển");
                   setIsOpen(false);
+                  setShowAllModal(true);
                 }}
-                className="text-xs font-bold text-[#D8C97B] hover:text-[#f0e68c] uppercase tracking-wider"
+                className="text-xs font-bold text-[#D8C97B] hover:text-[#f0e68c] uppercase tracking-wider flex items-center justify-center gap-2 w-full"
               >
-                Xem tất cả thông báo
+                <Maximize2 size={12} /> Xem tất cả thông báo
               </button>
             </div>
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {showAllModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAllModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-zinc-700 bg-zinc-800">
+                <h2 className="text-lg font-bold text-white flex items-center gap-3">
+                  <Bell className="text-[#D8C97B]" /> Tất cả thông báo{" "}
+                  <span className="text-xs bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full">
+                    {items.length}
+                  </span>
+                </h2>
+                <div className="flex gap-3">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => dispatch(markAllAsRead())}
+                      className="text-sm font-bold text-[#D8C97B] hover:text-[#f0e68c] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#D8C97B]/10 hover:bg-[#D8C97B]/20 transition-colors"
+                    >
+                      <CheckCheck size={16} /> Đánh dấu đã đọc hết
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowAllModal(false)}
+                    className="p-2 bg-zinc-700/50 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-y-auto custom-scrollbar flex-1 bg-zinc-900/95">
+                {sortedItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
+                    <Bell className="w-16 h-16 mb-4 opacity-20" />
+                    <p>Không có thông báo nào</p>
+                  </div>
+                ) : (
+                  sortedItems.map((notification) => (
+                    <NotificationItem
+                      key={`modal-${notification.id}`}
+                      notification={notification as Notification}
+                    />
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

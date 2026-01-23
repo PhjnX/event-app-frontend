@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next"; // Import i18n
+import { useTranslation } from "react-i18next";
 import {
   motion,
   AnimatePresence,
@@ -24,7 +24,6 @@ import type { AppDispatch, RootState } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import LoadingScreen from "../_components/common/LoadingSrceen";
 
-// Hàm helper để định dạng ngày theo ngôn ngữ
 const formatDate = (dateString: string, locale: string) => {
   if (!dateString)
     return { day: "00", month: "DEC", time: "--:--", fullDate: "" };
@@ -51,7 +50,6 @@ const formatDate = (dateString: string, locale: string) => {
 
 const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
   const { t, i18n } = useTranslation();
-  // Pass current language to date formatter
   const dateInfo = formatDate(ticket.eventStartDate, i18n.language);
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -92,12 +90,10 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Helper render status text
   const renderStatusLabel = () => {
     if (isExpired && ticket.status !== "REJECTED")
       return t("my_registrations.ticket.status.archived");
 
-    // Convert BE status directly to key if possible or switch case
     const statusKey = ticket.status.toLowerCase();
     return t(`my_registrations.ticket.status.${statusKey}`, ticket.status);
   };

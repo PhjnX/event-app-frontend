@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { memo } from "react";
 import { FaMapMarkerAlt, FaArrowRight, FaClock } from "react-icons/fa";
 import OptimizedImage from "@/components/ui/OptimizedImage";

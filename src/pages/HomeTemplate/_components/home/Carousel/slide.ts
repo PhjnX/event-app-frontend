@@ -25,7 +25,6 @@ export const SLIDES: Slide[] = [
     image: Banner1,
     device: IPhoneMockup,
     deviceType: "phone",
-    // Dùng Key thay vì chữ cứng
     title: "home.hero.slides.1.title",
     highlight: "home.hero.slides.1.highlight",
     subtitle: "home.hero.slides.1.subtitle",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { motion } from "framer-motion";
 import { FaCalendarAlt, FaArrowRight, FaRegSadTear } from "react-icons/fa";
 import type { AppDispatch, RootState } from "../../../../store";
@@ -79,7 +79,7 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, amount: 0.5 }}
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-black uppercase text-white leading-snug mb-2 drop-shadow-xl">
@@ -118,7 +118,7 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredEvents.map((event, index) => {
+            {filteredEvents.map((event) => {
               const dateObj = getEventDate(event.startDate, i18n.language);
 
               return (
@@ -126,8 +126,14 @@ export default function EventsGrid({ searchTerm }: { searchTerm: string }) {
                   key={event.eventId}
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  viewport={{
+                    once: false,
+                    amount: 0.3,
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    ease: "easeOut",
+                  }}
                   className="group relative h-[450px] rounded-3xl overflow-hidden cursor-pointer bg-[#0a0a0a] border border-white/5 hover:border-[#D8C97B]/50 transition-colors duration-300"
                 >
                   <Link

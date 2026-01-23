@@ -12,7 +12,7 @@ import {
   FaChevronRight,
   FaSpinner,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "@/store";
 import { fetchPublicPosts } from "@/store/slices/newsSlice";

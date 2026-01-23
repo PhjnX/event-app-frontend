@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -10,10 +10,72 @@ import {
   useTransform,
 } from "framer-motion";
 import { FaArrowRight } from "react-icons/fa";
-import { SLIDES, type Slide } from "./slide";
+
+import Banner1 from "@/assets/images/Banner_1.webp";
+import Banner2 from "@/assets/images/Banner_2.webp";
+import Banner3 from "@/assets/images/Banner_3.webp";
+import IPhoneMockup from "@/assets/images/ems-iphone.webp";
+import IPadMockup from "@/assets/images/ems-ipad.webp";
+import LaptopMockup from "@/assets/images/ems-laptop.webp";
 
 import LoginModal from "../../modals/LoginModal";
 import OrganizerRegModal from "../../common/OrganizerRegModal";
+
+export interface Slide {
+  id: number;
+  image: string;
+  device: string;
+  deviceType: "phone" | "tablet" | "laptop";
+  title: string;
+  highlight: string;
+  subtitle: string;
+  btnPrimary: string;
+  pathPrimary: string;
+  btnSecondary: string;
+  pathSecondary: string;
+}
+
+export const SLIDES: Slide[] = [
+  {
+    id: 1,
+    image: Banner1,
+    device: IPhoneMockup,
+    deviceType: "phone",
+    title: "home.hero.slides.1.title",
+    highlight: "home.hero.slides.1.highlight",
+    subtitle: "home.hero.slides.1.subtitle",
+    btnPrimary: "home.hero.slides.1.btnPrimary",
+    btnSecondary: "home.hero.slides.1.btnSecondary",
+    pathPrimary: "/events",
+    pathSecondary: "#login",
+  },
+  {
+    id: 2,
+    image: Banner2,
+    device: IPadMockup,
+    deviceType: "tablet",
+    title: "home.hero.slides.2.title",
+    highlight: "home.hero.slides.2.highlight",
+    subtitle: "home.hero.slides.2.subtitle",
+    btnPrimary: "home.hero.slides.2.btnPrimary",
+    btnSecondary: "home.hero.slides.2.btnSecondary",
+    pathPrimary: "/events",
+    pathSecondary: "/about",
+  },
+  {
+    id: 3,
+    image: Banner3,
+    device: LaptopMockup,
+    deviceType: "laptop",
+    title: "home.hero.slides.3.title",
+    highlight: "home.hero.slides.3.highlight",
+    subtitle: "home.hero.slides.3.subtitle",
+    btnPrimary: "home.hero.slides.3.btnPrimary",
+    btnSecondary: "home.hero.slides.3.btnSecondary",
+    pathPrimary: "#contact",
+    pathSecondary: "/admin/events/create",
+  },
+];
 
 const Device3D = ({ slide }: { slide: Slide }) => {
   const x = useMotionValue(0.5);
@@ -66,7 +128,7 @@ const Device3D = ({ slide }: { slide: Slide }) => {
           />
           <motion.div
             style={{ translateZ: -50, x: shadowX, y: shadowY }}
-            className="absolute inset-10 bg-[rgba(0,0,0,0.4)] blur-2xl` rounded-full -z-10"
+            className="absolute inset-10 bg-[rgba(0,0,0,0.4)] blur-2xl rounded-full -z-10"
           />
           <div className="absolute inset-0 pointer-events-none rounded-[3rem] bg-linear-to-tr from-[rgba(255,255,255,0.1)] to-transparent opacity-30 z-20" />
         </motion.div>
@@ -120,11 +182,12 @@ export default function CarouselHero() {
     variant: "primary" | "secondary",
   ) => {
     const primaryClass =
-      "font-noto group relative inline-flex items-center gap-2 px-7 py-3 bg-[#B5A65F] text-black font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(181,166,95,0.4)]";
+      "font-noto group relative inline-flex items-center gap-2 px-7 py-3 bg-[#B5A65F] text-black font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(181,166,95,0.4)] cursor-pointer";
     const secondaryClass =
-      "font-noto px-7 py-3 bg-[rgba(255,255,255,0.05)] backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest rounded-full border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[#B5A65F] transition-all duration-300 hover:-translate-y-1";
+      "font-noto px-7 py-3 bg-[rgba(255,255,255,0.05)] backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest rounded-full border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-[#B5A65F] transition-all duration-300 hover:-translate-y-1 cursor-pointer";
 
     const className = variant === "primary" ? primaryClass : secondaryClass;
+
     const content = (
       <>
         {label}{" "}
@@ -137,9 +200,13 @@ export default function CarouselHero() {
       </>
     );
 
-    if (path === "#login") {
+    if (path.includes("#login")) {
       return (
-        <button onClick={() => setLoginModalOpen(true)} className={className}>
+        <button
+          type="button"
+          onClick={() => setLoginModalOpen(true)}
+          className={className}
+        >
           {variant === "primary" ? (
             <span className="relative z-10 flex items-center gap-2">
               {content}
@@ -151,9 +218,13 @@ export default function CarouselHero() {
       );
     }
 
-    if (path === "#contact") {
+    if (path.includes("#contact")) {
       return (
-        <button onClick={() => setIsOrgModalOpen(true)} className={className}>
+        <button
+          type="button"
+          onClick={() => setIsOrgModalOpen(true)}
+          className={className}
+        >
           {variant === "primary" ? (
             <span className="relative z-10 flex items-center gap-2">
               {content}
@@ -179,60 +250,62 @@ export default function CarouselHero() {
   };
 
   return (
-    <section className="relative min-h-dvh w-full overflow-hidden bg-[#050505] text-white font-noto selection:bg-[rgba(181,166,95,0.3)] selection:text-black">
-      {SLIDES.map((slide, index) => (
-        <SlideBackground
-          key={slide.id}
-          slide={slide}
-          isActive={index === currentIndex}
-        />
-      ))}
+    <>
+      <section className="relative min-h-dvh w-full overflow-hidden bg-[#050505] text-white font-noto selection:bg-[rgba(181,166,95,0.3)] selection:text-black">
+        {SLIDES.map((slide, index) => (
+          <SlideBackground
+            key={slide.id}
+            slide={slide}
+            isActive={index === currentIndex}
+          />
+        ))}
 
-      <div className="relative z-20 container mx-auto px-6 lg:px-12 h-full flex flex-col justify-center min-h-dvh pt-24 lg:pt-0 pb-12">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
-          <motion.div
-            key={`text-${currentSlide.id}`}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center lg:text-left order-1 mt-4 lg:mt-0"
-          >
-            <h1 className="font-noto text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold mb-5 leading-[1.2] uppercase tracking-tighter drop-shadow-2xl text-white">
-              {t(currentSlide.title as any)} <br />
-              <span className="text-[#B5A65F]">
-                {t(currentSlide.highlight as any)}
-              </span>
-            </h1>
+        <div className="relative z-20 container mx-auto px-6 lg:px-12 h-full flex flex-col justify-center min-h-dvh pt-24 lg:pt-0 pb-12">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
+            <motion.div
+              key={`text-${currentSlide.id}`}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center lg:text-left order-1 mt-4 lg:mt-0"
+            >
+              <h1 className="font-noto text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold mb-5 leading-[1.2] uppercase tracking-tighter drop-shadow-2xl text-white">
+                {t(currentSlide.title as any)} <br />
+                <span className="text-[#B5A65F]">
+                  {t(currentSlide.highlight as any)}
+                </span>
+              </h1>
 
-            <p className="text-sm md:text-base mb-8 text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light drop-shadow-md font-noto">
-              {t(currentSlide.subtitle as any)}
-            </p>
+              <p className="text-sm md:text-base mb-8 text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light drop-shadow-md font-noto">
+                {t(currentSlide.subtitle as any)}
+              </p>
 
-            <div className="flex flex-wrap gap-4 font-noto justify-center lg:justify-start">
-              {renderButton(
-                t(currentSlide.btnPrimary as any),
-                currentSlide.pathPrimary,
-                "primary",
-              )}
-              {renderButton(
-                t(currentSlide.btnSecondary as any),
-                currentSlide.pathSecondary,
-                "secondary",
-              )}
-            </div>
-          </motion.div>
+              <div className="flex flex-wrap gap-4 font-noto justify-center lg:justify-start">
+                {renderButton(
+                  t(currentSlide.btnPrimary as any),
+                  currentSlide.pathPrimary,
+                  "primary",
+                )}
+                {renderButton(
+                  t(currentSlide.btnSecondary as any),
+                  currentSlide.pathSecondary,
+                  "secondary",
+                )}
+              </div>
+            </motion.div>
 
-          <div className="flex items-center justify-center w-full h-full order-2 lg:order-2">
-            <div className="w-full min-h-[350px] lg:h-auto mt-8 mb-16 lg:my-0 flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <Device3D key={currentSlide.id} slide={currentSlide} />
-              </AnimatePresence>
+            <div className="flex items-center justify-center w-full h-full order-2 lg:order-2">
+              <div className="w-full min-h-[350px] lg:h-auto mt-8 mb-16 lg:my-0 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <Device3D key={currentSlide.id} slide={currentSlide} />
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-linear-to-t from-[#050505] to-transparent z-20 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-linear-to-t from-[#050505] to-transparent z-20 pointer-events-none" />
+      </section>
 
       <LoginModal
         isOpen={isLoginModalOpen}
@@ -244,6 +317,6 @@ export default function CarouselHero() {
         isOpen={isOrgModalOpen}
         onClose={() => setIsOrgModalOpen(false)}
       />
-    </section>
+    </>
   );
 }

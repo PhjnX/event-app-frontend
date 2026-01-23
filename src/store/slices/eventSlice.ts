@@ -23,6 +23,7 @@ const processImageUrl = (url: string | null | undefined) => {
   return `${root}${cleanPath}`;
 };
 
+// ... (Giữ nguyên các interface Activity, RegistrationDetail...)
 interface Activity {
   activityId: number;
   activityName: string;
@@ -71,8 +72,7 @@ const initialState: EventState = {
   error: null,
 };
 
-// --- CÁC API CƠ BẢN (Public/User) ---
-
+// ... (Giữ nguyên các thunk cũ: fetchPublicEvents, fetchAllEvents, registerForEvent...)
 export const fetchPublicEvents = createAsyncThunk(
   "events/fetchPublic",
   async (_, { rejectWithValue }) => {
@@ -216,24 +216,19 @@ export const fetchMyRegistrations = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.get<any[]>("/events/my-registrations");
-
       if (!Array.isArray(response)) return [];
-
       const formattedData = await Promise.all(
         response.map(async (item: any) => {
           const evt = item.event || item;
           const eventId = evt.eventId || evt.id;
           const rawImage =
             evt.bannerImageUrl || evt.bannerUrl || evt.image || "";
-
           let activityNames = "";
-
           if (eventId) {
             try {
               const activitiesRes = await apiService.get<any[]>(
                 `/activities/by-event/${eventId}/registered`,
               );
-
               if (Array.isArray(activitiesRes) && activitiesRes.length > 0) {
                 activityNames = activitiesRes
                   .map((act) => act.activityName)
@@ -246,12 +241,10 @@ export const fetchMyRegistrations = createAsyncThunk(
               );
             }
           }
-
           return {
             registrationId: item.registrationId || item.id,
             status: item.status,
             ticketCode: item.ticketCode,
-
             createdAt:
               item.registrationDate ||
               item.createdAt ||
@@ -261,7 +254,6 @@ export const fetchMyRegistrations = createAsyncThunk(
               item.registrationDate ||
               new Date().toISOString(),
             rejectionReason: item.rejectionReason,
-
             eventId: eventId,
             eventName: evt.eventName || "Sự kiện",
             eventSlug: evt.slug || evt.eventId?.toString() || "#",
@@ -269,12 +261,10 @@ export const fetchMyRegistrations = createAsyncThunk(
             eventStartDate: evt.startDate,
             eventEndDate: evt.endDate,
             location: evt.location || "Online",
-
             activityNames: activityNames,
           };
         }),
       );
-
       return formattedData;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -397,7 +387,6 @@ export const rejectEvent = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      // API này trả về Object Event đầy đủ (theo Swagger của bạn)
       const response = await apiService.put<Event>(
         `/events/${eventId}/reject`,
         null,
@@ -441,6 +430,75 @@ export const subscribeNewsletter = createAsyncThunk(
   },
 );
 
+// --- CÁC ACTION MỚI CHO EDIT REQUEST WORKFLOW ---
+
+// 1. Organizer gửi yêu cầu chỉnh sửa
+export const requestEditEvent = createAsyncThunk(
+  "events/requestEdit",
+  async (
+    { eventId, reason }: { eventId: number; reason: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      // POST /api/events/{eventId}/request-edit
+      // Body: { reason: "string" }
+      const response = await apiService.post(
+        `/events/${eventId}/request-edit`,
+        { reason },
+      );
+      return response; // Thường trả về message hoặc object event
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Lỗi gửi yêu cầu chỉnh sửa",
+      );
+    }
+  },
+);
+
+// 2. SAdmin duyệt yêu cầu chỉnh sửa
+export const approveEditRequest = createAsyncThunk(
+  "events/approveEditRequest",
+  async (eventId: number, { rejectWithValue }) => {
+    try {
+      // PUT /api/events/{eventId}/approve-edit-request
+      const response = await apiService.put(
+        `/events/${eventId}/approve-edit-request`,
+        {},
+      );
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Lỗi duyệt yêu cầu",
+      );
+    }
+  },
+);
+
+// 3. SAdmin từ chối yêu cầu chỉnh sửa
+export const rejectEditRequest = createAsyncThunk(
+  "events/rejectEditRequest",
+  async (
+    { eventId, reason }: { eventId: number; reason: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      // PUT /api/events/{eventId}/reject-edit-request?reason=...
+      const response = await apiService.put(
+        `/events/${eventId}/reject-edit-request`,
+        null,
+        {
+          params: { reason },
+        },
+      );
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Lỗi từ chối yêu cầu",
+      );
+    }
+  },
+);
+
 const eventSlice = createSlice({
   name: "events",
   initialState,
@@ -456,7 +514,7 @@ const eventSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Basic
+      // ... Các case cũ
       .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
         state.myRegistrations = action.payload;
       })
@@ -475,8 +533,6 @@ const eventSlice = createSlice({
       .addCase(fetchSelectedEvents.fulfilled, (state, action) => {
         state.selectedEvents = action.payload;
       })
-
-      // Registration Details
       .addCase(fetchRegistrationDetail.pending, (state) => {
         state.isDetailLoading = true;
         state.selectedRegistrationDetail = null;
@@ -489,8 +545,6 @@ const eventSlice = createSlice({
         state.isDetailLoading = false;
         state.selectedRegistrationDetail = null;
       })
-
-      // Fetch Registrations List
       .addCase(fetchEventRegistrations.pending, (state) => {
         state.isLoading = true;
       })
@@ -502,46 +556,65 @@ const eventSlice = createSlice({
         state.isLoading = false;
         state.registrations = [];
       })
-
-      // --- CÁC ACTIONS QUẢN LÝ SỰ KIỆN (NEW/UPDATE) ---
-
-      // 1. DELETE
       .addCase(deleteEvent.fulfilled, (state, action) => {
-        // Xóa item khỏi danh sách state.data dựa trên slug trả về
         state.data = state.data.filter((e) => e.slug !== action.payload);
       })
-
-      // 2. SUBMIT (Gửi duyệt)
       .addCase(submitEventForApproval.fulfilled, (state, action) => {
-        // Cập nhật trạng thái item thành PENDING_APPROVAL
         const index = state.data.findIndex((e) => e.slug === action.payload);
         if (index !== -1) {
           state.data[index].status = "PENDING_APPROVAL";
         }
       })
-
-      // 3. APPROVE
       .addCase(approveEvent.fulfilled, (state, action) => {
-        // action.payload là id
         const index = state.data.findIndex((e) => e.eventId === action.payload);
         if (index !== -1) {
-          state.data[index].status = "PUBLISHED"; // Hoặc "APPROVED" tùy luồng business của bạn
+          state.data[index].status = "PUBLISHED";
         }
       })
-
-      // 4. REJECT (Fix chính cho lỗi không hiện lý do)
       .addCase(rejectEvent.fulfilled, (state, action) => {
-        // action.payload lúc này là Full Object Event trả về từ API
-        // nên nó sẽ chứa cả field reason mới
         const index = state.data.findIndex(
           (e) => e.eventId === action.payload.eventId,
         );
         if (index !== -1) {
-          state.data[index] = action.payload; // Gán đè để cập nhật reason & status mới nhất
+          state.data[index] = action.payload;
         }
       })
 
-      // Reset khi Logout
+      // --- XỬ LÝ STATE CHO EDIT REQUEST FLOW ---
+      // (Tùy chọn: Vì thường sau các action này, trang detail sẽ reload lại data mới nhất)
+      // Nhưng ta có thể update state local để UI phản hồi nhanh
+      .addCase(requestEditEvent.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const index = state.data.findIndex(
+          (e) => e.eventId === updated.eventId,
+        );
+        if (index !== -1) {
+          state.data[index].editRequestStatus = "PENDING";
+          state.data[index].editRequestReason = updated.editRequestReason || "";
+        }
+      })
+
+      .addCase(approveEditRequest.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const index = state.data.findIndex(
+          (e) => e.eventId === updated.eventId,
+        );
+        if (index !== -1) {
+          state.data[index].editRequestStatus = "APPROVED";
+          state.data[index].status = "DRAFT"; // event unlocked
+        }
+      })
+
+      .addCase(rejectEditRequest.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const index = state.data.findIndex(
+          (e) => e.eventId === updated.eventId,
+        );
+        if (index !== -1) {
+          state.data[index].editRequestStatus = "REJECTED";
+        }
+      })
+
       .addCase(logoutUser.fulfilled, () => initialState);
   },
 });

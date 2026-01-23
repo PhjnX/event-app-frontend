@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCalendarAlt,
@@ -110,9 +110,16 @@ export default function AllEventsSection({
       <div className="container mx-auto px-4 relative z-10 max-w-7xl">
         <div className="text-center mb-16">
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{
+              once: false,
+              amount: 0.3,
+            }}
+            transition={{
+              duration: 0.5,
+              ease: "easeOut",
+            }}
             className="text-3xl md:text-5xl lg:text-6xl font-black uppercase mb-4 drop-shadow-2xl tracking-tight"
           >
             {t("events_page.all_events.title")}{" "}
@@ -158,10 +165,16 @@ export default function AllEventsSection({
                 {currentEvents.map((event) => (
                   <motion.div
                     layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{
+                      once: false,
+                      amount: 0.3,
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      ease: "easeOut",
+                    }}
                     key={event.eventId}
                     className="group relative h-[420px] bg-[#111] rounded-3xl border border-white/10 overflow-hidden hover:border-[#D8C97B]/50 hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
                   >

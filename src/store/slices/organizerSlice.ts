@@ -93,7 +93,25 @@ export const unlockOrganizer = createAsyncThunk(
     }
   },
 );
-
+export const rejectOrganizer = createAsyncThunk(
+  "organizers/reject",
+  async (
+    { organizerId, reason }: { organizerId: number; reason: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      await apiService.put(`/organizers/${organizerId}/reject`, null, {
+        params: { reason },
+      });
+      return organizerId;
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || error.message || "Từ chối thất bại";
+      toast.error(message);
+      return rejectWithValue(message);
+    }
+  },
+);
 export const requestUnlockOrganizer = createAsyncThunk(
   "organizers/requestUnlock",
   async (reason: string, { rejectWithValue }) => {
@@ -137,6 +155,10 @@ const organizerSlice = createSlice({
           org.locked = false;
           org.unlockRequested = false;
         }
+      })
+      .addCase(rejectOrganizer.fulfilled, (state, action) => {
+        state.data = state.data.filter((o) => o.organizerId !== action.payload);
+        toast.success("Đã từ chối đơn đăng ký thành công!");
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];

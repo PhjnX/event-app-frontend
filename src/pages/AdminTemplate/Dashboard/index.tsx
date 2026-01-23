@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useCheckNavigate as useNavigate } from "@/utils/i18n-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,

@@ -11,15 +11,15 @@ import {
   ListChecks,
   ChevronRight,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next"; // Import hook i18n
+import { useCheckNavigate as useNavigate } from "@/utils/i18n-router";
+import { useTranslation } from "react-i18next";
 import {
   useUserNotifications,
   type UserNotification,
 } from "@/hooks/useUserNotifications";
 
 const UserNotificationPanel = () => {
-  const { t, i18n } = useTranslation(); // Khởi tạo hook
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -75,7 +75,6 @@ const UserNotificationPanel = () => {
       return t("user_notification_panel.time.days_ago", { count: diffInDays });
     }
 
-    // Format ngày theo ngôn ngữ hiện tại
     return date.toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit",
       month: "2-digit",

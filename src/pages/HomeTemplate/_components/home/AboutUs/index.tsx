@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { FaArrowRight } from "react-icons/fa";
 import { SLIDE_DATA } from "./data";
 import type { AboutSlide } from "@/pages/HomeTemplate/_components/home/models/about-slide";

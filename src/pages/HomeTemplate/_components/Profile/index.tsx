@@ -14,7 +14,7 @@ import {
   FaBriefcase,
   FaLock,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next"; // Import hook
 import type { RootState, AppDispatch } from "../../../../store";

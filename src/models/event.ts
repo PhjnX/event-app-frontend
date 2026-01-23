@@ -1,4 +1,5 @@
 export interface Event {
+  editRequested: boolean;
   totalTickets: number;
   organizerLogoUrl: string;
   eventId: number;
@@ -14,6 +15,7 @@ export interface Event {
   registrationDeadline: string;
   organizerId: number;
   organizerName: string;
-
+  editRequestStatus?: "NONE" | "PENDING" | "APPROVED" | "REJECTED";
+  editRequestReason?: string;
   reason?: string;
 }

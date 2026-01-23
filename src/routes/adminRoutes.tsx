@@ -5,41 +5,41 @@ const AdminTemplate = React.lazy(() => import("../pages/AdminTemplate"));
 import AdminProtectedRoute from "./admin-protect-route";
 
 const DashboardPage = React.lazy(
-  () => import("../pages/AdminTemplate/Dashboard")
+  () => import("../pages/AdminTemplate/Dashboard"),
 );
 const ManageUsersPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageUsers")
+  () => import("../pages/AdminTemplate/ManageUsers"),
 );
 const ManagePresentersPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManagePresenters")
+  () => import("../pages/AdminTemplate/ManagePresenters"),
 );
 const ManageOrganizersPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageOrganizers")
+  () => import("../pages/AdminTemplate/ManageOrganizers"),
 );
 const ManageEventsPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageEvents")
+  () => import("../pages/AdminTemplate/ManageEvents"),
 );
 const EventDetailPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageEvents/EventDetail")
+  () => import("../pages/AdminTemplate/ManageEvents/EventDetail"),
 );
 const CreateEventPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageEvents/CreateEventPage")
+  () => import("../pages/AdminTemplate/ManageEvents/CreateEventPage"),
 );
 const EditEventPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageEvents/EditEventPage")
+  () => import("../pages/AdminTemplate/ManageEvents/EditEventPage"),
 );
 
 const ManageRegistrationsPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageEvents/ManageRegistrations")
+  () => import("../pages/AdminTemplate/ManageEvents/ManageRegistrations"),
 );
 const ManageNewsPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageNews")
+  () => import("../pages/AdminTemplate/ManageNews"),
 );
 const CreateNewsPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageNews/CreateNews")
+  () => import("../pages/AdminTemplate/ManageNews/CreateNews"),
 );
 const EditNewsPage = React.lazy(
-  () => import("../pages/AdminTemplate/ManageNews/EditNews")
+  () => import("../pages/AdminTemplate/ManageNews/EditNews"),
 );
 const adminRoutes: RouteObject = {
   path: "admin",

@@ -1,11 +1,11 @@
 import React, { Suspense, useEffect } from "react";
-import { useRoutes } from "react-router-dom";
+import { useRoutes, Navigate, type RouteObject } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store";
 import { fetchCurrentUser } from "../store/slices/auth";
 import LoadingScreen from "../pages/HomeTemplate/_components/common/LoadingSrceen";
 
-import userRoutes from "./userRoutes"; 
+import userRoutes from "./userRoutes";
 import adminRoutes from "./adminRoutes";
 
 const LoginPage = React.lazy(() => import("../pages/AuthPage/LoginPage"));
@@ -30,9 +30,15 @@ const RenderRoutes = () => {
     element: <div className="p-10 text-center text-white">404 - Not Found</div>,
   };
 
+  const rootRedirect: RouteObject = {
+    path: "/",
+    element: <Navigate to="/vi" replace />,
+  };
+
   const element = useRoutes([
-    userRoutes, 
+    rootRedirect,
     adminRoutes,
+    userRoutes,
     authRoutes,
     notFoundRoute,
   ]);

@@ -8,7 +8,7 @@ import { ROLES } from "@/constants";
 
 const AdminProtectedRoute = () => {
   const { isAuthenticated, user, isLoading } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const AdminProtectedRoute = () => {
 
   if (user && user.role === "USER") {
     const handleClose = () => {
-      navigate("/", { replace: true });
+      navigate("/vi", { replace: true });
     };
 
     return (
@@ -50,7 +50,7 @@ const AdminProtectedRoute = () => {
     return <Outlet />;
   }
 
-  return <Navigate to="/" replace />;
+  return <Navigate to="/vi" replace />;
 };
 
 export default AdminProtectedRoute;

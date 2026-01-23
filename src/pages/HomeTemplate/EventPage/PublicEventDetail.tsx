@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+
+import { useParams } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
+
 import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next"; // Import i18n
+import { useTranslation } from "react-i18next";
 import {
   motion,
   useScroll,
@@ -35,7 +38,7 @@ import type { Presenter } from "@/models/presenter";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
 export default function PublicEventDetail() {
-  const { t, i18n } = useTranslation(); // Init hook
+  const { t, i18n } = useTranslation();
   const { slug } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
@@ -111,7 +114,6 @@ export default function PublicEventDetail() {
 
   const checkIsFull = (act: any) => {
     if (!act.maxAttendees || act.maxAttendees === 0) return false;
-
     return (act.currentAttendees || 0) >= act.maxAttendees;
   };
 
@@ -175,9 +177,8 @@ export default function PublicEventDetail() {
       </div>
     );
 
-  // Định dạng ngày theo ngôn ngữ
   const displayDate = new Date(event.startDate).toLocaleDateString(
-    i18n.language === "vi" ? "vi-VN" : "en-US",
+    i18n.language.startsWith("vi") ? "vi-VN" : "en-US",
   );
 
   return (
@@ -264,7 +265,6 @@ export default function PublicEventDetail() {
                   );
 
                   const isFull = checkIsFull(act);
-
                   const isUnlimited =
                     !act.maxAttendees || act.maxAttendees === 0;
 

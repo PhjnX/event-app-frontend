@@ -7,9 +7,9 @@ import {
   FaPlus,
   FaNewspaper,
   FaSpinner,
-  FaFileExcel, 
+  FaFileExcel,
 } from "react-icons/fa";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 
 import { fetchPosts, deletePost } from "../../../store/slices/newsSlice";
@@ -18,7 +18,7 @@ import { type AppDispatch, type RootState } from "@/store";
 const ManageNews: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
-  const [isExporting, setIsExporting] = useState(false); 
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchPosts({ page: 0, size: 100 }));
@@ -42,24 +42,24 @@ const ManageNews: React.FC = () => {
         "ID Bài viết": post.id,
         "Tiêu đề": post.title,
         "Tóm tắt": post.summary,
-        "Nội dung": post.content ? post.content.substring(0, 100) + "..." : "", 
+        "Nội dung": post.content ? post.content.substring(0, 100) + "..." : "",
         "Ngày tạo": post.createdAt
           ? new Date(post.createdAt).toLocaleDateString("vi-VN")
           : "N/A",
-        "Người tạo": post.authorName || "Admin", 
+        "Người tạo": post.authorName || "Admin",
         "Hình ảnh (URL)": post.thumbnailUrl || "N/A",
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
       const wscols = [
-        { wch: 10 }, 
-        { wch: 40 }, 
-        { wch: 40 }, 
-        { wch: 30 }, 
-        { wch: 15 }, 
-        { wch: 15 }, 
-        { wch: 30 }, 
+        { wch: 10 },
+        { wch: 40 },
+        { wch: 40 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 30 },
       ];
       worksheet["!cols"] = wscols;
 

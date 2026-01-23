@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link } from "@/utils/i18n-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaArrowRight, FaSpinner } from "react-icons/fa";
 import type { AppDispatch, RootState } from "@/store";
@@ -21,8 +21,12 @@ export default function HeroCarousel() {
     dispatch(fetchFeaturedEvents());
   }, [dispatch]);
 
-  const displayData = featuredEvents || [];
+  const displayData = (featuredEvents || []).filter((event) => {
+    const now = new Date();
+    const endDate = new Date(event.endDate);
 
+    return endDate >= now;
+  });
   useEffect(() => {
     if (displayData.length <= 1) return;
     const timer = setInterval(

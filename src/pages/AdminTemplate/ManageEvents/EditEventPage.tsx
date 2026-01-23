@@ -63,6 +63,20 @@ export default function EditEventPage() {
     const fetchEventDetail = async () => {
       try {
         const res = await apiService.get<Event>(`/events/${slug}`);
+
+        // --- GUARD: KIỂM TRA QUYỀN CHỈNH SỬA ---
+        // Nếu status là PUBLISHED hoặc APPROVED và chưa bị chuyển về DRAFT/REJECTED -> Chặn
+        // Giả sử logic BE: Khi duyệt yêu cầu sửa -> Status chuyển về DRAFT (hoặc REJECTED).
+        // Nếu Status vẫn là PUBLISHED -> Chưa được phép sửa.
+        if (res.status === "PUBLISHED" || res.status === "APPROVED") {
+          toast.error(
+            "Sự kiện này đang bị khóa. Vui lòng gửi yêu cầu cấp quyền chỉnh sửa.",
+          );
+          navigate(`/admin/events/${slug}`);
+          return;
+        }
+        // --- END GUARD ---
+
         const start = parseDateTimeToInput(res.startDate);
         const end = parseDateTimeToInput(res.endDate);
         const reg = parseDateTimeToInput(res.registrationDeadline);

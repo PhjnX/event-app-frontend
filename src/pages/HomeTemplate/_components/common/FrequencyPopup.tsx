@@ -108,7 +108,7 @@ const FrequencyPopup = () => {
                   >
                     <h2 className="text-4xl md:text-6xl font-black text-white leading-snug mb-2">
                       {t("frequency_popup.title_prefix")} <br />
-                      <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] via-[#FFF5C2] to-[#D8C97B] drop-shadow-sm">
+                      <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] via-[#FFF5C2] to-[#D8C97B] drop-shadow-sm">
                         {t("frequency_popup.title_highlight")}
                       </span>
                     </h2>

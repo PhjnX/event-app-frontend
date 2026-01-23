@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-// Import hook đa ngôn ngữ
+import {
+  Link,
+  NavLink,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -17,6 +22,7 @@ import {
   FaCheck,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+
 import logoImage from "../../../../../assets/images/Logo_EMS.webp";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
@@ -24,15 +30,14 @@ import type { RootState, AppDispatch } from "../../../../../store";
 import { logoutUser } from "../../../../../store/slices/auth";
 import { ROLES } from "@/constants";
 
-// ... (Import các Modal giữ nguyên) ...
 import LoginModal from "../../modals/LoginModal";
 import RegisterModal from "../../modals/RegisterModal";
 import ForgotPasswordModal from "../../modals/ForgotPasswordModal";
 import ChangePasswordModal from "../../modals/ChangePasswordModal";
 import OrganizerRegModal from "../OrganizerRegModal";
 import UserNotificationPanel from "../../UserNotificationPanel";
+import { useLanguageSwitcher } from "@/utils/i18n-router";
 
-// --- COMPONENT CỜ SVG GIỮ NGUYÊN ---
 const FlagVN = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 100 100"
@@ -83,40 +88,46 @@ const LANGUAGES = [
   { code: "en", label: "English", icon: FlagUS },
 ];
 
+const DEFAULT_LANG = "vi";
+
 export default function Header() {
-  // KHỞI TẠO HOOK DỊCH
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { lang } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const currentUrlLang = lang || DEFAULT_LANG;
+
+  const homePath = currentUrlLang === DEFAULT_LANG ? "/" : `/${currentUrlLang}`;
+
+  const getPath = (path: string) => {
+    const cleanPath = path.startsWith("/") ? path.substring(1) : path;
+    return `/${currentUrlLang}/${cleanPath}`;
+  };
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-
-  // KHÔNG CẦN STATE currentLang NỮA, DÙNG TRỰC TIẾP i18n.language
-  // Lưu ý: i18n.language có thể trả về 'en-US', nên ta check 'startsWith' hoặc lấy 2 ký tự đầu
-  const currentLangCode = i18n.language.substring(0, 2);
-
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
 
-  // ... (Refs và useEffect scroll giữ nguyên) ...
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
-  // ... (Code Redux giữ nguyên) ...
+
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth,
   );
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+
   const [modalType, setModalType] = useState<
     "LOGIN" | "REGISTER" | "FORGOT" | null
   >(null);
 
-  // ... (useEffect check role, scroll handle giữ nguyên) ...
   useEffect(() => {
-    // ... (Code scroll cũ)
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -130,6 +141,7 @@ export default function Header() {
         setIsLangMenuOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -143,20 +155,21 @@ export default function Header() {
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
-    toast.info(t("msg.logout_success")); // Dùng key dịch thông báo
+    toast.info(t("msg.logout_success"));
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
-    navigate("/");
+    navigate(homePath);
   };
 
-  // --- HÀM ĐỔI NGÔN NGỮ CHÍNH ---
+  const switchLanguage = useLanguageSwitcher();
   const handleLanguageChange = (langCode: string) => {
-    i18n.changeLanguage(langCode); // Lệnh đổi ngôn ngữ thực sự
+    switchLanguage(langCode);
     setIsLangMenuOpen(false);
-    // Không cần toast thông báo đổi ngôn ngữ mỗi lần, nếu thích thì dùng:
-    toast.success(t("msg.lang_changed"));
+    toast.success(t("msg.lang_changed"), {
+      position: "top-right", // Bạn có thể tùy chỉnh vị trí
+      autoClose: 2000,
+    });
   };
-  // ------------------------------
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     `relative block py-2 px-3 md:p-0 text-sm font-bold tracking-wide transition-colors duration-300
@@ -169,7 +182,7 @@ export default function Header() {
     ? user.username.charAt(0).toUpperCase()
     : "U";
   const currentLangObj =
-    LANGUAGES.find((l) => l.code === currentLangCode) || LANGUAGES[0];
+    LANGUAGES.find((l) => l.code === currentUrlLang) || LANGUAGES[0];
   const CurrentFlagIcon = currentLangObj.icon;
 
   if (isAuthenticated && user?.role === ROLES.SUPER_ADMIN) return null;
@@ -177,12 +190,15 @@ export default function Header() {
   return (
     <>
       <nav
-        className={`font-noto fixed w-full z-50 top-0 start-0 transition-all duration-500 selection:bg-[rgba(216,201,123,0.3)] ${isScrolled ? "bg-black/80 shadow-md py-3 backdrop-blur-md" : "bg-transparent py-5"}`}
+        className={`font-noto fixed w-full z-50 top-0 start-0 transition-all duration-500 selection:bg-[rgba(216,201,123,0.3)] ${
+          isScrolled
+            ? "bg-black/80 shadow-md py-3 backdrop-blur-md"
+            : "bg-transparent py-5"
+        }`}
       >
         <div className="max-w-[1400px] flex flex-wrap items-center justify-between mx-auto px-4 lg:px-10">
-          {/* Logo giữ nguyên */}
           <Link
-            to="/"
+            to={homePath}
             className="flex items-center space-x-3 rtl:space-x-reverse group"
           >
             <img
@@ -200,7 +216,6 @@ export default function Header() {
             {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
 
-          {/* MENU DESKTOP - THAY CHỮ CỨNG BẰNG T() */}
           <div
             className="hidden lg:flex lg:w-auto lg:order-1"
             id="navbar-sticky"
@@ -211,29 +226,35 @@ export default function Header() {
                   onClick={() =>
                     window.scrollTo({ top: 0, behavior: "smooth" })
                   }
-                  to="/"
-                  className={getLinkClass}
+                  to={homePath}
+                  className={() => {
+                    const isHomeActive =
+                      location.pathname === homePath ||
+                      location.pathname === `${homePath}/`;
+
+                    return getLinkClass({ isActive: isHomeActive });
+                  }}
                 >
                   {t("nav.home")}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/about" className={getLinkClass}>
+                <NavLink to={getPath("about")} className={getLinkClass}>
                   {t("nav.about")}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/value" className={getLinkClass}>
+                <NavLink to={getPath("value")} className={getLinkClass}>
                   {t("nav.values")}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/events" className={getLinkClass}>
+                <NavLink to={getPath("events")} className={getLinkClass}>
                   {t("nav.events")}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/news" className={getLinkClass}>
+                <NavLink to={getPath("news")} className={getLinkClass}>
                   {t("nav.news")}
                 </NavLink>
               </li>
@@ -241,22 +262,31 @@ export default function Header() {
           </div>
 
           <div className="hidden lg:flex items-center gap-5 lg:order-2">
-            {/* --- LANGUAGE SWITCHER DESKTOP --- */}
             <div className="relative" ref={langDropdownRef}>
               <button
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded-full border transition-all duration-300 group ${isLangMenuOpen ? "border-[#D8C97B] bg-[#D8C97B]/10" : "border-transparent hover:bg-white/5"}`}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-full border transition-all duration-300 group ${
+                  isLangMenuOpen
+                    ? "border-[#D8C97B] bg-[#D8C97B]/10"
+                    : "border-transparent hover:bg-white/5"
+                }`}
               >
                 <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20 shadow-sm group-hover:border-[#D8C97B] transition-colors">
                   <CurrentFlagIcon className="w-full h-full object-cover" />
                 </div>
                 <span
-                  className={`text-sm font-bold uppercase transition-colors ${isLangMenuOpen ? "text-[#D8C97B]" : "text-gray-300 group-hover:text-[#D8C97B]"}`}
+                  className={`text-sm font-bold uppercase transition-colors ${
+                    isLangMenuOpen
+                      ? "text-[#D8C97B]"
+                      : "text-gray-300 group-hover:text-[#D8C97B]"
+                  }`}
                 >
-                  {currentLangCode}
+                  {currentUrlLang}
                 </span>
                 <FaChevronDown
-                  className={`text-[10px] text-gray-400 transition-all duration-300 ${isLangMenuOpen ? "rotate-180 text-[#D8C97B]" : ""}`}
+                  className={`text-[10px] text-gray-400 transition-all duration-300 ${
+                    isLangMenuOpen ? "rotate-180 text-[#D8C97B]" : ""
+                  }`}
                 />
               </button>
 
@@ -273,22 +303,30 @@ export default function Header() {
                       <p className="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                         Chọn ngôn ngữ
                       </p>
-                      {LANGUAGES.map((lang) => {
-                        const Flag = lang.icon;
-                        const isSelected = currentLangCode === lang.code;
+                      {LANGUAGES.map((item) => {
+                        const Flag = item.icon;
+                        const isSelected = currentUrlLang === item.code;
                         return (
                           <button
-                            key={lang.code}
-                            onClick={() => handleLanguageChange(lang.code)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-all group ${isSelected ? "bg-[#D8C97B]/10 text-[#D8C97B] font-bold" : "text-gray-300 hover:bg-white/5 hover:text-[#D8C97B]"}`}
+                            key={item.code}
+                            onClick={() => handleLanguageChange(item.code)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-all group ${
+                              isSelected
+                                ? "bg-[#D8C97B]/10 text-[#D8C97B] font-bold"
+                                : "text-gray-300 hover:bg-white/5 hover:text-[#D8C97B]"
+                            }`}
                           >
                             <span className="flex items-center gap-3">
                               <div
-                                className={`w-5 h-5 rounded-full overflow-hidden border ${isSelected ? "border-[#D8C97B]" : "border-gray-500 group-hover:border-[#D8C97B]"} transition-colors`}
+                                className={`w-5 h-5 rounded-full overflow-hidden border ${
+                                  isSelected
+                                    ? "border-[#D8C97B]"
+                                    : "border-gray-500 group-hover:border-[#D8C97B]"
+                                } transition-colors`}
                               >
                                 <Flag className="w-full h-full object-cover" />
                               </div>
-                              {lang.label}
+                              {item.label}
                             </span>
                             {isSelected && <FaCheck className="text-xs" />}
                           </button>
@@ -327,7 +365,6 @@ export default function Header() {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 focus:outline-none group"
                   >
-                    {/* ... (Avatar logic giữ nguyên) ... */}
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(181,166,95,0.5)] group-hover:shadow-[0_0_15px_rgba(181,166,95,0.8)] transition-all overflow-hidden border border-[#D8C97B] ${user?.avatarUrl ? "bg-black" : "bg-linear-to-br from-[#D8C97B] to-[#8E803E]"}`}
                     >
@@ -341,9 +378,10 @@ export default function Header() {
                         <span className="pb-0.5">{userInitial}</span>
                       )}
                     </div>
-                    {/* ... */}
                     <FaChevronDown
-                      className={`text-white text-xs transition-transform duration-300 group-hover:text-[#D8C97B] ${isUserMenuOpen ? "rotate-180" : ""}`}
+                      className={`text-white text-xs transition-transform duration-300 group-hover:text-[#D8C97B] ${
+                        isUserMenuOpen ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
                   <AnimatePresence>
@@ -385,14 +423,14 @@ export default function Header() {
                             </button>
                           )}
                           <Link
-                            to="/my-tickets"
+                            to={getPath("my-tickets")}
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
                           >
                             <FaTicketAlt /> {t("nav.my_tickets")}
                           </Link>
                           <Link
-                            to="/profile"
+                            to={getPath("profile")}
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[rgba(216,201,123,0.1)] hover:text-[#D8C97B] transition-colors"
                           >
@@ -424,15 +462,16 @@ export default function Header() {
           </div>
         </div>
 
-        {/* MOBILE MENU */}
         <div
-          className={`lg:hidden bg-[#0a0a0a]/95 backdrop-blur-xl absolute top-full left-0 w-full overflow-hidden transition-all duration-300 ease-in-out border-t border-[rgba(255,255,255,0.1)] ${isMobileMenuOpen ? "max-h-screen py-8 opacity-100 shadow-2xl" : "max-h-0 opacity-0"}`}
+          className={`lg:hidden bg-[#0a0a0a]/95 backdrop-blur-xl absolute top-full left-0 w-full transition-all duration-300 ease-in-out border-t border-[rgba(255,255,255,0.1)] ${
+            isMobileMenuOpen
+              ? "h-[calc(100vh-80px)] py-8 opacity-100 shadow-2xl overflow-y-auto"
+              : "max-h-0 opacity-0 overflow-hidden"
+          }`}
         >
           <ul className="flex flex-col items-center gap-6 text-white text-lg">
-            {/* User Info Mobile giữ nguyên */}
             {isAuthenticated && (
               <div className="flex flex-col items-center gap-2 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                {/* ... avatar ... */}
                 <div className="w-20 h-20 rounded-full bg-[#D8C97B] flex items-center justify-center text-black font-bold text-3xl overflow-hidden border-2 border-[#D8C97B] shadow-lg">
                   {user?.avatarUrl ? (
                     <img
@@ -456,20 +495,24 @@ export default function Header() {
               </div>
             )}
 
-            {/* MAP NAVIGATION ITEMS (DÙNG KEY ĐỂ DỊCH) */}
             {[
-              { path: "/", label: t("nav.home") },
-              { path: "/about", label: t("nav.about") },
-              { path: "/value", label: t("nav.values") },
-              { path: "/events", label: t("nav.events") },
-              { path: "/news", label: t("nav.news") },
+              { path: "", label: t("nav.home") },
+              { path: "about", label: t("nav.about") },
+              { path: "value", label: t("nav.values") },
+              { path: "events", label: t("nav.events") },
+              { path: "news", label: t("nav.news") },
             ].map((item, index) => (
               <li key={index} className="w-full text-center">
                 <NavLink
-                  to={item.path}
+                  to={item.path === "" ? homePath : getPath(item.path)}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  end={item.path === ""}
                   className={({ isActive }) =>
-                    `block py-2 text-lg font-medium transition-colors ${isActive ? "text-[#D8C97B]" : "text-white hover:text-[#D8C97B]"}`
+                    `block py-2 text-lg font-medium transition-colors ${
+                      isActive
+                        ? "text-[#D8C97B]"
+                        : "text-white hover:text-[#D8C97B]"
+                    }`
                   }
                 >
                   {item.label}
@@ -477,21 +520,24 @@ export default function Header() {
               </li>
             ))}
 
-            {/* LANGUAGE SWITCHER MOBILE */}
             <li className="w-full flex justify-center gap-3 py-3">
-              {LANGUAGES.map((lang) => {
-                const Flag = lang.icon;
-                const isSelected = currentLangCode === lang.code;
+              {LANGUAGES.map((item) => {
+                const Flag = item.icon;
+                const isSelected = currentUrlLang === item.code;
                 return (
                   <button
-                    key={lang.code}
-                    onClick={() => handleLanguageChange(lang.code)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${isSelected ? "bg-[#D8C97B] text-black border-[#D8C97B] shadow-[0_0_10px_rgba(216,201,123,0.4)]" : "border-white/20 text-gray-400 hover:border-[#D8C97B] hover:text-[#D8C97B]"}`}
+                    key={item.code}
+                    onClick={() => handleLanguageChange(item.code)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+                      isSelected
+                        ? "bg-[#D8C97B] text-black border-[#D8C97B] shadow-[0_0_10px_rgba(216,201,123,0.4)]"
+                        : "border-white/20 text-gray-400 hover:border-[#D8C97B] hover:text-[#D8C97B]"
+                    }`}
                   >
                     <div className="w-5 h-5 rounded-full overflow-hidden shadow-sm">
                       <Flag className="w-full h-full object-cover" />
                     </div>
-                    <span className="text-sm font-bold">{lang.label}</span>
+                    <span className="text-sm font-bold">{item.label}</span>
                   </button>
                 );
               })}
@@ -499,7 +545,6 @@ export default function Header() {
 
             <div className="w-3/4 h-px bg-linear-to-r from-transparent via-white/10 to-transparent my-2"></div>
 
-            {/* BUTTONS LOGIN/LOGOUT MOBILE (Thay text bằng t()) */}
             <div className="flex flex-col gap-4 w-full px-8">
               {!isAuthenticated ? (
                 <>
@@ -544,14 +589,14 @@ export default function Header() {
                     </button>
                   )}
                   <Link
-                    to="/my-tickets"
+                    to={getPath("my-tickets")}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full text-center py-3 border border-[rgba(255,255,255,0.1)] bg-white/5 text-white rounded-xl font-medium"
                   >
                     {t("nav.my_tickets")}
                   </Link>
                   <Link
-                    to="/profile"
+                    to={getPath("profile")}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full text-center py-3 border border-[rgba(255,255,255,0.1)] bg-white/5 text-white rounded-xl font-medium"
                   >
@@ -578,7 +623,7 @@ export default function Header() {
           </ul>
         </div>
       </nav>
-      {/* ... Modals giữ nguyên ... */}
+
       <LoginModal
         isOpen={modalType === "LOGIN"}
         onClose={() => setModalType(null)}

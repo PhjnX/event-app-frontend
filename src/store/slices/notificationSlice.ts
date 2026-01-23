@@ -5,20 +5,24 @@ import {
 } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 
+// --- Types ---
+interface NotificationData {
+  eventId?: string;
+  organizerId?: string;
+  registrationId?: string;
+  rejectionReason?: string;
+  reason?: string;
+  unlockReason?: string;
+  editRequestReason?: string; // Thêm trường này
+  [key: string]: any;
+}
+
 interface Notification {
   id: string;
-  type:
-    | "ORGANIZER_PENDING"
-    | "EVENT_PENDING"
-    | "UNLOCK_REQUEST"
-    | "NEW_REGISTRATION"
-    | "EVENT_APPROVED"
-    | "EVENT_REJECTED"
-    | "ACCOUNT_LOCKED"
-    | "ACCOUNT_UNLOCKED";
+  type: string;
   title: string;
   message: string;
-  data: any;
+  data: NotificationData;
   createdAt: string;
   read: boolean;
 }
@@ -37,7 +41,26 @@ const initialState: NotificationState = {
   error: null,
 };
 
-// --- FETCHER CHO ADMIN ---
+// --- HÀM HELPER ---
+const getValidDate = (obj: any, priorityField: string): string => {
+  if (!obj) return new Date().toISOString();
+  if (obj[priorityField]) return obj[priorityField];
+  const fallbackFields = [
+    "updatedAt",
+    "updatedDate",
+    "lastModifiedDate",
+    "createdAt",
+    "createdDate",
+    "registrationDate",
+    "startDate",
+  ];
+  for (const field of fallbackFields) {
+    if (obj[field]) return obj[field];
+  }
+  return new Date().toISOString();
+};
+
+// --- ADMIN NOTIFICATIONS ---
 export const fetchAdminNotifications = createAsyncThunk(
   "notifications/fetchAdmin",
   async (_, { rejectWithValue }) => {
@@ -49,54 +72,71 @@ export const fetchAdminNotifications = createAsyncThunk(
 
       const notifications: Notification[] = [];
 
+      // 1. Organizer Pending
       if (Array.isArray(organizers)) {
         organizers
           .filter((o) => o.status === "PENDING" || o.approved === false)
           .forEach((org) => {
             notifications.push({
-              id: `org-${org.organizerId}`,
+              id: `org-pending-${org.organizerId}`,
               type: "ORGANIZER_PENDING",
               title: "Yêu cầu đăng ký Organizer",
-              message: `${
-                org.organizerName || org.name || "Nhà tổ chức"
-              } đang chờ duyệt`,
+              message: `${org.organizerName || org.name || "Nhà tổ chức"} (${org.username}) đang chờ duyệt`,
               data: org,
-              createdAt: org.createdAt || new Date().toISOString(),
+              createdAt: getValidDate(org, "createdAt"),
               read: false,
             });
           });
 
+        // 2. Unlock Request
         organizers
           .filter((o) => o.unlockRequested)
           .forEach((org) => {
             notifications.push({
-              id: `unlock-${org.organizerId}`,
+              id: `org-unlock-${org.organizerId}`,
               type: "UNLOCK_REQUEST",
               title: "Yêu cầu mở khóa tài khoản",
-              message: `${
-                org.organizerName || org.name || "Nhà tổ chức"
-              } yêu cầu mở khóa`,
+              message: `${org.organizerName || org.name} yêu cầu mở khóa`,
               data: org,
-              createdAt: org.updatedAt || new Date().toISOString(),
+              createdAt: getValidDate(org, "updatedAt"),
               read: false,
             });
           });
       }
 
+      // 3. Event Notifications
       if (Array.isArray(events)) {
-        events
-          .filter((e) => e.status === "PENDING_APPROVAL")
-          .forEach((event) => {
+        events.forEach((event) => {
+          // A. Event Pending Approval
+          if (event.status === "PENDING_APPROVAL") {
             notifications.push({
-              id: `event-${event.eventId}`,
+              id: `event-pending-${event.eventId}`,
               type: "EVENT_PENDING",
               title: "Sự kiện chờ duyệt",
               message: `"${event.eventName}" đang chờ phê duyệt`,
               data: event,
-              createdAt: event.createdAt || new Date().toISOString(),
+              createdAt: getValidDate(event, "updatedAt"),
               read: false,
             });
-          });
+          }
+
+          // B. Edit Request (MỚI THÊM)
+          // Giả sử API trả về field editRequested = true khi có yêu cầu sửa
+          if (event.editRequested) {
+            notifications.push({
+              id: `edit-request-${event.eventId}`,
+              type: "EDIT_REQUEST_PENDING",
+              title: "Yêu cầu chỉnh sửa sự kiện",
+              message: `Organizer muốn chỉnh sửa sự kiện "${event.eventName}"`,
+              data: {
+                ...event,
+                reason: event.editRequestReason, // Lấy lý do từ API
+              },
+              createdAt: getValidDate(event, "updatedAt"), // Lấy ngày update gần nhất (lúc gửi request)
+              read: false,
+            });
+          }
+        });
       }
 
       return notifications.sort(
@@ -111,7 +151,7 @@ export const fetchAdminNotifications = createAsyncThunk(
   },
 );
 
-// --- FETCHER CHO ORGANIZER ---
+// --- ORGANIZER NOTIFICATIONS ---
 export const fetchOrganizerNotifications = createAsyncThunk(
   "notifications/fetchOrganizer",
   async (_, { rejectWithValue }) => {
@@ -120,10 +160,11 @@ export const fetchOrganizerNotifications = createAsyncThunk(
       const myEvents = await apiService.get<any[]>("/events/my-events");
 
       if (Array.isArray(myEvents)) {
+        // 1. Trạng thái sự kiện thay đổi (Approved/Rejected)
         myEvents.forEach((event) => {
           if (event.status === "APPROVED" || event.status === "REJECTED") {
             notifList.push({
-              id: `${event.status.toLowerCase()}-${event.eventId}`,
+              id: `event-status-${event.eventId}-${event.status}`,
               type:
                 event.status === "APPROVED"
                   ? "EVENT_APPROVED"
@@ -137,15 +178,37 @@ export const fetchOrganizerNotifications = createAsyncThunk(
                   ? "đã được phê duyệt"
                   : "đã bị từ chối"
               }`,
-              // Lưu data là object event -> UI sẽ tự tìm field reason
               data: event,
-              createdAt:
-                event.updatedAt || event.createdAt || new Date().toISOString(),
+              createdAt: getValidDate(event, "updatedAt"),
               read: false,
             });
           }
+
+          // 2. Phản hồi Edit Request (MỚI THÊM)
+          // Nếu sự kiện đang là PUBLISHED/APPROVED nhưng editRequested = false và có editRejectionReason
+          // -> Có nghĩa là request đã bị từ chối hoặc đã được duyệt (nếu status chuyển về DRAFT)
+
+          // Case A: Request Bị từ chối
+          // Giả sử API có field: editRequestStatus = 'REJECTED'
+          if (event.editRequestStatus === "REJECTED") {
+            notifList.push({
+              id: `edit-rejected-${event.eventId}`,
+              type: "EDIT_REQUEST_REJECTED",
+              title: "Yêu cầu chỉnh sửa bị từ chối",
+              message: `Yêu cầu chỉnh sửa cho "${event.eventName}" đã bị từ chối`,
+              data: { ...event, reason: event.editRejectionReason },
+              createdAt: getValidDate(event, "updatedAt"),
+              read: false,
+            });
+          }
+
+          // Case B: Request Được duyệt -> Sự kiện chuyển về DRAFT/EDITABLE và editRequested = false
+          // Logic này hơi khó bắt nếu không có log lịch sử.
+          // Tạm thời ta có thể dựa vào việc status chuyển từ PUBLISHED -> DRAFT (nếu BE lưu log)
+          // Hoặc đơn giản là khi Organizer thấy sự kiện quay về DRAFT thì họ tự biết.
         });
 
+        // 3. Vé mới (Registrations)
         const activeEvents = myEvents.filter((e) =>
           ["APPROVED", "ONGOING", "PUBLISHED"].includes(e.status),
         );
@@ -159,19 +222,18 @@ export const fetchOrganizerNotifications = createAsyncThunk(
               if (Array.isArray(regs)) {
                 regs
                   .filter((r) =>
-                    ["PENDING", "PROCESSING", "WAITING"].includes(r.status),
+                    ["PENDING", "PROCESSING", "WAITING", "SUCCESS"].includes(
+                      r.status,
+                    ),
                   )
                   .forEach((reg) => {
                     notifList.push({
                       id: `reg-${reg.registrationId || reg.id}`,
                       type: "NEW_REGISTRATION",
                       title: "Đăng ký mới",
-                      message: `${
-                        reg.fullName || "Khách hàng"
-                      } đăng ký tham gia "${event.eventName}"`,
+                      message: `${reg.fullName || "Khách hàng"} đăng ký tham gia "${event.eventName}"`,
                       data: { ...reg, eventId: event.eventId },
-                      createdAt:
-                        reg.registrationDate || new Date().toISOString(),
+                      createdAt: getValidDate(reg, "registrationDate"),
                       read: false,
                     });
                   });
@@ -215,12 +277,16 @@ const notificationSlice = createSlice({
       action: PayloadAction<Notification[]>,
     ) => {
       state.isLoading = false;
+      const currentMap = new Map(state.items.map((i) => [i.id, i]));
       const newItems = action.payload.map((newItem) => {
-        const oldItem = state.items.find((old) => old.id === newItem.id);
-        return oldItem ? { ...newItem, read: oldItem.read } : newItem;
+        const existing = currentMap.get(newItem.id);
+        return existing ? { ...newItem, read: existing.read } : newItem;
       });
-      state.items = newItems;
-      state.unreadCount = newItems.filter((n) => !n.read).length;
+      state.items = newItems.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      state.unreadCount = state.items.filter((n) => !n.read).length;
     };
 
     builder

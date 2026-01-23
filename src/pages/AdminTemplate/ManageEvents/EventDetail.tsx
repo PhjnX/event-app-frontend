@@ -20,6 +20,9 @@ import {
   FaHistory,
   FaImage,
   FaCloudUploadAlt,
+  FaLock,
+  FaUnlockAlt,
+  FaBan, // Icon mới
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -42,18 +45,24 @@ import ConfirmModal from "./../_components/ConfirmModal";
 import { ROLES } from "@/constants";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
+// Import Action mới
+import {
+  requestEditEvent,
+  approveEditRequest,
+  rejectEditRequest,
+} from "../../../store/slices/eventSlice";
+
+// ... (Giữ nguyên các hàm helper format date/time)
 const parseDateTimeToInput = (isoString: string) => {
   if (!isoString) return { date: "", time: "" };
   const [datePart, timeFull] = isoString.split("T");
   const timePart = timeFull ? timeFull.substring(0, 5) : "";
   return { date: datePart, time: timePart };
 };
-
 const combineToISO = (dateVal: string, timeVal: string) => {
   if (!dateVal || !timeVal) return "";
   return `${dateVal}T${timeVal}:00`;
 };
-
 const formatDisplayTime = (isoString: string) => {
   if (!isoString) return "";
   const timePart = isoString.split("T")[1];
@@ -65,7 +74,6 @@ const formatShortDate = (isoString: string) => {
   const [m, d] = datePart.split("-");
   return `${d}/${m}`;
 };
-
 const formatFullDate = (isoString: string) => {
   if (!isoString) return "";
   const d = new Date(isoString.endsWith("Z") ? isoString : `${isoString}Z`);
@@ -76,12 +84,10 @@ const formatFullDate = (isoString: string) => {
     year: "numeric",
   });
 };
-
 const isSameDay = (date1: string, date2: string) => {
   if (!date1 || !date2) return false;
   return date1.split("T")[0] === date2.split("T")[0];
 };
-
 const getDayDiff = (date1: string, date2: string) => {
   if (!date1 || !date2) return 0;
   const d1 = new Date(date1.split("T")[0]);
@@ -100,11 +106,16 @@ export default function EventDetail() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
 
-  const canManage =
-    isOrganizer &&
-    event &&
-    (event.status === "DRAFT" || event.status === "REJECTED");
+  // State Modal Request Edit
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [requestReason, setRequestReason] = useState("");
 
+  // State Modal Reject Request
+  const [isRejectRequestModalOpen, setIsRejectRequestModalOpen] =
+    useState(false);
+  const [rejectRequestReason, setRejectRequestReason] = useState("");
+
+  // ... (State Activity cũ)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState<number | null>(
@@ -112,20 +123,10 @@ export default function EventDetail() {
   );
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-
   const [confirmDelete, setConfirmDelete] = useState<{
     isOpen: boolean;
     id: number | null;
   }>({ isOpen: false, id: null });
-
-  const { data: activities, categories } = useSelector(
-    (state: RootState) => state.activities,
-  );
-  const { data: presenters } = useSelector(
-    (state: RootState) => state.presenters,
-  );
-
-  // State form
   const [actForm, setActForm] = useState({
     activityName: "",
     description: "",
@@ -137,12 +138,32 @@ export default function EventDetail() {
     categoryId: 0,
     presenterIds: [] as number[],
     maxAttendees: "",
-    activityImageUrl: "", // Thêm trường ảnh
+    activityImageUrl: "",
   });
-
-  // State upload ảnh
   const [previewImage, setPreviewImage] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+
+  const { data: activities, categories } = useSelector(
+    (state: RootState) => state.activities,
+  );
+  const { data: presenters } = useSelector(
+    (state: RootState) => state.presenters,
+  );
+
+  // Logic quyền
+  // 1. Sự kiện đã duyệt/công bố -> Bị khóa, cần xin quyền
+  const isLocked =
+    event?.status === "APPROVED" || event?.status === "PUBLISHED";
+  // 2. Sự kiện đang ở trạng thái bản nháp hoặc bị từ chối -> Được sửa thoải mái
+  const isEditable = event?.status === "DRAFT" || event?.status === "REJECTED";
+  // 3. Cờ editRequested (Giả sử BE trả về)
+  const editStatus = (event as any)?.editRequestStatus;
+  const isEditRequested = editStatus === "PENDING";
+  const currentEditReason = (event as any)?.editRequestReason || "";
+
+  // Organizer chỉ được quản lý activity nếu sự kiện Editable (Draft/Rejected)
+  // Nếu là Locked (Published), họ chỉ được xem, không được thêm/sửa/xóa activity
+  const canManageActivities = isOrganizer && isEditable;
 
   useEffect(() => {
     const loadData = async () => {
@@ -152,11 +173,8 @@ export default function EventDetail() {
         if (res.eventId) {
           dispatch(fetchActivitiesByEvent(res.eventId));
           dispatch(fetchActivityCategories());
-          if (isOrganizer) {
-            dispatch(fetchMyPresenters());
-          } else {
-            dispatch(fetchPresenters());
-          }
+          if (isOrganizer) dispatch(fetchMyPresenters());
+          else dispatch(fetchPresenters());
         }
       } catch (error) {
         toast.error("Không thể tải thông tin sự kiện");
@@ -167,6 +185,66 @@ export default function EventDetail() {
     if (slug) loadData();
   }, [slug, dispatch]);
 
+  // --- HANDLER CHO EDIT REQUEST ---
+  const handleRequestEdit = async () => {
+    if (!event || !requestReason.trim()) {
+      toast.warn("Vui lòng nhập lý do chỉnh sửa!");
+      return;
+    }
+
+    try {
+      await dispatch(
+        requestEditEvent({
+          eventId: event.eventId,
+          reason: requestReason,
+        }),
+      ).unwrap();
+
+      toast.success("Đã gửi yêu cầu chỉnh sửa!");
+      setIsRequestModalOpen(false);
+
+      const refreshed = await apiService.get<Event>(`/events/${slug}`);
+      setEvent(refreshed);
+    } catch (err: any) {
+      toast.error(err);
+    }
+  };
+
+  const handleApproveEditRequest = async () => {
+    if (!event) return;
+    try {
+      await dispatch(approveEditRequest(event.eventId)).unwrap();
+      toast.success("Đã mở khóa sự kiện cho Organizer chỉnh sửa!");
+      // Reload
+      const res = await apiService.get<Event>(`/events/${slug}`);
+      setEvent(res);
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
+
+  const handleRejectEditRequest = async () => {
+    if (!event || !rejectRequestReason.trim()) {
+      toast.warn("Vui lòng nhập lý do từ chối!");
+      return;
+    }
+    try {
+      await dispatch(
+        rejectEditRequest({
+          eventId: event.eventId,
+          reason: rejectRequestReason,
+        }),
+      ).unwrap();
+      toast.success("Đã từ chối yêu cầu chỉnh sửa.");
+      setIsRejectRequestModalOpen(false);
+      const res = await apiService.get<Event>(`/events/${slug}`);
+      setEvent(res);
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
+
+  // ... (Giữ nguyên các handler form activity: handleSelectPresenter, handleRemovePresenter, handleOpenAddModal, handleOpenEditModal, handleFileChange, handleSubmitForm, handleQuickCreateCategory, openDeleteModal, handleConfirmDelete, groupedActivities)
   const handleSelectPresenter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = Number(e.target.value);
     if (id === 0) return;
@@ -186,13 +264,11 @@ export default function EventDetail() {
     }));
   };
 
-  // Reset form khi mở modal Thêm mới
   const handleOpenAddModal = () => {
     if (!event) return;
     setIsEditMode(false);
     setEditingActivityId(null);
     const eventTime = parseDateTimeToInput(event.startDate);
-
     setActForm({
       activityName: "",
       description: "",
@@ -210,20 +286,16 @@ export default function EventDetail() {
     setIsModalOpen(true);
   };
 
-  // Populate data khi mở modal Edit
   const handleOpenEditModal = (activity: Activity) => {
     setIsEditMode(true);
     setEditingActivityId(activity.activityId);
     const start = parseDateTimeToInput(activity.startTime);
     const end = parseDateTimeToInput(activity.endTime);
-
     const existingPresenters =
       (activity as any).presenters ||
       (activity.presenter ? [activity.presenter] : []);
     const existingIds = existingPresenters.map((p: any) => p.presenterId);
-
     const existingImage = (activity as any).activityImageUrl || "";
-
     setActForm({
       activityName: activity.activityName,
       description: activity.description || "",
@@ -239,39 +311,23 @@ export default function EventDetail() {
         : "",
       activityImageUrl: existingImage,
     });
-
     setPreviewImage(existingImage);
     setIsModalOpen(true);
   };
 
-  // Xử lý upload ảnh
-  // Xử lý upload ảnh
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Tạo preview local
     const objectUrl = URL.createObjectURL(file);
     setPreviewImage(objectUrl);
     setIsUploading(true);
-
     try {
       const formData = new FormData();
-      // LƯU Ý: Bạn kiểm tra lại trong Swagger xem cái nút "Try it out"
-      // nó yêu cầu key là 'file' hay 'image'. Thường mặc định là 'file'.
       formData.append("image", file);
-
-      // ===> SỬA DÒNG NÀY <===
-      // Thay "/files" thành "/images/upload" theo đúng Swagger của bạn
       const res: any = await apiService.post("/images/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      // Lấy URL trả về (cần kiểm tra xem API trả về chuỗi hay object)
-      // Nếu API trả về string url trực tiếp thì dùng res
-      // Nếu API trả về { url: "..." } thì dùng res.url
       const uploadedUrl = res.url || res.data || res;
-
       setActForm((prev) => ({ ...prev, activityImageUrl: uploadedUrl }));
       toast.success("Đã tải ảnh lên!");
     } catch (error) {
@@ -285,22 +341,16 @@ export default function EventDetail() {
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!event) return;
-
     const startISO = combineToISO(actForm.startDate, actForm.startTime);
     const endISO = combineToISO(actForm.endDate, actForm.endTime);
-
     const actStart = new Date(startISO);
     const actEnd = new Date(endISO);
-
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
-
     if (actStart >= actEnd) {
       toast.warn("Giờ kết thúc hoạt động phải sau giờ bắt đầu!");
       return;
     }
-
-    // Logic validate thời gian
     if (actStart < eventStart) {
       toast.warn(`Hoạt động không được bắt đầu trước sự kiện!`);
       return;
@@ -309,7 +359,6 @@ export default function EventDetail() {
       toast.warn(`Hoạt động không được kết thúc sau sự kiện!`);
       return;
     }
-
     try {
       const payload = {
         eventId: event.eventId,
@@ -324,9 +373,8 @@ export default function EventDetail() {
           actForm.presenterIds.length > 0 ? actForm.presenterIds[0] : null,
         accessibleTo: [],
         materialsUrl: "",
-        activityImageUrl: actForm.activityImageUrl, // Gửi URL ảnh lên
+        activityImageUrl: actForm.activityImageUrl,
       };
-
       if (isEditMode && editingActivityId) {
         await dispatch(
           updateActivity({ id: editingActivityId, data: payload as any }),
@@ -361,7 +409,6 @@ export default function EventDetail() {
 
   const openDeleteModal = (id: number) =>
     setConfirmDelete({ isOpen: true, id });
-
   const handleConfirmDelete = async () => {
     if (confirmDelete.id) {
       try {
@@ -399,8 +446,104 @@ export default function EventDetail() {
   const modalInputStyle =
     "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-700 text-sm font-medium";
 
+  // --- RENDER CONTROL PANEL ---
+  const renderControlPanel = () => {
+    // A. SADMIN: Hiện nút Duyệt/Từ chối nếu có Request
+    if (user?.role?.includes("ADMIN") && editStatus === "PENDING") {
+      return (
+        <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-3xl p-6 shadow-xl mb-6 animate-pulse">
+          <h3 className="text-lg font-bold text-yellow-500 uppercase mb-2 flex items-center gap-2">
+            <FaUnlockAlt /> Yêu cầu chỉnh sửa
+          </h3>
+          <p className="text-gray-300 text-sm mb-4">
+            Organizer muốn chỉnh sửa sự kiện này. <br />
+            <span className="font-bold text-white">Lý do:</span> "
+            {currentEditReason}"
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setIsRejectRequestModalOpen(true)}
+              className="py-3 rounded-xl bg-red-500/20 text-red-500 border border-red-500/30 font-bold hover:bg-red-500 hover:text-white transition-all"
+            >
+              Từ chối
+            </button>
+            <button
+              onClick={handleApproveEditRequest}
+              className="py-3 rounded-xl bg-green-500/20 text-green-500 border border-green-500/30 font-bold hover:bg-green-500 hover:text-white transition-all"
+            >
+              Duyệt yêu cầu
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // B. ORGANIZER
+    if (isOrganizer) {
+      // 1. Nếu đang chờ duyệt
+      if (isEditRequested) {
+        return (
+          <div className="bg-[#121212] border border-yellow-500/30 rounded-3xl p-6 shadow-xl mb-6">
+            <h3 className="text-lg font-bold text-yellow-500 uppercase mb-2 flex items-center gap-2">
+              <FaClock /> Đang chờ duyệt sửa
+            </h3>
+            <p className="text-gray-400 text-sm">
+              Yêu cầu chỉnh sửa của bạn đang được Admin xem xét.
+            </p>
+          </div>
+        );
+      }
+      // 2. Nếu bị khóa (Published/Approved) -> Hiện nút Gửi yêu cầu
+      if (isLocked) {
+        return (
+          <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl mb-6">
+            <h3 className="text-lg font-bold text-white uppercase mb-4 flex items-center gap-2">
+              <FaLock className="text-red-500" /> Sự kiện đã khóa
+            </h3>
+            <p className="text-gray-400 text-xs mb-4">
+              Để thay đổi thông tin, bạn cần gửi yêu cầu cấp quyền.
+            </p>
+            <button
+              onClick={() => setIsRequestModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 bg-[#B5A65F]/20 text-[#B5A65F] border border-[#B5A65F]/50 hover:bg-[#B5A65F] hover:text-black p-4 rounded-xl font-bold transition-all"
+            >
+              <FaUnlockAlt /> Gửi yêu cầu chỉnh sửa
+            </button>
+          </div>
+        );
+      }
+      // 3. Nếu được phép sửa (Draft/Rejected)
+      if (isEditable) {
+        return (
+          <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl top-24">
+            <h3 className="text-lg font-bold text-white uppercase mb-4 flex items-center gap-2">
+              <FaLayerGroup className="text-[#B5A65F]" /> Bảng điều khiển
+            </h3>
+            <div className="space-y-3">
+              <Link
+                to={`/admin/events/${slug}/edit`}
+                className="w-full flex items-center justify-center gap-2 bg-[#1e1e1e] hover:bg-[#252525] border border-white/10 text-white p-4 rounded-xl font-bold transition-all group"
+              >
+                <FaEdit className="text-[#B5A65F] group-hover:scale-110 transition-transform" />{" "}
+                Chỉnh sửa sự kiện
+              </Link>
+              <button
+                onClick={handleOpenAddModal}
+                className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#B5A65F] to-[#8E803F] text-black p-4 rounded-xl font-bold shadow-[0_5px_20px_rgba(181,166,95,0.3)] hover:-translate-y-1 transition-all"
+              >
+                <FaPlus /> Thêm hoạt động mới
+              </button>
+            </div>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] text-gray-100 font-noto pb-20 selection:bg-[rgba(181,166,95,0.3)]">
+      {/* Header Back */}
       <div className="bg-[rgba(5,5,5,0.8)] border-b border-white/5 top-0 z-40 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <Link
@@ -413,6 +556,7 @@ export default function EventDetail() {
         </div>
       </div>
 
+      {/* Banner */}
       <div className="relative h-[50vh] min-h-[400px] w-full group overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-[rgba(5,5,5,0.6)] to-[rgba(5,5,5,0)] z-10" />
@@ -426,7 +570,6 @@ export default function EventDetail() {
             imgClassName="transition-transform duration-2000 ease-out group-hover:scale-105"
           />
         </div>
-
         <div className="absolute bottom-0 left-0 w-full z-20 p-6 md:p-12 lg:p-16">
           <div className="container mx-auto">
             <motion.div
@@ -437,11 +580,7 @@ export default function EventDetail() {
             >
               <div className="flex items-center gap-4 mb-4">
                 <span
-                  className={`px-3 py-1 rounded border text-[10px] font-bold uppercase tracking-widest ${
-                    event.status === "APPROVED" || event.status === "PUBLISHED"
-                      ? "bg-[rgba(34,197,94,0.1)] border-green-500/50 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]"
-                      : "bg-[rgba(107,114,128,0.1)] border-gray-500/50 text-gray-400"
-                  }`}
+                  className={`px-3 py-1 rounded border text-[10px] font-bold uppercase tracking-widest ${event.status === "APPROVED" || event.status === "PUBLISHED" ? "bg-[rgba(34,197,94,0.1)] border-green-500/50 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]" : "bg-[rgba(107,114,128,0.1)] border-gray-500/50 text-gray-400"}`}
                 >
                   {event.status}
                 </span>
@@ -488,36 +627,10 @@ export default function EventDetail() {
 
       <div className="container mx-auto px-4 mt-8 md:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-20">
         <div className="lg:col-span-4 space-y-8">
-          {canManage && (
-            <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl top-24">
-              <h3 className="text-lg font-bold text-white uppercase mb-4 flex items-center gap-2">
-                <FaLayerGroup className="text-[#B5A65F]" /> Bảng điều khiển
-              </h3>
-              <div className="space-y-3">
-                <Link
-                  to={`/admin/events/${slug}/edit`}
-                  className="w-full flex items-center justify-center gap-2 bg-[#1e1e1e] hover:bg-[#252525] border border-white/10 text-white p-4 rounded-xl font-bold transition-all group"
-                >
-                  <FaEdit className="text-[#B5A65F] group-hover:scale-110 transition-transform" />{" "}
-                  Chỉnh sửa sự kiện
-                </Link>
-                <button
-                  onClick={handleOpenAddModal}
-                  className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#B5A65F] to-[#8E803F] text-black p-4 rounded-xl font-bold shadow-[0_5px_20px_rgba(181,166,95,0.3)] hover:-translate-y-1 transition-all"
-                >
-                  <FaPlus /> Thêm hoạt động mới
-                </button>
-              </div>
-            </div>
-          )}
+          {/* PANEL ĐIỀU KHIỂN CHÍNH (Đã update logic request edit) */}
+          {renderControlPanel()}
 
-          {!canManage && isOrganizer && (
-            <div className="bg-[rgba(59,130,246,0.1)] border border-blue-500/30 p-4 rounded-xl text-blue-400 text-sm italic">
-              Sự kiện đang ở trạng thái <strong>{event.status}</strong>. Bạn
-              không thể chỉnh sửa hoạt động lúc này.
-            </div>
-          )}
-
+          {/* Giới thiệu */}
           <div className="bg-[#121212] border border-white/10 rounded-3xl p-8 shadow-xl">
             <h3 className="text-xl font-bold text-white uppercase mb-6 flex items-center gap-3 pb-4 border-b border-white/5">
               <span className="w-1.5 h-6 bg-[#B5A65F] rounded-full shadow-[0_0_10px_#B5A65F]"></span>{" "}
@@ -529,6 +642,7 @@ export default function EventDetail() {
           </div>
         </div>
 
+        {/* Lịch trình */}
         <div className="lg:col-span-8">
           <div className="mb-10">
             <h2 className="text-3xl md:text-4xl font-black uppercase text-white mb-2">
@@ -561,12 +675,10 @@ export default function EventDetail() {
                   </div>
                   <div className="h-px flex-1 bg-linear-to-r from-[rgba(181,166,95,0.5)] to-primary-gold-transparent"></div>
                 </div>
-
                 <div className="relative pl-8 border-l-2 border-white/10 ml-4 space-y-8">
                   {groupedActivities[dateKey].map((act, idx) => {
                     const isMultiDay = !isSameDay(act.startTime, act.endTime);
                     const daysDuration = getDayDiff(act.startTime, act.endTime);
-
                     return (
                       <motion.div
                         key={act.activityId}
@@ -577,9 +689,7 @@ export default function EventDetail() {
                         className="group relative"
                       >
                         <div className="absolute -left-[39px] top-6 w-4 h-4 rounded-full bg-[#121212] border-2 border-gray-600 group-hover:border-[#B5A65F] transition-all z-20 shadow-[0_0_0_4px_#050505]" />
-
                         <div className="bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-[#B5A65F]/40 p-5 rounded-2xl transition-all flex flex-col md:flex-row gap-6 shadow-xl hover:translate-x-2">
-                          {/* Left: Time & Thumbnail Image if exists */}
                           <div className="flex flex-col gap-3 min-w-[120px] border-b md:border-b-0 md:border-r border-white/10 pb-3 md:pb-0 pr-4">
                             <div>
                               <span className="text-2xl font-black text-[#B5A65F] font-mono tracking-tighter">
@@ -596,8 +706,6 @@ export default function EventDetail() {
                                 )}
                               </div>
                             </div>
-
-                            {/* Hiển thị ảnh nhỏ nếu có */}
                             {(act as any).activityImageUrl && (
                               <div className="w-full h-20 rounded-lg overflow-hidden border border-white/10">
                                 <img
@@ -608,7 +716,6 @@ export default function EventDetail() {
                               </div>
                             )}
                           </div>
-
                           <div className="flex-1">
                             <div className="flex justify-between items-start gap-4">
                               <div>
@@ -627,7 +734,8 @@ export default function EventDetail() {
                                   {act.activityName}
                                 </h3>
                               </div>
-                              {canManage && (
+                              {/* Chỉ cho sửa activity nếu canManageActivities (Sự kiện chưa Public hoặc đã được cấp quyền sửa) */}
+                              {canManageActivities && (
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                                   <button
                                     onClick={() => handleOpenEditModal(act)}
@@ -656,7 +764,6 @@ export default function EventDetail() {
                                   {act.roomOrVenue}
                                 </div>
                               )}
-
                               {(act as any).presenters &&
                               (act as any).presenters.length > 0 ? (
                                 <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 bg-black/30 px-3 py-1.5 rounded-full border border-white/5">
@@ -671,7 +778,6 @@ export default function EventDetail() {
                                   {act.presenter.fullName}
                                 </div>
                               ) : null}
-
                               {(act as any).maxAttendees > 0 && (
                                 <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 bg-black/30 px-3 py-1.5 rounded-full border border-white/5">
                                   <FaUsers className="text-[#B5A65F]" /> Max:{" "}
@@ -691,6 +797,97 @@ export default function EventDetail() {
         </div>
       </div>
 
+      {/* --- MODAL YÊU CẦU CHỈNH SỬA (ORGANIZER) --- */}
+      <AnimatePresence>
+        {isRequestModalOpen && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsRequestModalOpen(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-[#1a1a1a] border border-[#B5A65F]/30 p-6 rounded-2xl shadow-2xl"
+            >
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <FaUnlockAlt className="text-[#B5A65F]" /> Yêu cầu chỉnh sửa
+              </h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Sự kiện sẽ được đưa về trạng thái chỉnh sửa. Vui lòng nhập lý do
+                để Admin phê duyệt.
+              </p>
+              <textarea
+                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-[#B5A65F] outline-none h-32 resize-none"
+                placeholder="VD: Thay đổi khách mời, dời lịch..."
+                value={requestReason}
+                onChange={(e) => setRequestReason(e.target.value)}
+              />
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => setIsRequestModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-gray-400 font-bold hover:bg-white/5"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleRequestEdit}
+                  className="px-6 py-2 rounded-lg bg-[#B5A65F] text-black font-bold hover:bg-[#d4c376]"
+                >
+                  Gửi yêu cầu
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* --- MODAL TỪ CHỐI YÊU CẦU (SADMIN) --- */}
+      <AnimatePresence>
+        {isRejectRequestModalOpen && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsRejectRequestModalOpen(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-[#1a1a1a] border border-red-500/30 p-6 rounded-2xl shadow-2xl"
+            >
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <FaBan className="text-red-500" /> Từ chối yêu cầu
+              </h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Lý do từ chối cấp quyền sửa:
+              </p>
+              <textarea
+                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-red-500 outline-none h-32 resize-none"
+                value={rejectRequestReason}
+                onChange={(e) => setRejectRequestReason(e.target.value)}
+              />
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => setIsRejectRequestModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-gray-400 font-bold hover:bg-white/5"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleRejectEditRequest}
+                  className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-500"
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* --- MODAL ACTIVITY --- */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
@@ -723,7 +920,6 @@ export default function EventDetail() {
                   <FaTimes />
                 </button>
               </div>
-
               <div className="p-6 overflow-y-auto grow custom-scrollbar bg-[#141414]">
                 <form
                   id="activity-form"
@@ -745,12 +941,9 @@ export default function EventDetail() {
                       placeholder="VD: Khai mạc & Welcome Teabreak"
                     />
                   </div>
-
-                  {/* ===== UPLOAD ẢNH BANNER ===== */}
                   <div className="bg-[#1a1a1a]/50 p-4 rounded-2xl border border-white/5">
                     <label className={modalLabelStyle}>Banner Hoạt Động</label>
                     <div className="flex gap-4 items-start">
-                      {/* Preview Image */}
                       <div className="w-32 h-20 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 relative group">
                         {isUploading ? (
                           <div className="w-6 h-6 border-2 border-[#B5A65F] border-t-transparent rounded-full animate-spin"></div>
@@ -769,8 +962,6 @@ export default function EventDetail() {
                           <FaImage className="text-gray-700 text-2xl" />
                         )}
                       </div>
-
-                      {/* Input Upload */}
                       <div className="flex-1">
                         <label
                           className={`cursor-pointer flex flex-col items-center justify-center w-full h-20 border-2 border-dashed rounded-xl transition-all group relative overflow-hidden ${isUploading ? "border-gray-600 bg-gray-900 pointer-events-none" : "border-white/10 hover:border-[#B5A65F]/50 hover:bg-white/5"}`}
@@ -796,8 +987,6 @@ export default function EventDetail() {
                       </div>
                     </div>
                   </div>
-                  {/* ===== END UPLOAD ===== */}
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#1a1a1a] p-4 rounded-2xl border border-white/5">
                     <div className="space-y-2">
                       <label className="text-[10px] text-green-400 font-bold uppercase">
@@ -860,7 +1049,6 @@ export default function EventDetail() {
                       </div>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className={modalLabelStyle}>
@@ -931,7 +1119,6 @@ export default function EventDetail() {
                       )}
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className={modalLabelStyle}>Diễn giả</label>
@@ -992,7 +1179,6 @@ export default function EventDetail() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className={modalLabelStyle}>Mô tả nội dung</label>
                     <textarea
@@ -1007,7 +1193,6 @@ export default function EventDetail() {
                   </div>
                 </form>
               </div>
-
               <div className="px-6 py-4 border-t border-white/10 bg-[#1a1a1a] flex justify-end gap-3 shrink-0">
                 <button
                   onClick={() => setIsModalOpen(false)}

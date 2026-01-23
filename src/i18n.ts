@@ -20,7 +20,10 @@ i18n
   .init({
     resources,
     fallbackLng: "vi",
-    lng: "vi",
+    detection: {
+      order: ["localStorage", "cookie", "navigator"],
+      caches: ["localStorage"],
+    },
     interpolation: {
       escapeValue: false,
     },
