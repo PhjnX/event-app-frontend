@@ -6,12 +6,12 @@ import {
   FaLock,
   FaClock,
   FaExclamationTriangle,
+  FaGlobe,
 } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-// Import Actions
 import { logoutUser } from "@/store/slices/auth";
 import {
   requestUnlockOrganizer,
@@ -77,7 +77,7 @@ const Topbar: React.FC<TopbarProps> = () => {
         }
       });
     }
-  }, [dispatch, isOrganizer, user]); // Chạy lại khi user login/logout
+  }, [dispatch, isOrganizer, user]);
 
   const isRestricted = !isSAdmin && (orgStatus.locked || !orgStatus.approved);
 
@@ -99,7 +99,6 @@ const Topbar: React.FC<TopbarProps> = () => {
       toast.success("Đã gửi yêu cầu mở khóa kèm lý do!");
 
       setOrgStatus((prev) => ({ ...prev, unlockRequested: true }));
-
       dispatch(fetchMyOrganizerStatus());
     } catch (error: any) {
       toast.error(
@@ -150,6 +149,16 @@ const Topbar: React.FC<TopbarProps> = () => {
         </div>
 
         <div className="flex items-center gap-6">
+          {isOrganizer && (
+            <Link
+              to="/"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 text-gray-400 text-xs font-bold hover:text-[#D8C97B] hover:border-[#D8C97B]/50 hover:bg-[#D8C97B]/10 transition-all"
+              title="Quay về trang chủ website"
+            >
+              <FaGlobe /> Website
+            </Link>
+          )}
+
           {isRestricted && (
             <button
               onClick={handleRequestClick}

@@ -46,7 +46,7 @@ const FlagVN = ({ className }: { className?: string }) => (
   >
     <circle cx="50" cy="50" r="50" fill="#DA251D" />
     <polygon
-      points="50,20 60,45 88,45 65,63 74,90 50,73 26,90 35,63 12,45 40,45"
+      points="50,15 61,40 88,40 66,59 75,85 50,70 25,85 34,59 12,40 39,40"
       fill="#FFFF00"
     />
   </svg>
@@ -185,7 +185,11 @@ export default function Header() {
     LANGUAGES.find((l) => l.code === currentUrlLang) || LANGUAGES[0];
   const CurrentFlagIcon = currentLangObj.icon;
 
-  if (isAuthenticated && user?.role === ROLES.SUPER_ADMIN) return null;
+  useEffect(() => {
+    if (isAuthenticated && user?.role === ROLES.SUPER_ADMIN) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <>
@@ -271,8 +275,8 @@ export default function Header() {
                     : "border-transparent hover:bg-white/5"
                 }`}
               >
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20 shadow-sm group-hover:border-[#D8C97B] transition-colors">
-                  <CurrentFlagIcon className="w-full h-full object-cover" />
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20 shadow-sm group-hover:border-[#D8C97B] transition-colors flex items-center justify-center">
+                  <CurrentFlagIcon className="w-full h-full block" />
                 </div>
                 <span
                   className={`text-sm font-bold uppercase transition-colors ${
@@ -324,7 +328,7 @@ export default function Header() {
                                     : "border-gray-500 group-hover:border-[#D8C97B]"
                                 } transition-colors`}
                               >
-                                <Flag className="w-full h-full object-cover" />
+                                <Flag className="w-full h-full block" />
                               </div>
                               {item.label}
                             </span>

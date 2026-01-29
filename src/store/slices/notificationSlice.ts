@@ -13,7 +13,8 @@ interface NotificationData {
   rejectionReason?: string;
   reason?: string;
   unlockReason?: string;
-  editRequestReason?: string; // Thêm trường này
+  editRequestReason?: string;
+  slug?: string; // Thêm slug để điều hướng tiện hơn
   [key: string]: any;
 }
 
@@ -107,7 +108,7 @@ export const fetchAdminNotifications = createAsyncThunk(
       // 3. Event Notifications
       if (Array.isArray(events)) {
         events.forEach((event) => {
-          // A. Event Pending Approval
+          // A. Event Pending Approval (Duyệt sự kiện mới)
           if (event.status === "PENDING_APPROVAL") {
             notifications.push({
               id: `event-pending-${event.eventId}`,
@@ -120,9 +121,12 @@ export const fetchAdminNotifications = createAsyncThunk(
             });
           }
 
-          // B. Edit Request (MỚI THÊM)
-          // Giả sử API trả về field editRequested = true khi có yêu cầu sửa
-          if (event.editRequested) {
+          // B. Edit Request (Yêu cầu chỉnh sửa) - QUAN TRỌNG: Kiểm tra cả flag và status
+          // Sửa logic tại đây để bắt được trường hợp từ eventSlice
+          if (
+            event.editRequested === true ||
+            event.editRequestStatus === "PENDING"
+          ) {
             notifications.push({
               id: `edit-request-${event.eventId}`,
               type: "EDIT_REQUEST_PENDING",
@@ -130,9 +134,9 @@ export const fetchAdminNotifications = createAsyncThunk(
               message: `Organizer muốn chỉnh sửa sự kiện "${event.eventName}"`,
               data: {
                 ...event,
-                reason: event.editRequestReason, // Lấy lý do từ API
+                reason: event.editRequestReason || "Không có lý do chi tiết",
               },
-              createdAt: getValidDate(event, "updatedAt"), // Lấy ngày update gần nhất (lúc gửi request)
+              createdAt: getValidDate(event, "updatedAt"),
               read: false,
             });
           }
@@ -160,24 +164,25 @@ export const fetchOrganizerNotifications = createAsyncThunk(
       const myEvents = await apiService.get<any[]>("/events/my-events");
 
       if (Array.isArray(myEvents)) {
-        // 1. Trạng thái sự kiện thay đổi (Approved/Rejected)
         myEvents.forEach((event) => {
-          if (event.status === "APPROVED" || event.status === "REJECTED") {
+          // 1. Trạng thái sự kiện thay đổi (Approved/Rejected ban đầu)
+          if (event.status === "APPROVED" && !event.editRequestStatus) {
+            // Thêm điều kiện !editRequestStatus để tránh trùng với việc Approved Edit Request
             notifList.push({
-              id: `event-status-${event.eventId}-${event.status}`,
-              type:
-                event.status === "APPROVED"
-                  ? "EVENT_APPROVED"
-                  : "EVENT_REJECTED",
-              title:
-                event.status === "APPROVED"
-                  ? "Sự kiện đã được duyệt"
-                  : "Sự kiện bị từ chối",
-              message: `"${event.eventName}" ${
-                event.status === "APPROVED"
-                  ? "đã được phê duyệt"
-                  : "đã bị từ chối"
-              }`,
+              id: `event-status-${event.eventId}-APPROVED`,
+              type: "EVENT_APPROVED",
+              title: "Sự kiện đã được duyệt",
+              message: `"${event.eventName}" đã được phê duyệt công khai.`,
+              data: event,
+              createdAt: getValidDate(event, "updatedAt"),
+              read: false,
+            });
+          } else if (event.status === "REJECTED") {
+            notifList.push({
+              id: `event-status-${event.eventId}-REJECTED`,
+              type: "EVENT_REJECTED",
+              title: "Sự kiện bị từ chối",
+              message: `"${event.eventName}" đã bị từ chối.`,
               data: event,
               createdAt: getValidDate(event, "updatedAt"),
               read: false,
@@ -185,32 +190,44 @@ export const fetchOrganizerNotifications = createAsyncThunk(
           }
 
           // 2. Phản hồi Edit Request (MỚI THÊM)
-          // Nếu sự kiện đang là PUBLISHED/APPROVED nhưng editRequested = false và có editRejectionReason
-          // -> Có nghĩa là request đã bị từ chối hoặc đã được duyệt (nếu status chuyển về DRAFT)
 
           // Case A: Request Bị từ chối
-          // Giả sử API có field: editRequestStatus = 'REJECTED'
           if (event.editRequestStatus === "REJECTED") {
             notifList.push({
               id: `edit-rejected-${event.eventId}`,
               type: "EDIT_REQUEST_REJECTED",
               title: "Yêu cầu chỉnh sửa bị từ chối",
-              message: `Yêu cầu chỉnh sửa cho "${event.eventName}" đã bị từ chối`,
-              data: { ...event, reason: event.editRejectionReason },
+              message: `Yêu cầu chỉnh sửa cho "${event.eventName}" không được chấp nhận.`,
+              data: {
+                ...event,
+                // Ưu tiên lấy rejectionReason từ field riêng nếu có, hoặc dùng field chung
+                rejectionReason:
+                  event.editRejectionReason || event.rejectionReason,
+              },
               createdAt: getValidDate(event, "updatedAt"),
               read: false,
             });
           }
 
-          // Case B: Request Được duyệt -> Sự kiện chuyển về DRAFT/EDITABLE và editRequested = false
-          // Logic này hơi khó bắt nếu không có log lịch sử.
-          // Tạm thời ta có thể dựa vào việc status chuyển từ PUBLISHED -> DRAFT (nếu BE lưu log)
-          // Hoặc đơn giản là khi Organizer thấy sự kiện quay về DRAFT thì họ tự biết.
+          // Case B: Request Được duyệt (MỚI THÊM LOGIC NÀY)
+          // Khi SAdmin approve edit request -> editRequestStatus = "APPROVED"
+          // (và thường status sự kiện sẽ về DRAFT để cho phép sửa)
+          if (event.editRequestStatus === "APPROVED") {
+            notifList.push({
+              id: `edit-approved-${event.eventId}`,
+              type: "EDIT_REQUEST_APPROVED", // Type mới
+              title: "Yêu cầu chỉnh sửa được chấp nhận",
+              message: `Bạn đã có thể chỉnh sửa sự kiện "${event.eventName}".`,
+              data: event,
+              createdAt: getValidDate(event, "updatedAt"),
+              read: false,
+            });
+          }
         });
 
         // 3. Vé mới (Registrations)
         const activeEvents = myEvents.filter((e) =>
-          ["APPROVED", "ONGOING", "PUBLISHED"].includes(e.status),
+          ["APPROVED", "ONGOING", "PUBLISHED", "DRAFT"].includes(e.status),
         );
 
         await Promise.all(
@@ -277,6 +294,7 @@ const notificationSlice = createSlice({
       action: PayloadAction<Notification[]>,
     ) => {
       state.isLoading = false;
+      // Giữ lại trạng thái read của các notif cũ nếu ID trùng khớp
       const currentMap = new Map(state.items.map((i) => [i.id, i]));
       const newItems = action.payload.map((newItem) => {
         const existing = currentMap.get(newItem.id);

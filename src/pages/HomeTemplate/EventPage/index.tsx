@@ -1,5 +1,8 @@
 import React, { Suspense, useState } from "react";
 import FeaturedPresenters from "../_components/events/FeaturedPresenters";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
+import { SEO_DATA } from "@/constants/seo-config";
+import { useCurrentLang } from "@/utils/i18n-router";
 
 const HeroCarousel = React.lazy(
   () => import("../_components/events/HeroCarousel"),
@@ -21,35 +24,47 @@ const SectionLoader = () => (
 
 export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const lang = useCurrentLang();
+
+  const seo = SEO_DATA.events[lang as "vi" | "en"] || SEO_DATA.events.vi;
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen font-noto text-white overflow-x-hidden selection:bg-[rgba(181,166,95,0.3)]">
-      <Suspense
-        fallback={
-          <div className="h-[600px] bg-[#121212] animate-pulse border-b border-[rgba(255,255,255,0.05)]" />
-        }
-      >
-        <HeroCarousel />
-      </Suspense>
+    <>
+      <SeoHelmet
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        slug="events"
+      />
 
-      <Suspense fallback={<SectionLoader />}>
-        <FilterBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      </Suspense>
+      <div className="bg-[#0a0a0a] min-h-screen font-noto text-white overflow-x-hidden selection:bg-[rgba(181,166,95,0.3)]">
+        <Suspense
+          fallback={
+            <div className="h-[600px] bg-[#121212] animate-pulse border-b border-[rgba(255,255,255,0.05)]" />
+          }
+        >
+          <HeroCarousel />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <EventsGrid searchTerm={searchTerm} />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
-        <AllEventsSection searchTerm={searchTerm} />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <FilterBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <FeaturedPresenters />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <EventsGrid searchTerm={searchTerm} />
+        </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <AllEventsSection searchTerm={searchTerm} />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <CTANewsletter />
-      </Suspense>
-    </div>
+        <Suspense fallback={<SectionLoader />}>
+          <FeaturedPresenters />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <CTANewsletter />
+        </Suspense>
+      </div>
+    </>
   );
 }

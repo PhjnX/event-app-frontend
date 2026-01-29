@@ -482,7 +482,6 @@ export const rejectEditRequest = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      // PUT /api/events/{eventId}/reject-edit-request?reason=...
       const response = await apiService.put(
         `/events/${eventId}/reject-edit-request`,
         null,
@@ -580,36 +579,27 @@ const eventSlice = createSlice({
         }
       })
 
-      // --- XỬ LÝ STATE CHO EDIT REQUEST FLOW ---
-      // (Tùy chọn: Vì thường sau các action này, trang detail sẽ reload lại data mới nhất)
-      // Nhưng ta có thể update state local để UI phản hồi nhanh
       .addCase(requestEditEvent.fulfilled, (state, action) => {
-        const updated = action.payload;
-        const index = state.data.findIndex(
-          (e) => e.eventId === updated.eventId,
-        );
+        const { eventId, reason } = action.payload;
+        const index = state.data.findIndex((e) => e.eventId === eventId);
         if (index !== -1) {
           state.data[index].editRequestStatus = "PENDING";
-          state.data[index].editRequestReason = updated.editRequestReason || "";
+          state.data[index].editRequestReason = reason;
         }
       })
 
       .addCase(approveEditRequest.fulfilled, (state, action) => {
-        const updated = action.payload;
-        const index = state.data.findIndex(
-          (e) => e.eventId === updated.eventId,
-        );
+        const eventId = action.payload;
+        const index = state.data.findIndex((e) => e.eventId === eventId);
         if (index !== -1) {
           state.data[index].editRequestStatus = "APPROVED";
-          state.data[index].status = "DRAFT"; // event unlocked
+          state.data[index].editLocked = false; // Mở khóa
         }
       })
 
       .addCase(rejectEditRequest.fulfilled, (state, action) => {
-        const updated = action.payload;
-        const index = state.data.findIndex(
-          (e) => e.eventId === updated.eventId,
-        );
+        const { eventId } = action.payload;
+        const index = state.data.findIndex((e) => e.eventId === eventId);
         if (index !== -1) {
           state.data[index].editRequestStatus = "REJECTED";
         }

@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, type RouteObject, useParams } from "react-router-dom";
 import LanguageLayout from "../layouts/LanguageLayout";
 import ProtectedRoute from "./protect-routes";
+import { DEFAULT_LANG } from "@/utils/i18n-router"; // Import hằng số
 
 const HomeTemplate = React.lazy(() => import("../pages/HomeTemplate"));
 const NewsPage = React.lazy(() => import("../pages/HomeTemplate/NewsPage"));
@@ -27,7 +28,7 @@ const NewsDetail = React.lazy(
 
 const HomeRedirect = () => {
   const { lang } = useParams();
-  if (lang === "vi") return <Navigate to="/" replace />;
+  if (lang === DEFAULT_LANG) return <Navigate to="/" replace />;
   return <HomePage />;
 };
 

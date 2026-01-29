@@ -152,14 +152,19 @@ export default function EventDetail() {
 
   // Logic quyền
   // 1. Sự kiện đã duyệt/công bố -> Bị khóa, cần xin quyền
-  const isLocked =
-    event?.status === "APPROVED" || event?.status === "PUBLISHED";
   // 2. Sự kiện đang ở trạng thái bản nháp hoặc bị từ chối -> Được sửa thoải mái
-  const isEditable = event?.status === "DRAFT" || event?.status === "REJECTED";
   // 3. Cờ editRequested (Giả sử BE trả về)
   const editStatus = (event as any)?.editRequestStatus;
   const isEditRequested = editStatus === "PENDING";
   const currentEditReason = (event as any)?.editRequestReason || "";
+  const isEditApproved = editStatus === "APPROVED"; // <--- Thêm biến này
+  const isLocked =
+    (event?.status === "APPROVED" || event?.status === "PUBLISHED") &&
+    !isEditApproved;
+
+  // 2. Sự kiện được sửa: Khi là Draft/Rejected HOẶC Đã được duyệt yêu cầu sửa
+  const isEditable =
+    event?.status === "DRAFT" || event?.status === "REJECTED" || isEditApproved;
 
   // Organizer chỉ được quản lý activity nếu sự kiện Editable (Draft/Rejected)
   // Nếu là Locked (Published), họ chỉ được xem, không được thêm/sửa/xóa activity
@@ -169,6 +174,7 @@ export default function EventDetail() {
     const loadData = async () => {
       try {
         const res = await apiService.get<Event>(`/events/${slug}`);
+
         setEvent(res);
         if (res.eventId) {
           dispatch(fetchActivitiesByEvent(res.eventId));
@@ -519,6 +525,14 @@ export default function EventDetail() {
             <h3 className="text-lg font-bold text-white uppercase mb-4 flex items-center gap-2">
               <FaLayerGroup className="text-[#B5A65F]" /> Bảng điều khiển
             </h3>
+
+            {/* THÊM THÔNG BÁO NHỎ ĐỂ ORGANIZER BIẾT ĐÃ ĐƯỢC DUYỆT */}
+            {isEditApproved && (
+              <div className="mb-4 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-xs font-bold flex items-center gap-2">
+                <FaUnlockAlt /> Yêu cầu chỉnh sửa đã được chấp nhận!
+              </div>
+            )}
+
             <div className="space-y-3">
               <Link
                 to={`/admin/events/${slug}/edit`}

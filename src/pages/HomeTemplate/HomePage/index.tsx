@@ -1,6 +1,9 @@
 import React, { Suspense, useEffect } from "react";
 import CarouselHero from "../_components/home/Carousel";
 import { useLocation } from "react-router-dom";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
+import { SEO_DATA } from "@/constants/seo-config";
+import { useCurrentLang } from "@/utils/i18n-router";
 
 const FeaturesSection = React.lazy(
   () => import("../_components/home/Features"),
@@ -21,6 +24,9 @@ const SectionLoader = () => (
 
 export default function HomePage() {
   const { hash } = useLocation();
+  const lang = useCurrentLang();
+
+  const seo = SEO_DATA.home[lang as "vi" | "en"] || SEO_DATA.home.vi;
 
   useEffect(() => {
     if (!hash) return;
@@ -36,31 +42,40 @@ export default function HomePage() {
   }, [hash]);
 
   return (
-    <div className="w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)] selection:text-white">
-      <CarouselHero />
-      <Suspense fallback={<SectionLoader />}>
-        <EventsSection />
-      </Suspense>
+    <>
+      <SeoHelmet
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        slug=""
+      />
 
-      <Suspense fallback={<SectionLoader />}>
-        <FeaturesSection />
-      </Suspense>
+      <div className="w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)] selection:text-white">
+        <CarouselHero />
+        <Suspense fallback={<SectionLoader />}>
+          <EventsSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <PartnersSection />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <FeaturesSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <AboutSection />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <PartnersSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <NewsSection />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <AboutSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <ContactSection />
-      </Suspense>
-    </div>
+        <Suspense fallback={<SectionLoader />}>
+          <NewsSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <ContactSection />
+        </Suspense>
+      </div>
+    </>
   );
 }

@@ -21,6 +21,9 @@ import { fetchPublicPosts } from "../../../store/slices/newsSlice";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { useTranslation } from "react-i18next";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
+import { SEO_DATA } from "@/constants/seo-config";
+import { useCurrentLang } from "@/utils/i18n-router";
 
 const useScrollProgress = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -378,6 +381,10 @@ export default function NewsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
   const scrollProgress = useScrollProgress();
+  const lang = useCurrentLang();
+
+  // Lấy data SEO cho News
+  const seo = SEO_DATA.news[lang as "vi" | "en"] || SEO_DATA.news.vi;
 
   useEffect(() => {
     dispatch(fetchPublicPosts({ page: 0, size: 50 }));
@@ -406,59 +413,68 @@ export default function NewsPage() {
   const isEmpty = !loading && (!data || data.length === 0);
 
   return (
-    <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden selection:bg-[#D8C97B] selection:text-black font-noto">
-      <div
-        className="fixed top-0 left-0 h-[3px] bg-linear-to-r from-[#D8C97B] to-[#FFF5C1] z-50 transition-all duration-300 ease-out shadow-[0_0_10px_#D8C97B]"
-        style={{ width: `${scrollProgress}%` }}
-      ></div>
+    <>
+      <SeoHelmet
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        slug="news"
+      />
 
-      <Suspense fallback={<div className="h-screen bg-[#050505]" />}>
-        {loading && (
-          <div className="h-screen flex flex-col items-center justify-center gap-4 text-[#D8C97B]">
-            <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
+      <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden selection:bg-[#D8C97B] selection:text-black font-noto">
+        <div
+          className="fixed top-0 left-0 h-[3px] bg-linear-to-r from-[#D8C97B] to-[#FFF5C1] z-50 transition-all duration-300 ease-out shadow-[0_0_10px_#D8C97B]"
+          style={{ width: `${scrollProgress}%` }}
+        ></div>
 
-        {isEmpty && (
-          <div className="h-screen flex flex-col items-center justify-center opacity-50">
-            <Newspaper size={48} className="text-[#333] mb-4" />
-            <h3 className="text-xl font-bold text-gray-500">
-              {t("news_page.empty")}
-            </h3>
-          </div>
-        )}
-
-        {!loading && !isEmpty && (
-          <>
-            <HeroSlider posts={heroPosts} />
-
-            <WeeklyHighlights posts={weeklyHighlights} />
-
-            <div className="py-24 px-6 bg-[#0a0a0a] border-y border-white/5 relative">
-              <RevealOnScroll>
-                <div className="text-center max-w-4xl mx-auto">
-                  <Quote
-                    size={32}
-                    className="text-[#D8C97B] mx-auto mb-6 opacity-60"
-                  />
-                  <p className="text-2xl md:text-3xl font-light italic text-gray-300 leading-relaxed mb-6">
-                    {t("news_page.quote")}
-                  </p>
-                  <div className="w-16 h-px bg-[#D8C97B] mx-auto opacity-50"></div>
-                </div>
-              </RevealOnScroll>
+        <Suspense fallback={<div className="h-screen bg-[#050505]" />}>
+          {loading && (
+            <div className="h-screen flex flex-col items-center justify-center gap-4 text-[#D8C97B]">
+              <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin"></div>
             </div>
+          )}
 
-            <ExploreMasonry posts={explorePosts} />
-
-            <div className="pb-16 pt-8 text-center opacity-40 bg-[#020202]">
-              <p className="text-[10px] tracking-[0.2em] uppercase">
-                {t("news_page.gallery")}
-              </p>
+          {isEmpty && (
+            <div className="h-screen flex flex-col items-center justify-center opacity-50">
+              <Newspaper size={48} className="text-[#333] mb-4" />
+              <h3 className="text-xl font-bold text-gray-500">
+                {t("news_page.empty")}
+              </h3>
             </div>
-          </>
-        )}
-      </Suspense>
-    </div>
+          )}
+
+          {!loading && !isEmpty && (
+            <>
+              <HeroSlider posts={heroPosts} />
+
+              <WeeklyHighlights posts={weeklyHighlights} />
+
+              <div className="py-24 px-6 bg-[#0a0a0a] border-y border-white/5 relative">
+                <RevealOnScroll>
+                  <div className="text-center max-w-4xl mx-auto">
+                    <Quote
+                      size={32}
+                      className="text-[#D8C97B] mx-auto mb-6 opacity-60"
+                    />
+                    <p className="text-2xl md:text-3xl font-light italic text-gray-300 leading-relaxed mb-6">
+                      {t("news_page.quote")}
+                    </p>
+                    <div className="w-16 h-px bg-[#D8C97B] mx-auto opacity-50"></div>
+                  </div>
+                </RevealOnScroll>
+              </div>
+
+              <ExploreMasonry posts={explorePosts} />
+
+              <div className="pb-16 pt-8 text-center opacity-40 bg-[#020202]">
+                <p className="text-[10px] tracking-[0.2em] uppercase">
+                  {t("news_page.gallery")}
+                </p>
+              </div>
+            </>
+          )}
+        </Suspense>
+      </div>
+    </>
   );
 }

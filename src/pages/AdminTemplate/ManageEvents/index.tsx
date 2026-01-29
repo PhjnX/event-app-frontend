@@ -24,8 +24,8 @@ import {
   FaHourglassHalf,
   FaFilter,
   FaChevronDown,
-  FaUnlockAlt,
-  FaBan,
+  FaUnlockAlt, // Icon mở khóa
+  FaBan, // Icon từ chối
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,6 +42,7 @@ import {
   fetchSelectedEvents,
   updateFeaturedEvents,
   updateSelectedEvents,
+  // Actions mới
   approveEditRequest,
   rejectEditRequest,
 } from "../../../store/slices/eventSlice";
@@ -94,7 +95,11 @@ export default function ManageEvents() {
     (state: RootState) => state.events,
   );
   const { user } = useSelector((state: RootState) => state.auth);
-  const isSAdmin = user?.role === ROLES.SUPER_ADMIN || user?.role === "SADMIN";
+  // Check role linh hoạt hơn
+  const isSAdmin =
+    user?.role === ROLES.SUPER_ADMIN ||
+    user?.role === "SADMIN" ||
+    user?.role?.includes("ADMIN");
 
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
@@ -117,8 +122,8 @@ export default function ManageEvents() {
       | "APPROVE"
       | "REJECT"
       | "SEND"
-      | "APPROVE_EDIT"
-      | "REJECT_EDIT"
+      | "APPROVE_EDIT" // Loại mới
+      | "REJECT_EDIT" // Loại mới
       | null;
     data: any | null;
   }>({ isOpen: false, type: null, data: null });
@@ -132,6 +137,7 @@ export default function ManageEvents() {
     return "HAPPENING";
   };
 
+  // Close dropdown logic
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -145,6 +151,7 @@ export default function ManageEvents() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch Data Loop
   useEffect(() => {
     const fetchData = () => {
       if (isSAdmin) {
@@ -156,16 +163,18 @@ export default function ManageEvents() {
       }
     };
     fetchData();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 30000); // 30s update 1 lần
     return () => clearInterval(interval);
   }, [dispatch, isSAdmin]);
 
-  // Logic Highlight & Auto Tab
+  // Logic Highlight & Auto Switch Tab
   useEffect(() => {
     if (highlightId && data.length > 0) {
       const target = data.find((e) => String(e.eventId) === highlightId);
       if (target) {
+        // Kiểm tra field editRequestStatus từ backend
         const requestStatus = (target as any).editRequestStatus;
+
         if (isSAdmin && requestStatus === "PENDING") {
           setActiveTab("EDIT_REQUEST");
         } else if (statusParam) {
@@ -199,15 +208,24 @@ export default function ManageEvents() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
-  // --- FILTER & SORT ---
+  // --- FILTER & SORT (UPDATED) ---
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
+      const evt = event as any;
+
+      // 1. Tab All: SAdmin thấy hết (trừ Draft), Organizer thấy hết
       if (activeTab === "ALL")
         return isSAdmin ? event.status !== "DRAFT" : true;
+
+      // 2. Tab Edit Request: Chỉ hiện những cái PENDING
       if (activeTab === "EDIT_REQUEST")
-        return (event as any).editRequestStatus === "PENDING";
+        return evt.editRequestStatus === "PENDING";
+
+      // 3. Tab Approved
       if (activeTab === "APPROVED")
         return event.status === "PUBLISHED" || event.status === "APPROVED";
+
+      // Các tab còn lại
       return event.status === activeTab;
     });
 
@@ -222,7 +240,9 @@ export default function ManageEvents() {
       if (String(b.eventId) === highlightId) return 1;
 
       const getPriorityScore = (event: any) => {
-        if ((event as any).editRequestStatus === "PENDING") return 0;
+        // Ưu tiên cao nhất (số nhỏ nhất) cho Edit Request PENDING
+        if (event.editRequestStatus === "PENDING") return -1;
+
         if (event.status === "PENDING_APPROVAL") return 1;
         const timeStatus = checkTimeStatus(event.startDate, event.endDate);
         if (event.status === "PUBLISHED" || event.status === "APPROVED") {
@@ -289,40 +309,43 @@ export default function ManageEvents() {
     }
   };
 
+  // HANDLER CHÍNH CHO CÁC MODAL
   const handleConfirmAction = async () => {
     const { type, data } = confirmModal;
     if (!data) return;
     try {
-      const actions: any = {
-        DELETE: () => dispatch(deleteEvent(data.slug)).unwrap(),
-        APPROVE: () => dispatch(approveEvent(data.eventId)).unwrap(),
-        REJECT: () =>
-          dispatch(
-            rejectEvent({ eventId: data.eventId, reason: rejectionReason }),
-          ).unwrap(),
-        SEND: () => dispatch(submitEventForApproval(data.slug)).unwrap(),
-        APPROVE_EDIT: () => dispatch(approveEditRequest(data.eventId)).unwrap(),
-        REJECT_EDIT: () =>
-          dispatch(
-            rejectEditRequest({
-              eventId: data.eventId,
-              reason: rejectionReason,
-            }),
-          ).unwrap(),
-      };
-
-      if (actions[type!]) {
-        if (
-          (type === "REJECT" || type === "REJECT_EDIT") &&
-          !rejectionReason.trim()
-        ) {
+      if (type === "DELETE") {
+        await dispatch(deleteEvent(data.slug)).unwrap();
+      } else if (type === "APPROVE") {
+        await dispatch(approveEvent(data.eventId)).unwrap();
+      } else if (type === "REJECT") {
+        if (!rejectionReason.trim()) {
           toast.warning("Nhập lý do!");
           return;
         }
-        await actions[type!]();
-        toast.success("Thành công!");
-        if (type?.includes("EDIT")) dispatch(fetchAllEvents());
+        await dispatch(
+          rejectEvent({ eventId: data.eventId, reason: rejectionReason }),
+        ).unwrap();
+      } else if (type === "SEND") {
+        await dispatch(submitEventForApproval(data.slug)).unwrap();
       }
+      // --- LOGIC MỚI ---
+      else if (type === "APPROVE_EDIT") {
+        await dispatch(approveEditRequest(data.eventId)).unwrap();
+        toast.success("Đã mở khóa sự kiện!");
+      } else if (type === "REJECT_EDIT") {
+        if (!rejectionReason.trim()) {
+          toast.warning("Nhập lý do!");
+          return;
+        }
+        await dispatch(
+          rejectEditRequest({ eventId: data.eventId, reason: rejectionReason }),
+        ).unwrap();
+        toast.success("Đã từ chối yêu cầu.");
+      }
+
+      if (isSAdmin) dispatch(fetchAllEvents());
+      else dispatch(fetchMyEvents());
     } catch (error: any) {
       toast.error(error.message || "Lỗi xử lý");
     } finally {
@@ -336,16 +359,18 @@ export default function ManageEvents() {
     setConfirmModal({ isOpen: true, type, data: eventItem });
   };
 
-  const StatusBadge = ({
-    status,
-    startDate,
-    endDate,
-  }: {
-    status: string;
-    startDate: string;
-    endDate: string;
-  }) => {
+  const StatusBadge = ({ event }: { event: any }) => {
+    const { status, startDate, endDate, editRequestStatus } = event;
     const timeStatus = checkTimeStatus(startDate, endDate);
+
+    if (editRequestStatus === "PENDING") {
+      return (
+        <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-yellow-500/10 text-yellow-500 border-yellow-500/30 flex items-center gap-1.5 animate-pulse">
+          <FaUnlockAlt /> YÊU CẦU SỬA
+        </span>
+      );
+    }
+
     if (status === "PENDING_APPROVAL")
       return (
         <span className="px-3 py-1 rounded-lg text-[10px] font-black border bg-blue-500/10 text-blue-400 border-blue-500/30 flex items-center gap-1.5">
@@ -394,14 +419,14 @@ export default function ManageEvents() {
     { id: "APPROVED", label: "Đã công bố" },
     { id: "REJECTED", label: "Bị từ chối" },
   ];
-  if (isSAdmin) TABS.splice(1, 0, { id: "EDIT_REQUEST", label: "Yêu cầu sửa" });
+  if (isSAdmin)
+    TABS.splice(1, 0, { id: "EDIT_REQUEST", label: "Yêu cầu sửa (New)" });
+
   const visibleTabs = isSAdmin ? TABS.filter((t) => t.id !== "DRAFT") : TABS;
 
   return (
     <div className="min-h-screen pb-20 font-noto text-white">
-      {/* HEADER FILTER */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8 pt-4">
-        {/* Dropdown Tabs */}
         <div className="w-full sm:w-auto relative z-30" ref={filterDropdownRef}>
           <div
             onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
@@ -453,7 +478,6 @@ export default function ManageEvents() {
           </AnimatePresence>
         </div>
 
-        {/* Search & New */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           <div className="relative group w-full sm:w-72">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#B5A65F] transition-colors" />
@@ -475,8 +499,6 @@ export default function ManageEvents() {
           )}
         </div>
       </div>
-
-      {/* LIST EVENTS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
         {isLoading ? (
           <div className="text-gray-500 col-span-2 text-center py-20">
@@ -488,6 +510,8 @@ export default function ManageEvents() {
               const isHighlighted = String(event.eventId) === highlightId;
               const editStatus = (event as any).editRequestStatus;
               const hasEditRequest = editStatus === "PENDING";
+              const isEditApproved =
+                (event as any).editRequestStatus === "APPROVED";
 
               const isHero =
                 tempHeroState[event.eventId] ??
@@ -504,7 +528,7 @@ export default function ManageEvents() {
                   "border-[#B5A65F] ring-2 ring-[#B5A65F]/30 shadow-[0_0_25px_rgba(181,166,95,0.4)] z-10 scale-[1.02]";
               else if (hasEditRequest && isSAdmin)
                 borderClass =
-                  "border-yellow-500/60 shadow-[0_0_15px_rgba(234,179,8,0.2)]";
+                  "border-yellow-500/60 shadow-[0_0_15px_rgba(234,179,8,0.2)] bg-yellow-900/5";
               else if (event.status === "PENDING_APPROVAL")
                 borderClass =
                   "border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.1)]";
@@ -530,16 +554,7 @@ export default function ManageEvents() {
                       imgClassName={`transition-all ${isExpired ? "grayscale opacity-40" : "opacity-80 group-hover:opacity-100"}`}
                     />
                     <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-                      <StatusBadge
-                        status={event.status}
-                        startDate={event.startDate}
-                        endDate={event.endDate}
-                      />
-                      {hasEditRequest && (
-                        <span className="px-3 py-1 text-[10px] font-black border bg-yellow-500/10 text-yellow-500 border-yellow-500/30 animate-pulse flex items-center gap-1">
-                          <FaUnlockAlt /> YÊU CẦU SỬA
-                        </span>
-                      )}
+                      <StatusBadge event={event} />
                     </div>
                   </div>
 
@@ -575,15 +590,15 @@ export default function ManageEvents() {
                     <div className="flex items-center gap-2">
                       {isSAdmin ? (
                         <>
-                          {hasEditRequest &&
-                          event.editRequestStatus === "PENDING" ? (
+                          {/* Nút xử lý Edit Request */}
+                          {hasEditRequest ? (
                             <>
                               <Tooltip title="Duyệt yêu cầu sửa">
                                 <button
                                   onClick={() =>
                                     openModal("APPROVE_EDIT", event)
                                   }
-                                  className="w-9 h-9 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white flex items-center justify-center animate-pulse"
+                                  className="w-9 h-9 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white flex items-center justify-center animate-pulse border border-green-500/30"
                                 >
                                   <FaUnlockAlt />
                                 </button>
@@ -593,7 +608,7 @@ export default function ManageEvents() {
                                   onClick={() =>
                                     openModal("REJECT_EDIT", event)
                                   }
-                                  className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center"
+                                  className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center border border-red-500/30"
                                 >
                                   <FaBan />
                                 </button>
@@ -644,6 +659,7 @@ export default function ManageEvents() {
                               </Tooltip>
                             </>
                           )}
+
                           {event.status === "PENDING_APPROVAL" &&
                             !isExpired && (
                               <>
@@ -678,7 +694,8 @@ export default function ManageEvents() {
                               </Tooltip>
                             )}
                             {(event.status === "DRAFT" ||
-                              event.status === "REJECTED") && (
+                              event.status === "REJECTED" ||
+                              isEditApproved) && (
                               <>
                                 <Link
                                   to={`/admin/events/${event.slug}/edit`}
@@ -715,7 +732,6 @@ export default function ManageEvents() {
         )}
       </div>
 
-      {/* PAGINATION & MODALS */}
       {!isLoading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-12">
           <button
@@ -789,7 +805,7 @@ export default function ManageEvents() {
             confirmModal.type === "APPROVE"
               ? `Duyệt sự kiện này?`
               : confirmModal.type === "APPROVE_EDIT"
-                ? `Chấp nhận yêu cầu chỉnh sửa? Sự kiện sẽ được mở khóa để Organizer sửa.`
+                ? `Chấp nhận yêu cầu chỉnh sửa? Sự kiện sẽ được mở khóa (về trạng thái Draft) để Organizer sửa.`
                 : confirmModal.type === "SEND"
                   ? "Gửi yêu cầu duyệt?"
                   : "Xóa sự kiện?"

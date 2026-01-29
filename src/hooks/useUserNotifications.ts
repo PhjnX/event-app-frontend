@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useTranslation } from "react-i18next"; // Import hook i18n
+import { useTranslation } from "react-i18next";
 import {
   fetchMyRegistrations,
   fetchPublicEvents,
@@ -36,7 +36,7 @@ const isRecent = (dateString: string, days = 3) => {
 };
 
 export const useUserNotifications = () => {
-  const { t } = useTranslation(); // Khởi tạo translation function
+  const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
 
   const { myRegistrations } = useSelector((state: RootState) => state.events);
@@ -142,7 +142,7 @@ export const useUserNotifications = () => {
             }),
             time: eventDate,
             read: readIds.includes(`new-event-${evt.eventId}`),
-            link: `/events/${evt.slug}`,
+            link: `/event/${evt.slug}`,
           });
         }
       });
@@ -155,7 +155,7 @@ export const useUserNotifications = () => {
             id: `new-post-${post.id}`,
             type: "NEW_POST",
             title: t("notifications.new_post_title"),
-            message: post.title, // Tiêu đề bài viết lấy trực tiếp từ API nên giữ nguyên
+            message: post.title,
             time: post.createdAt,
             read: readIds.includes(`new-post-${post.id}`),
             link: `/news/${post.slug}`,
@@ -167,7 +167,7 @@ export const useUserNotifications = () => {
     return notifs.sort(
       (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
     );
-  }, [myRegistrations, publicEvents, publicPosts, readIds, isInitialized, t]); // Thêm 't' vào dependencies
+  }, [myRegistrations, publicEvents, publicPosts, readIds, isInitialized, t]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

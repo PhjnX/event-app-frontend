@@ -11,9 +11,11 @@ import {
   type To,
 } from "react-router-dom";
 
+export const DEFAULT_LANG = "vi";
+
 export const useCurrentLang = () => {
   const params = useParams();
-  return params.lang || "vi";
+  return params.lang || DEFAULT_LANG;
 };
 
 export const getLangPath = (path: string, lang: string) => {
@@ -31,6 +33,11 @@ export const getLangPath = (path: string, lang: string) => {
   }
 
   const cleanPath = path.startsWith("/") ? path.substring(1) : path;
+
+  if (lang === DEFAULT_LANG && !cleanPath) {
+    return "/";
+  }
+
   return cleanPath ? `/${lang}/${cleanPath}` : `/${lang}`;
 };
 
@@ -94,25 +101,36 @@ export const useCheckNavigate = () => {
   return customNavigate;
 };
 
-// 6. Switch Language
 export const useLanguageSwitcher = () => {
   const location = useLocation();
   const navigate = useRouterNavigate();
+  const currentLang = useCurrentLang();
 
   return (newLang: string) => {
+    if (currentLang === newLang) return;
+
     const currentPath = location.pathname;
-    let newPath = currentPath.replace(/^\/[a-z]{2}/, `/${newLang}`);
 
-    if (newPath === currentPath && !currentPath.match(/^\/[a-z]{2}/)) {
-      const cleanPath = currentPath.startsWith("/")
-        ? currentPath.substring(1)
-        : currentPath;
-      newPath = `/${newLang}/${cleanPath}`;
+    const prefixRegex = /^\/(en|vi)(\/|$)/;
+
+    let newPath = currentPath;
+
+    if (currentPath.match(prefixRegex)) {
+      newPath = currentPath.replace(/^\/(en|vi)/, `/${newLang}`);
+    } else {
+      const cleanPath = currentPath === "/" ? "" : currentPath;
+      newPath = `/${newLang}${cleanPath}`;
     }
 
-    if (newPath !== currentPath) {
-      navigate(newPath);
+    if (newLang === DEFAULT_LANG && (newPath === "/vi" || newPath === "/vi/")) {
+      newPath = "/";
     }
+
+    if (newPath.length > 1 && newPath.endsWith("/")) {
+      newPath = newPath.slice(0, -1);
+    }
+
+    navigate(newPath + location.search + location.hash);
   };
 };
 

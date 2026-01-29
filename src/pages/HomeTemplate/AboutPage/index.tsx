@@ -1,14 +1,16 @@
 import React, { Suspense } from "react";
-
 import AboutHero from "../_components/about/Banner";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
+import { SEO_DATA } from "@/constants/seo-config";
+import { useCurrentLang } from "@/utils/i18n-router";
 
 const TimelineSection = React.lazy(
-  () => import("../_components/about/TimeLine")
+  () => import("../_components/about/TimeLine"),
 );
 const VisionSection = React.lazy(() => import("../_components/about/Vision"));
 const TeamSection = React.lazy(() => import("../_components/about/TeamMember"));
 const CustomerSection = React.lazy(
-  () => import("../_components/about/Customer")
+  () => import("../_components/about/Customer"),
 );
 
 const SectionLoader = () => (
@@ -18,25 +20,37 @@ const SectionLoader = () => (
 );
 
 export default function AboutPage() {
+  const lang = useCurrentLang();
+  const seo = SEO_DATA.about[lang as "vi" | "en"] || SEO_DATA.about.vi;
+
   return (
-    <div className="relative w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)]">
-      <AboutHero />
+    <>
+      <SeoHelmet
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        slug="about"
+      />
 
-      <Suspense fallback={<SectionLoader />}>
-        <TimelineSection />
-      </Suspense>
+      <div className="relative w-full overflow-hidden bg-[#0a0a0a] selection:bg-[rgba(216,201,123,0.3)]">
+        <AboutHero />
 
-      <Suspense fallback={<SectionLoader />}>
-        <VisionSection />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <TimelineSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <TeamSection />
-      </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <VisionSection />
+        </Suspense>
 
-      <Suspense fallback={<SectionLoader />}>
-        <CustomerSection />
-      </Suspense>
-    </div>
+        <Suspense fallback={<SectionLoader />}>
+          <TeamSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <CustomerSection />
+        </Suspense>
+      </div>
+    </>
   );
 }

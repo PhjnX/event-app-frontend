@@ -64,18 +64,23 @@ export default function EditEventPage() {
       try {
         const res = await apiService.get<Event>(`/events/${slug}`);
 
-        // --- GUARD: KIỂM TRA QUYỀN CHỈNH SỬA ---
-        // Nếu status là PUBLISHED hoặc APPROVED và chưa bị chuyển về DRAFT/REJECTED -> Chặn
-        // Giả sử logic BE: Khi duyệt yêu cầu sửa -> Status chuyển về DRAFT (hoặc REJECTED).
-        // Nếu Status vẫn là PUBLISHED -> Chưa được phép sửa.
-        if (res.status === "PUBLISHED" || res.status === "APPROVED") {
+        // --- CẬP NHẬT LOGIC GUARD (BẢO VỆ) ---
+        // Cho phép sửa nếu:
+        // 1. Sự kiện là DRAFT hoặc REJECTED (Chưa công bố hoặc bị từ chối)
+        // 2. HOẶC sự kiện đã PUBLISHED/APPROVED nhưng có editRequestStatus === "APPROVED" (Được cấp quyền sửa)
+
+        const isLocked =
+          (res.status === "PUBLISHED" || res.status === "APPROVED") &&
+          res.editRequestStatus !== "APPROVED";
+
+        if (isLocked) {
           toast.error(
-            "Sự kiện này đang bị khóa. Vui lòng gửi yêu cầu cấp quyền chỉnh sửa.",
+            "Sự kiện này đang bị khóa. Bạn cần gửi yêu cầu và được Admin duyệt mới có thể chỉnh sửa.",
           );
           navigate(`/admin/events/${slug}`);
           return;
         }
-        // --- END GUARD ---
+        // --- KẾT THÚC GUARD ---
 
         const start = parseDateTimeToInput(res.startDate);
         const end = parseDateTimeToInput(res.endDate);
@@ -87,7 +92,7 @@ export default function EditEventPage() {
           location: res.location,
           description: res.description,
           visibility: res.visibility,
-          status: res.status,
+          status: res.status, // Giữ nguyên status gốc
           bannerImageUrl: res.bannerImageUrl,
           startDateDate: start.date,
           startDateTime: start.time,
@@ -155,7 +160,6 @@ export default function EditEventPage() {
         endDate: endDateISO,
         registrationDeadline: regDateISO,
         visibility: formData.visibility,
-        status: formData.status,
       };
 
       if (slug) {
