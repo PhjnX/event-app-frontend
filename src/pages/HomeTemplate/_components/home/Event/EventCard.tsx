@@ -66,7 +66,7 @@ const EventCard = memo(function EventCard({
             height={250}
             className="w-full h-full"
             imgClassName="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
-            fallback="https://via.placeholder.com/600x400?text=Event"
+            fallback="https://placehold.co/600x400?text=Event"
           />
 
           <div className="absolute inset-0 bg-linear-to-t from-[#111111] via-transparent to-transparent opacity-90" />

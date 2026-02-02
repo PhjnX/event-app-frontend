@@ -43,7 +43,7 @@ export default defineConfig({
   },
 
   build: {
-    sourcemap: false,
+    sourcemap: "hidden",
     chunkSizeWarningLimit: 1000,
     minify: "esbuild",
     target: "es2020",
@@ -59,12 +59,15 @@ export default defineConfig({
             "@reduxjs/toolkit",
           ],
           "vendor-motion": ["framer-motion"],
-          "vendor-icons": ["react-icons"],
+          "vendor-icons": ["react-icons", "lucide-react"],
           "vendor-charts": ["recharts"],
           "vendor-excel": ["xlsx"],
-          "vendor-ui": ["react-toastify"],
+          "vendor-ui": ["react-toastify", "flowbite"],
           "vendor-websocket": ["sockjs-client", "@stomp/stompjs"],
           "vendor-utils": ["axios", "clsx", "tailwind-merge"],
+          "vendor-i18n": ["i18next", "react-i18next", "i18next-browser-languagedetector"],
+          "vendor-editor": ["@editorjs/editorjs", "@editorjs/header", "@editorjs/image", "@editorjs/list", "@editorjs/quote"],
+          "vendor-map": ["leaflet", "react-leaflet"],
         },
 
         chunkFileNames: "assets/js/[name]-[hash].js",

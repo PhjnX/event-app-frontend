@@ -162,7 +162,7 @@ const ManageNews: React.FC = () => {
                         <img
                           src={
                             post.thumbnailUrl ||
-                            "https://via.placeholder.com/150"
+                            "https://placehold.co/150"
                           }
                           alt="Thumbnail"
                           className="w-full h-full object-cover group-hover:scale-110 transition duration-300"

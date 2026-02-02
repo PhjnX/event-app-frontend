@@ -93,7 +93,7 @@ export default function HeroCarousel() {
               priority={true}
               className="w-full h-full"
               imgClassName="filter brightness-[0.6]"
-              fallback="https://via.placeholder.com/1920x1080"
+              fallback="https://placehold.co/1920x1080"
             />
           </motion.div>
 
