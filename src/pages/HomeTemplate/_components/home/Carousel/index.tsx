@@ -77,7 +77,7 @@ export const SLIDES: Slide[] = [
   },
 ];
 
-const Device3D = ({ slide }: { slide: Slide }) => {
+const Device3D = ({ slide, isFirst }: { slide: Slide; isFirst: boolean }) => {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
   const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
@@ -125,8 +125,8 @@ const Device3D = ({ slide }: { slide: Slide }) => {
             alt={slide.title}
             width={slide.deviceType === "phone" ? 300 : slide.deviceType === "tablet" ? 450 : 700}
             height={slide.deviceType === "phone" ? 600 : slide.deviceType === "tablet" ? 600 : 450}
-            fetchPriority={currentSlide.id === slide.id ? "high" : "low"}
-            loading={currentSlide.id === slide.id ? "eager" : "lazy"}
+            fetchPriority={isFirst ? "high" : "low"}
+            loading={isFirst ? "eager" : "lazy"}
             style={{ translateZ: 100 }}
             className="w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none z-10"
           />
@@ -305,7 +305,7 @@ export default function CarouselHero() {
             <div className="flex items-center justify-center w-full h-full order-2 lg:order-2">
               <div className="w-full min-h-[350px] lg:h-auto mt-8 mb-16 lg:my-0 flex items-center justify-center">
                 <AnimatePresence mode="wait">
-                  <Device3D key={currentSlide.id} slide={currentSlide} />
+                  <Device3D key={currentSlide.id} slide={currentSlide} isFirst={currentSlide.id === 1} />
                 </AnimatePresence>
               </div>
             </div>
