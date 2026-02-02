@@ -36,6 +36,14 @@
 
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
+    <!-- Preload LCP image -->
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/images/ems-iphone.webp"
+      fetchpriority="high"
+    />
+
     <title>
       Webie EMS - Hệ thống quản lý sự kiện toàn diện tại Việt Nam | Webie Việt
       Nam
@@ -98,18 +106,34 @@
     />
 
     <script type="application/ld+json"></script>
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-7QDBT9S7B1"
-    ></script>
+    <!-- Google Tag Manager - Lazy Loaded -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      // Lazy load GTM after 3 seconds or on user interaction
+      function loadGTM() {
+        if (window.gtmLoaded) return;
+        window.gtmLoaded = true;
+        
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=G-7QDBT9S7B1";
+        document.head.appendChild(script);
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "G-7QDBT9S7B1");
       }
-      gtag("js", new Date());
-
-      gtag("config", "G-7QDBT9S7B1");
+      
+      // Load after 3 seconds
+      setTimeout(loadGTM, 3000);
+      
+      // Or load on first user interaction
+      const events = ["mousedown", "touchstart", "keydown", "scroll"];
+      events.forEach(event => {
+        document.addEventListener(event, loadGTM, { once: true, passive: true });
+      });
     </script>
     <meta name="theme-color" content="#ffffff" />
 

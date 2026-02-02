@@ -189,7 +189,7 @@ export default function AllEventsSection({
                           width={400}
                           height={300}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          fallback="https://via.placeholder.com/400x300"
+                          fallback="https://placehold.co/400x300"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-[#111] to-transparent opacity-80"></div>
 

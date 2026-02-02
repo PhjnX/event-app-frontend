@@ -297,7 +297,7 @@ const RightSidebar = ({
               height={533}
               className="w-full h-full"
               imgClassName="transition-transform duration-700 group-hover:scale-110"
-              fallback="https://via.placeholder.com/600x800"
+              fallback="https://placehold.co/600x800"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
               <div className="bg-[#B5A65F] w-fit px-2 py-1 rounded text-[10px] font-black uppercase mb-2 text-black">
