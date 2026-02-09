@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Link } from "../../../utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "../../../store";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
 
 import {
   fetchPostBySlug,
@@ -393,6 +394,12 @@ const NewsDetail = () => {
 
   return (
     <>
+      <SeoHelmet
+        title={postDetail.title}
+        description={postDetail.summary}
+        slug={`news/${postDetail.slug || postDetail.id}`}
+        image={postDetail.thumbnailUrl}
+      />
       <style>{styles}</style>
       <div className="bg-[#FAFAFA] min-h-screen font-noto text-gray-800 selection:bg-[#B5A65F] selection:text-white">
         <div

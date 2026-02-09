@@ -1,3 +1,4 @@
+// src/components/Seo/SeoHelmet.tsx
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
@@ -30,9 +31,7 @@ export const SeoHelmet: React.FC<SeoHelmetProps> = ({
     if (langCode === DEFAULT_LANG) {
       return cleanSlug ? `${DOMAIN}/${cleanSlug}` : `${DOMAIN}/`;
     }
-    return cleanSlug
-      ? `${DOMAIN}/${langCode}/${cleanSlug}`
-      : `${DOMAIN}/${langCode}`;
+    return cleanSlug ? `${DOMAIN}/${langCode}/${cleanSlug}` : `${DOMAIN}/${langCode}`;
   };
 
   const currentUrl = buildUrl(lang);
