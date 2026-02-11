@@ -172,21 +172,13 @@
     "description": "Professional event management platform, helping you organize and manage events efficiently. Connecting passion, creating the future.",
     "sections": {
       "quick_links": {
-        "title": "Home",
+        "title": "Quick Links",
         "items": {
-          "industry": "Industries",
-          "solutions": "Solutions",
-          "resources": "Resources",
-          "support": "Support"
-        }
-      },
-      "company": {
-        "title": "Company",
-        "items": {
-          "contact": "Contact",
+          "home": "Home",
           "about": "About Us",
-          "careers": "Careers",
-          "blog": "Blog"
+          "values": "Core Values",
+          "events": "Events",
+          "news": "News"
         }
       },
       "support": {

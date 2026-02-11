@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "@/utils/i18n-router";
+import { Link, NavLink, useParams } from "react-router-dom";
 import {
   FaFacebookF,
-  FaTwitter,
   FaLinkedinIn,
   FaInstagram,
   FaYoutube,
@@ -16,12 +15,14 @@ interface FooterLink {
   label: string;
   path: string;
 }
+
 interface FooterSectionData {
   id: string;
   title: string;
   links: FooterLink[];
 }
-interface SocialLink {
+
+interface SocialLinkData {
   id: string;
   icon: React.ReactNode;
   url: string;
@@ -36,16 +37,37 @@ const containerVariants: Variants = {
 };
 const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
 };
+
+const DEFAULT_LANG = "vi";
 
 export default function Footer() {
   const { t } = useTranslation();
-
+  const { lang } = useParams();
   const currentYear = new Date().getFullYear();
+
+  const currentUrlLang = lang || DEFAULT_LANG;
+  const homePath = currentUrlLang === DEFAULT_LANG ? "/" : `/${currentUrlLang}`;
+
+  const getPath = (path: string) => {
+    if (path === "") return homePath;
+    if (path.startsWith("#") || path.startsWith("http")) return path;
+
+    const cleanPath = path.startsWith("/") ? path.substring(1) : path;
+    return `/${currentUrlLang}/${cleanPath}`;
+  };
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     quickLinks: false,
-    company: false,
     support: false,
   });
 
@@ -59,26 +81,20 @@ export default function Footer() {
         id: "quickLinks",
         title: t("footer.sections.quick_links.title"),
         links: [
-          { label: t("footer.sections.quick_links.items.industry"), path: "#" },
+          { label: t("footer.sections.quick_links.items.home"), path: "" },
           {
-            label: t("footer.sections.quick_links.items.solutions"),
-            path: "#",
+            label: t("footer.sections.quick_links.items.about"),
+            path: "about",
           },
           {
-            label: t("footer.sections.quick_links.items.resources"),
-            path: "#",
+            label: t("footer.sections.quick_links.items.values"),
+            path: "value",
           },
-          { label: t("footer.sections.quick_links.items.support"), path: "#" },
-        ],
-      },
-      {
-        id: "company",
-        title: t("footer.sections.company.title"),
-        links: [
-          { label: t("footer.sections.company.items.contact"), path: "#" },
-          { label: t("footer.sections.company.items.about"), path: "/about" },
-          { label: t("footer.sections.company.items.careers"), path: "#" },
-          { label: t("footer.sections.company.items.blog"), path: "#" },
+          {
+            label: t("footer.sections.quick_links.items.events"),
+            path: "events",
+          },
+          { label: t("footer.sections.quick_links.items.news"), path: "news" },
         ],
       },
       {
@@ -95,13 +111,12 @@ export default function Footer() {
     [t],
   );
 
-  const socialLinks: SocialLink[] = [
+  const socialLinks: SocialLinkData[] = [
     {
       id: "facebook",
       icon: <FaFacebookF />,
       url: "https://www.facebook.com/Webie.Vietnam",
     },
-    { id: "twitter", icon: <FaTwitter />, url: "#" },
     {
       id: "linkedin",
       icon: <FaLinkedinIn />,
@@ -118,6 +133,13 @@ export default function Footer() {
       url: "https://www.youtube.com/@WebieVietnamProductionHouse",
     },
   ];
+
+  const getFooterLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `text-sm no-underline transition-all duration-300 inline-block font-light ${
+      isActive
+        ? "text-[#D8C97B] font-medium pl-2 border-l-2 border-[#D8C97B]"
+        : "text-gray-400 hover:text-[#D8C97B] hover:pl-2 border-l-2 border-transparent"
+    }`;
 
   return (
     <footer className="relative mt-auto text-white pt-20 pb-10 overflow-hidden font-noto bg-[#000000] selection:bg-[rgba(216,201,123,0.3)] border-t border-white/10">
@@ -136,32 +158,26 @@ export default function Footer() {
               "linear-gradient(to top, black 0%, transparent 100%)",
           }}
         />
-
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)",
-            backgroundSize: "100px 100px",
-          }}
-        ></div>
-
         <div className="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-black to-transparent"></div>
       </div>
 
       <div className="max-w-[1400px] mx-auto px-5 lg:px-10 relative z-20">
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 mb-16"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-y-10 lg:gap-x-8 mb-16"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
         >
           <motion.div
-            className="lg:col-span-2 flex flex-col items-center lg:items-start text-center lg:text-left"
+            className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left"
             variants={itemVariants}
           >
-            <Link to="/" className="mb-6 inline-block group">
+            <Link
+              to={homePath}
+              className="mb-6 inline-block group"
+              onClick={handleScrollToTop}
+            >
               <img
                 src={logoImage}
                 alt="Webie Event"
@@ -177,7 +193,6 @@ export default function Footer() {
                   target="_blank"
                   key={social.id}
                   href={social.url}
-                  aria-label={`${social.id.charAt(0).toUpperCase() + social.id.slice(1)} - Webie Vietnam`}
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
                 >
@@ -187,10 +202,12 @@ export default function Footer() {
             </div>
           </motion.div>
 
+          <div className="hidden lg:block lg:col-span-1"></div>
+
           {footerSections.map((section) => (
             <motion.div
               key={section.id}
-              className="flex flex-col"
+              className="lg:col-span-3 flex flex-col"
               variants={itemVariants}
             >
               <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[rgba(216,201,123,0.3)] pb-2 w-fit">
@@ -221,16 +238,37 @@ export default function Footer() {
                     : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100 lg:pt-0"
                 }`}
               >
-                {section.links.map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#D8C97B] hover:pl-2 inline-block font-light"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {section.links.map((link, index) => {
+                  const isHashLink = link.path.startsWith("#");
+
+                  if (isHashLink) {
+                    return (
+                      <li key={index}>
+                        <a
+                          href={link.path}
+                          className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#D8C97B] hover:pl-2 inline-block font-light border-l-2 border-transparent"
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    );
+                  }
+
+                  const toPath = getPath(link.path);
+
+                  return (
+                    <li key={index}>
+                      <NavLink
+                        to={toPath}
+                        end={link.path === ""}
+                        className={getFooterLinkClass}
+                        onClick={handleScrollToTop}
+                      >
+                        {link.label}
+                      </NavLink>
+                    </li>
+                  );
+                })}
               </ul>
             </motion.div>
           ))}
@@ -245,7 +283,7 @@ export default function Footer() {
             <span className="text-gray-300 font-medium">Webie Vietnam</span>.{" "}
             {t("footer.bottom.rights")}
           </p>
-          <div className="flex items-center gap-6 text-xs font-light">
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-light">
             <a
               href="#"
               className="text-gray-500 hover:text-[#D8C97B] transition-colors"

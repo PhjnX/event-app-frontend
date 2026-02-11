@@ -172,25 +172,17 @@
     "description": "Nền tảng quản lý sự kiện chuyên nghiệp, giúp bạn tổ chức và quản lý các sự kiện hiệu quả. Kết nối đam mê, kiến tạo tương lai.",
     "sections": {
       "quick_links": {
-        "title": "Trang Chủ",
+        "title": "Liên kết nhanh",
         "items": {
-          "industry": "Ngành nghề",
-          "solutions": "Giải pháp",
-          "resources": "Tài nguyên",
-          "support": "Hỗ trợ"
-        }
-      },
-      "company": {
-        "title": "Công ty",
-        "items": {
-          "contact": "Liên hệ",
+          "home": "Trang chủ",
           "about": "Về Chúng Tôi",
-          "careers": "Tuyển Dụng",
-          "blog": "Blog"
+          "values": "Giá Trị Cốt Lõi",
+          "events": "Sự Kiện",
+          "news": "Tin Tức"
         }
       },
       "support": {
-        "title": "Hỗ trợ",
+        "title": "Hỗ Trợ",
         "items": {
           "help_center": "Trung Tâm Trợ Giúp",
           "docs": "Tài Liệu",

@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 
 interface NewsUI {
   id: number | string;
+  slug: string;
   title: string;
   image: string;
   category: string;
@@ -127,7 +128,7 @@ const NewsCard = memo(
               </div>
 
               <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#D8C97B] transition-colors pointer-events-auto line-clamp-2">
-                <Link to={`/news/${news.id}`}>{news.title}</Link>
+                <Link to={`/news/${news.slug}`}>{news.title}</Link>
               </h3>
 
               <motion.div
@@ -138,7 +139,7 @@ const NewsCard = memo(
                   {news.excerpt}
                 </p>
                 <Link
-                  to={`/news/${news.id}`}
+                  to={`/news/${news.slug}`}
                   className="inline-flex items-center gap-3 text-[#D8C97B] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#D8C97B] pb-1 hover:border-white"
                 >
                   {t("home.news_section.card.details")} <FaArrowRight />
@@ -171,7 +172,8 @@ const NewsSection = () => {
     if (!apiData || apiData.length === 0) return [];
 
     const mapped = apiData.map((item: any) => ({
-      id: item.id || item.slug,
+      id: item.id,
+      slug: item.slug,
       title: item.title,
       image: item.thumbnailUrl,
       category: "",

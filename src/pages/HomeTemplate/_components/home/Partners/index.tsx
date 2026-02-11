@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { useTranslation } from "react-i18next";
+
+import OrganizerRegModal from "../../common/OrganizerRegModal";
 
 import { PARTNERS } from "./partners";
 import type { Partner } from "@/pages/HomeTemplate/_components/home/models/partner";
@@ -76,9 +79,16 @@ const PartnerCard = ({ partner }: { partner: Partner }) => (
   </motion.div>
 );
 
-const JoinCard = ({ label }: { label: string }) => (
+const JoinCard = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) => (
   <motion.div
     variants={itemVariants}
+    onClick={onClick} // Gắn sự kiện click
     whileHover={{ scale: 1.02, borderColor: "#D8C97B" }}
     className="h-32 md:h-40 border-2 border-dashed border-[#D8C97B]/30 rounded-2xl flex flex-col items-center justify-center p-6 text-[#D8C97B] hover:bg-[#D8C97B]/10 transition-all cursor-pointer group"
   >
@@ -93,6 +103,7 @@ const JoinCard = ({ label }: { label: string }) => (
 
 export default function PartnersSection() {
   const { t } = useTranslation();
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <section className="relative py-24 text-white font-noto overflow-hidden bg-[#020202]">
@@ -136,9 +147,17 @@ export default function PartnersSection() {
             <PartnerCard key={partner.id} partner={partner} />
           ))}
 
-          <JoinCard label={t("home.partners.join_now")} />
+          <JoinCard
+            label={t("home.partners.join_now")}
+            onClick={() => setShowModal(true)}
+          />
         </motion.div>
       </div>
+
+      <OrganizerRegModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
     </section>
   );
 }

@@ -37,25 +37,47 @@ const InfoCard = ({
   icon,
   title,
   value,
+  href,
 }: {
   icon: any;
   title: string;
   value: string;
-}) => (
-  <div className="flex items-center gap-4 p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:border-[#D8C97B]/50 transition-all duration-300">
-    <div className="w-10 h-10 rounded-full bg-[#D8C97B]/10 flex items-center justify-center text-[#D8C97B] border border-[#D8C97B]/20 shrink-0">
-      {icon}
-    </div>
-    <div>
-      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5">
-        {title}
-      </p>
-      <p className="text-zinc-100 font-medium text-sm md:text-base leading-tight">
-        {value}
-      </p>
-    </div>
-  </div>
-);
+  href?: string;
+}) => {
+  const commonClasses =
+    "flex items-center gap-4 p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:border-[#D8C97B]/50 transition-all duration-300 w-full text-left group/card";
+
+  const content = (
+    <>
+      <div className="w-10 h-10 rounded-full bg-[#D8C97B]/10 flex items-center justify-center text-[#D8C97B] border border-[#D8C97B]/20 shrink-0 group-hover/card:scale-110 transition-transform">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5">
+          {title}
+        </p>
+        <p className="text-zinc-100 font-medium text-sm md:text-base leading-tight group-hover/card:text-[#D8C97B] transition-colors">
+          {value}
+        </p>
+      </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={href.startsWith("http") ? "_blank" : undefined}
+        rel="noopener noreferrer"
+        className={`${commonClasses} cursor-pointer hover:bg-zinc-800/80`}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return <div className={commonClasses}>{content}</div>;
+};
 
 export default function RegistrationSection() {
   const { t } = useTranslation();
@@ -66,7 +88,10 @@ export default function RegistrationSection() {
     setIsClient(true);
   }, []);
 
-  const officePosition: [number, number] = [10.78505, 106.74805];
+  const officePosition: [number, number] = [10.78525, 106.74827];
+
+  const businessName = "Webie Vietnam - Địa Điểm Kinh Doanh";
+  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessName)}`;
 
   return (
     <section
@@ -105,7 +130,7 @@ export default function RegistrationSection() {
             {isClient && (
               <MapContainer
                 center={officePosition}
-                zoom={16}
+                zoom={18}
                 scrollWheelZoom={false}
                 className="w-full h-full z-10"
               >
@@ -122,6 +147,14 @@ export default function RegistrationSection() {
                       <span className="text-gray-600 text-xs">
                         <Trans i18nKey="home.contact.map_popup.address" />
                       </span>
+                      <a
+                        href={googleMapsLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block mt-2 text-xs text-blue-500 underline"
+                      >
+                        Xem trên Google Maps
+                      </a>
                     </div>
                   </Popup>
                 </Marker>
@@ -169,16 +202,19 @@ export default function RegistrationSection() {
                 icon={<FaMapMarkerAlt />}
                 title={t("home.contact.info.office.title")}
                 value={t("home.contact.info.office.value")}
+                href={googleMapsLink}
               />
               <InfoCard
                 icon={<FaPhoneAlt />}
                 title={t("home.contact.info.hotline.title")}
                 value={t("home.contact.info.hotline.value")}
+                href="tel:0969838467"
               />
               <InfoCard
                 icon={<FaEnvelope />}
                 title={t("home.contact.info.email.title")}
                 value={t("home.contact.info.email.value")}
+                href={`mailto:${t("home.contact.info.email.value")}`}
               />
             </div>
           </motion.div>

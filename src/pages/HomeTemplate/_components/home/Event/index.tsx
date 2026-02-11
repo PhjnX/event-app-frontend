@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 
 export default function EventsSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [originalEvents, setOriginalEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
@@ -133,7 +133,7 @@ export default function EventsSection() {
 
         <div className="text-center mt-12 md:mt-20">
           <Link
-            to="/events"
+            to={`/${i18n.language}/events`}
             className="group relative inline-flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#D8C97B] hover:text-[#F4E2A6] transition-colors py-2"
           >
             <span>{t("home.events_section.view_all")}</span>
