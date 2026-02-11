@@ -170,7 +170,7 @@ export default function Footer() {
           viewport={{ once: true, amount: 0.1 }}
         >
           <motion.div
-            className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left"
+            className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left"
             variants={itemVariants}
           >
             <Link
@@ -202,76 +202,83 @@ export default function Footer() {
             </div>
           </motion.div>
 
-          <div className="hidden lg:block lg:col-span-1"></div>
+          <div className="hidden lg:block lg:col-span-2"></div>
 
-          {footerSections.map((section) => (
-            <motion.div
-              key={section.id}
-              className="lg:col-span-3 flex flex-col"
-              variants={itemVariants}
-            >
-              <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[rgba(216,201,123,0.3)] pb-2 w-fit">
-                {section.title}
-              </h3>
+          {footerSections.map((section, index) => {
+            const isLastSection = index === footerSections.length - 1;
 
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="lg:hidden w-full flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)] text-left bg-transparent"
-                type="button"
-              >
-                <h3 className="text-[15px] font-bold uppercase tracking-wider text-white m-0">
-                  {section.title}
-                </h3>
-                <span
-                  className={`text-white/50 transition-transform duration-300 ${
-                    openSections[section.id] ? "rotate-180 text-[#D8C97B]" : ""
-                  }`}
-                >
-                  <FaChevronDown size={12} />
-                </span>
-              </button>
-
-              <ul
-                className={`list-none p-0 m-0 flex flex-col gap-3 overflow-hidden transition-all duration-300 ease-in-out ${
-                  openSections[section.id]
-                    ? "max-h-[500px] pt-4 opacity-100"
-                    : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100 lg:pt-0"
+            return (
+              <motion.div
+                key={section.id}
+                className={`lg:col-span-3 flex flex-col ${
+                  isLastSection ? "lg:items-end" : ""
                 }`}
+                variants={itemVariants}
               >
-                {section.links.map((link, index) => {
-                  const isHashLink = link.path.startsWith("#");
+                <div className={isLastSection ? "lg:w-fit" : "w-full"}>
+                  <h3 className="hidden lg:block text-sm font-bold mb-6 uppercase tracking-widest text-white border-b border-[rgba(216,201,123,0.3)] pb-2 w-fit">
+                    {section.title}
+                  </h3>
 
-                  if (isHashLink) {
-                    return (
-                      <li key={index}>
-                        <a
-                          href={link.path}
-                          className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#D8C97B] hover:pl-2 inline-block font-light border-l-2 border-transparent"
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    );
-                  }
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className="lg:hidden w-full flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)] text-left bg-transparent"
+                    type="button"
+                  >
+                    <h3 className="text-[15px] font-bold uppercase tracking-wider text-white m-0">
+                      {section.title}
+                    </h3>
+                    <span
+                      className={`text-white/50 transition-transform duration-300 ${
+                        openSections[section.id]
+                          ? "rotate-180 text-[#D8C97B]"
+                          : ""
+                      }`}
+                    >
+                      <FaChevronDown size={12} />
+                    </span>
+                  </button>
 
-                  const toPath = getPath(link.path);
-
-                  return (
-                    <li key={index}>
-                      <NavLink
-                        to={toPath}
-                        end={link.path === ""}
-                        className={getFooterLinkClass}
-                        onClick={handleScrollToTop}
-                      >
-                        {link.label}
-                      </NavLink>
-                    </li>
-                  );
-                })}
-              </ul>
-            </motion.div>
-          ))}
+                  <ul
+                    className={`list-none p-0 m-0 flex flex-col gap-3 overflow-hidden transition-all duration-300 ease-in-out ${
+                      openSections[section.id]
+                        ? "max-h-[500px] pt-4 opacity-100"
+                        : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100 lg:pt-0"
+                    }`}
+                  >
+                    {section.links.map((link, idx) => {
+                      const isHashLink = link.path.startsWith("#");
+                      if (isHashLink) {
+                        return (
+                          <li key={idx}>
+                            <a
+                              href={link.path}
+                              className="text-gray-400 text-sm no-underline transition-all duration-300 hover:text-[#D8C97B] hover:pl-2 inline-block font-light border-l-2 border-transparent"
+                            >
+                              {link.label}
+                            </a>
+                          </li>
+                        );
+                      }
+                      const toPath = getPath(link.path);
+                      return (
+                        <li key={idx}>
+                          <NavLink
+                            to={toPath}
+                            end={link.path === ""}
+                            className={getFooterLinkClass}
+                            onClick={handleScrollToTop}
+                          >
+                            {link.label}
+                          </NavLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         <motion.div
