@@ -64,11 +64,6 @@ export default function EditEventPage() {
       try {
         const res = await apiService.get<Event>(`/events/${slug}`);
 
-        // --- CẬP NHẬT LOGIC GUARD (BẢO VỆ) ---
-        // Cho phép sửa nếu:
-        // 1. Sự kiện là DRAFT hoặc REJECTED (Chưa công bố hoặc bị từ chối)
-        // 2. HOẶC sự kiện đã PUBLISHED/APPROVED nhưng có editRequestStatus === "APPROVED" (Được cấp quyền sửa)
-
         const isLocked =
           (res.status === "PUBLISHED" || res.status === "APPROVED") &&
           res.editRequestStatus !== "APPROVED";
@@ -80,7 +75,6 @@ export default function EditEventPage() {
           navigate(`/admin/events/${slug}`);
           return;
         }
-        // --- KẾT THÚC GUARD ---
 
         const start = parseDateTimeToInput(res.startDate);
         const end = parseDateTimeToInput(res.endDate);
@@ -92,7 +86,7 @@ export default function EditEventPage() {
           location: res.location,
           description: res.description,
           visibility: res.visibility,
-          status: res.status, // Giữ nguyên status gốc
+          status: res.status, 
           bannerImageUrl: res.bannerImageUrl,
           startDateDate: start.date,
           startDateTime: start.time,

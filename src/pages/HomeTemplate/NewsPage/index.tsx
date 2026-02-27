@@ -23,7 +23,6 @@ import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { useTranslation } from "react-i18next";
 import { SeoHelmet } from "@/components/common/SeoHelmet";
 import { SEO_DATA } from "@/constants/seo-config";
-import { useCurrentLang } from "@/utils/i18n-router";
 
 const useScrollProgress = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -179,7 +178,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
     setTimeout(() => setIsAnimating(false), 800);
   };
 
-  if (!posts.length) return null;
+  if (!posts || !posts.length) return null;
   const post = posts[current];
 
   return (
@@ -196,7 +195,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
               index === current ? "scale-105" : "scale-100"
             }`}
             style={{
-              backgroundImage: `url(${optimizeImageUrl(p.thumbnailUrl, 1920, 1080)})`,
+              backgroundImage: `url(${optimizeImageUrl(p.thumbnailUrl || "https://placehold.co/1920x1080", 1920, 1080)})`,
             }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-black/50 to-black/30"></div>
@@ -377,40 +376,49 @@ const ExploreMasonry: React.FC<{ posts: any[] }> = ({ posts }) => {
 };
 
 export default function NewsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading } = useSelector((state: RootState) => state.news);
   const scrollProgress = useScrollProgress();
-  const lang = useCurrentLang();
+  const currentLang = i18n.language || "vi";
 
-  // Lấy data SEO cho News
-  const seo = SEO_DATA.news[lang as "vi" | "en"] || SEO_DATA.news.vi;
+  const seo = SEO_DATA.news[currentLang as "vi" | "en"] || SEO_DATA.news.vi;
 
   useEffect(() => {
-    dispatch(fetchPublicPosts({ page: 0, size: 50 }));
-  }, [dispatch]);
+    dispatch(fetchPublicPosts({ page: 0, size: 50, lang: currentLang }));
+  }, [dispatch, currentLang]);
 
   const { heroPosts, weeklyHighlights, explorePosts } = useMemo(() => {
-    if (!data || data.length === 0)
+    if (!data || !Array.isArray(data) || data.length === 0)
       return { heroPosts: [], weeklyHighlights: [], explorePosts: [] };
 
-    const allPosts = [...data];
+    const safePosts = data
+      .filter((post: any) => post != null)
+      .map((post: any) => ({
+        ...post,
+        title:
+          post.translations?.[currentLang]?.title ||
+          post.title ||
+          "Không có tiêu đề",
+        summary:
+          post.translations?.[currentLang]?.summary || post.summary || "",
+      }));
 
-    const hero = allPosts.slice(0, 3);
+    const hero = safePosts.slice(0, 3);
 
-    let weekly = allPosts.slice(3, 7);
+    let weekly = safePosts.slice(3, 7);
     if (weekly.length < 4) {
-      const filler = [...allPosts];
+      const filler = [...safePosts];
       weekly = [...weekly, ...filler].slice(0, 4);
     }
 
-    let explore = allPosts.slice(7);
-    if (explore.length === 0) explore = allPosts;
+    let explore = safePosts.slice(7);
+    if (explore.length === 0) explore = safePosts;
 
     return { heroPosts: hero, weeklyHighlights: weekly, explorePosts: explore };
-  }, [data]);
+  }, [data, currentLang]);
 
-  const isEmpty = !loading && (!data || data.length === 0);
+  const isEmpty = !loading && heroPosts.length === 0;
 
   return (
     <>

@@ -733,23 +733,35 @@ export default function ManageEvents() {
       </div>
 
       {!isLoading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-12">
+        <div className="flex justify-center mt-12 gap-2">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
-            <FaChevronLeft />
+            <FaChevronLeft size={12} />
           </button>
-          <span className="text-sm">
-            Trang {currentPage} / {totalPages}
-          </span>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                currentPage === page
+                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20"
+                  : "bg-[#1a1a1a] text-gray-400 hover:text-white border border-white/5 hover:border-[#B5A65F]/50"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
-            <FaChevronRight />
+            <FaChevronRight size={12} />
           </button>
         </div>
       )}

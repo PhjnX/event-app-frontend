@@ -156,7 +156,9 @@ const NewsCard = memo(
 NewsCard.displayName = "NewsCard";
 
 const NewsSection = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || "vi";
+
   const dispatch = useDispatch<AppDispatch>();
   const { data: apiData, loading } = useSelector(
     (state: RootState) => state.news,
@@ -165,29 +167,51 @@ const NewsSection = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchPublicPosts({ page: 0, size: 10 }));
-  }, [dispatch]);
+    dispatch(fetchPublicPosts({ page: 0, size: 10, lang: currentLang }));
+  }, [dispatch, currentLang]);
 
   const newsList: NewsUI[] = useMemo(() => {
-    if (!apiData || apiData.length === 0) return [];
+    if (!apiData || !Array.isArray(apiData) || apiData.length === 0) return [];
 
-    const mapped = apiData.map((item: any) => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      image: item.thumbnailUrl,
-      category: "",
-      date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
-      author: "",
-      excerpt: item.summary,
-    }));
+    const mapped = apiData
+      .filter((item: any) => item != null)
+      .map((item: any) => {
+        const displayTitle =
+          item.translations?.[currentLang]?.title ||
+          item.title ||
+          "Không có tiêu đề";
+        const displaySummary =
+          item.translations?.[currentLang]?.summary || item.summary || "";
+
+        const displaySlug =
+          item.alternateSlugs?.[currentLang] ||
+          item.translations?.[currentLang]?.slug ||
+          item.slug ||
+          item.id ||
+          "";
+
+        return {
+          id: item.id || Math.random().toString(),
+          slug: displaySlug,
+          title: displayTitle,
+          image: item.thumbnailUrl || "https://placehold.co/800x450",
+          category: "",
+          date: item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString(
+                currentLang === "en" ? "en-US" : "vi-VN",
+              )
+            : "",
+          author: "",
+          excerpt: displaySummary,
+        };
+      });
 
     if (mapped.length > 0 && mapped.length < 3) {
       return [...mapped, ...mapped, ...mapped].slice(0, 3);
     }
 
     return mapped;
-  }, [apiData]);
+  }, [apiData, currentLang]);
 
   useEffect(() => {
     if (isPaused || newsList.length === 0) return;
@@ -225,6 +249,7 @@ const NewsSection = () => {
     const len = newsList.length;
     const prevIndex = (activeIndex - 1 + len) % len;
     const nextIndex = (activeIndex + 1) % len;
+
     return [
       { ...newsList[prevIndex], position: "left" as const },
       { ...newsList[activeIndex], position: "center" as const },
@@ -306,7 +331,7 @@ const NewsSection = () => {
           <AnimatePresence mode="popLayout">
             {getVisibleItems().map((news, index) => (
               <NewsCard
-                key={`${news.id}-${index}`}
+                key={`${news.id}-${index}-${news.position}-${currentLang}`}
                 news={news}
                 position={news.position}
                 onDragStart={() => setIsPaused(true)}

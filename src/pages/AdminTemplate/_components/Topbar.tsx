@@ -115,11 +115,11 @@ const Topbar: React.FC<TopbarProps> = () => {
   };
 
   const getPageTitle = (path: string) => {
-    if (path.includes("/admin/events")) return "Manage Events";
-    if (path.includes("/admin/presenters")) return "Manage Guest Speakers";
-    if (path.includes("/admin/organizers")) return "Manage Organizers";
-    if (path.includes("/admin/users")) return "Manage Users";
-    if (path.includes("/admin/news")) return "Manage News";
+    if (path.includes("/admin/events")) return "Quản lý Sự kiện";
+    if (path.includes("/admin/presenters")) return "Quản lý Khách mời";
+    if (path.includes("/admin/organizers")) return "Quản lý Tổ chức sự kiện";
+    if (path.includes("/admin/users")) return "Quản lý Người dùng";
+    if (path.includes("/admin/news")) return "Quản lý Tin tức";
     return "Dashboard";
   };
   const currentTitle = getPageTitle(location.pathname);
@@ -134,7 +134,7 @@ const Topbar: React.FC<TopbarProps> = () => {
                 to="/admin"
                 className="text-gray-500 hover:text-[#D8C97B] transition-colors flex items-center gap-1 font-medium"
               >
-                <FaHome className="mt-0.5" /> Dashboard
+                <FaHome className="mt-0.5" /> Trang chủ
               </Link>
               <FaChevronRight className="text-gray-700 text-xs" />
               <span className="text-white font-bold tracking-wide">
@@ -143,7 +143,7 @@ const Topbar: React.FC<TopbarProps> = () => {
             </>
           ) : (
             <span className="text-white font-bold tracking-wide flex items-center gap-2">
-              <FaHome className="mt-0.5 text-[#D8C97B]" /> Dashboard
+              <FaHome className="mt-0.5 text-[#D8C97B]" /> Trang chủ
             </span>
           )}
         </div>

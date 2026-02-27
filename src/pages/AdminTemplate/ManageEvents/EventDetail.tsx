@@ -22,7 +22,7 @@ import {
   FaCloudUploadAlt,
   FaLock,
   FaUnlockAlt,
-  FaBan, // Icon mới
+  FaBan, 
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -45,14 +45,12 @@ import ConfirmModal from "./../_components/ConfirmModal";
 import { ROLES } from "@/constants";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
-// Import Action mới
 import {
   requestEditEvent,
   approveEditRequest,
   rejectEditRequest,
 } from "../../../store/slices/eventSlice";
 
-// ... (Giữ nguyên các hàm helper format date/time)
 const parseDateTimeToInput = (isoString: string) => {
   if (!isoString) return { date: "", time: "" };
   const [datePart, timeFull] = isoString.split("T");
@@ -106,16 +104,13 @@ export default function EventDetail() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
 
-  // State Modal Request Edit
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestReason, setRequestReason] = useState("");
 
-  // State Modal Reject Request
   const [isRejectRequestModalOpen, setIsRejectRequestModalOpen] =
     useState(false);
   const [rejectRequestReason, setRejectRequestReason] = useState("");
 
-  // ... (State Activity cũ)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState<number | null>(
@@ -150,24 +145,17 @@ export default function EventDetail() {
     (state: RootState) => state.presenters,
   );
 
-  // Logic quyền
-  // 1. Sự kiện đã duyệt/công bố -> Bị khóa, cần xin quyền
-  // 2. Sự kiện đang ở trạng thái bản nháp hoặc bị từ chối -> Được sửa thoải mái
-  // 3. Cờ editRequested (Giả sử BE trả về)
   const editStatus = (event as any)?.editRequestStatus;
   const isEditRequested = editStatus === "PENDING";
   const currentEditReason = (event as any)?.editRequestReason || "";
-  const isEditApproved = editStatus === "APPROVED"; // <--- Thêm biến này
+  const isEditApproved = editStatus === "APPROVED"; 
   const isLocked =
     (event?.status === "APPROVED" || event?.status === "PUBLISHED") &&
     !isEditApproved;
 
-  // 2. Sự kiện được sửa: Khi là Draft/Rejected HOẶC Đã được duyệt yêu cầu sửa
   const isEditable =
     event?.status === "DRAFT" || event?.status === "REJECTED" || isEditApproved;
 
-  // Organizer chỉ được quản lý activity nếu sự kiện Editable (Draft/Rejected)
-  // Nếu là Locked (Published), họ chỉ được xem, không được thêm/sửa/xóa activity
   const canManageActivities = isOrganizer && isEditable;
 
   useEffect(() => {
@@ -191,7 +179,6 @@ export default function EventDetail() {
     if (slug) loadData();
   }, [slug, dispatch]);
 
-  // --- HANDLER CHO EDIT REQUEST ---
   const handleRequestEdit = async () => {
     if (!event || !requestReason.trim()) {
       toast.warn("Vui lòng nhập lý do chỉnh sửa!");
@@ -221,7 +208,6 @@ export default function EventDetail() {
     try {
       await dispatch(approveEditRequest(event.eventId)).unwrap();
       toast.success("Đã mở khóa sự kiện cho Organizer chỉnh sửa!");
-      // Reload
       const res = await apiService.get<Event>(`/events/${slug}`);
       setEvent(res);
     } catch (error: any) {
@@ -250,7 +236,6 @@ export default function EventDetail() {
     }
   };
 
-  // ... (Giữ nguyên các handler form activity: handleSelectPresenter, handleRemovePresenter, handleOpenAddModal, handleOpenEditModal, handleFileChange, handleSubmitForm, handleQuickCreateCategory, openDeleteModal, handleConfirmDelete, groupedActivities)
   const handleSelectPresenter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = Number(e.target.value);
     if (id === 0) return;
@@ -452,9 +437,7 @@ export default function EventDetail() {
   const modalInputStyle =
     "w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#B5A65F] outline-none transition-all placeholder-gray-700 text-sm font-medium";
 
-  // --- RENDER CONTROL PANEL ---
   const renderControlPanel = () => {
-    // A. SADMIN: Hiện nút Duyệt/Từ chối nếu có Request
     if (user?.role?.includes("ADMIN") && editStatus === "PENDING") {
       return (
         <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-3xl p-6 shadow-xl mb-6 animate-pulse">
@@ -484,9 +467,7 @@ export default function EventDetail() {
       );
     }
 
-    // B. ORGANIZER
     if (isOrganizer) {
-      // 1. Nếu đang chờ duyệt
       if (isEditRequested) {
         return (
           <div className="bg-[#121212] border border-yellow-500/30 rounded-3xl p-6 shadow-xl mb-6">
@@ -499,7 +480,6 @@ export default function EventDetail() {
           </div>
         );
       }
-      // 2. Nếu bị khóa (Published/Approved) -> Hiện nút Gửi yêu cầu
       if (isLocked) {
         return (
           <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl mb-6">
@@ -518,7 +498,6 @@ export default function EventDetail() {
           </div>
         );
       }
-      // 3. Nếu được phép sửa (Draft/Rejected)
       if (isEditable) {
         return (
           <div className="bg-[#121212] border border-white/10 rounded-3xl p-6 shadow-xl top-24">
@@ -557,7 +536,6 @@ export default function EventDetail() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-100 font-noto pb-20 selection:bg-[rgba(181,166,95,0.3)]">
-      {/* Header Back */}
       <div className="bg-[rgba(5,5,5,0.8)] border-b border-white/5 top-0 z-40 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <Link
@@ -603,7 +581,10 @@ export default function EventDetail() {
                   {event.organizerName}
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black uppercase text-white leading-[1.1] mb-6 drop-shadow-2xl">
+              <h1
+                className="text-3xl md:text-5xl lg:text-6xl font-black uppercase text-white leading-tight mb-6 drop-shadow-2xl line-clamp-3 mt-4"
+                title={event.eventName}
+              >
                 {event.eventName}
               </h1>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 text-gray-300">

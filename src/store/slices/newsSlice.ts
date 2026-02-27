@@ -2,80 +2,118 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { toast } from "react-toastify";
 
-// FIX: Xóa từ khóa 'export' vì interface Post chỉ dùng nội bộ trong file này
 interface Post {
   id: number;
+  languageCode?: string;
   title: string;
   slug: string;
   summary: string;
   content: string;
+  seoTitle?: string;
+  seoDescription?: string;
   thumbnailUrl: string;
   status: string;
   createdAt: string;
   authorName?: string;
+  viewCount?: number;
+  translations?: any;
+  alternateSlugs?: Record<string, string>;
 }
 
 export const fetchPublicPosts = createAsyncThunk(
   "news/fetchPublicPosts",
   async (
-    { page, size }: { page: number; size: number },
-    { rejectWithValue }
+    { page, size, lang = "vi" }: { page: number; size: number; lang?: string },
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.get(`/posts`, {
-        params: { page, size },
+        params: { page, size, lang },
       });
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchPostBySlug = createAsyncThunk(
   "news/fetchPostBySlug",
-  async (slug: string, { rejectWithValue }) => {
+  async (
+    { slug, lang = "vi" }: { slug: string; lang?: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await apiService.get(`/posts/${slug}`);
+      const response = await apiService.get(`/posts/${slug}`, {
+        params: { lang },
+      });
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchPosts = createAsyncThunk(
   "news/fetchPosts",
   async (
-    { page, size }: { page: number; size: number },
-    { rejectWithValue }
+    { page, size, lang = "vi" }: { page: number; size: number; lang?: string },
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.get(`/posts`, {
-        params: { page, size },
+        params: { page, size, lang },
       });
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchPostDetailAdmin = createAsyncThunk(
-  "news/fetchDetail",
+  "news/fetchDetailAdmin",
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await apiService.get<Post>(`/admin/posts/${id}`);
-      return response;
+      const resVi: any = await apiService.get(`/admin/posts/${id}?lang=vi`);
+
+      let resEn: any = {};
+      try {
+        resEn = await apiService.get(`/admin/posts/${id}?lang=en`);
+      } catch (err) {
+        console.warn("Chưa có bản dịch Tiếng Anh cho bài viết này");
+      }
+
+      const combinedData = {
+        ...resVi,
+        translations: {
+          vi: {
+            title: resVi.title || "",
+            summary: resVi.summary || "",
+            content: resVi.content || "{}",
+            seoTitle: resVi.seoTitle || "",
+            seoDescription: resVi.seoDescription || "",
+          },
+          en: {
+            title: resEn.title || "",
+            summary: resEn.summary || "",
+            content: resEn.content || "{}",
+            seoTitle: resEn.seoTitle || "",
+            seoDescription: resEn.seoDescription || "",
+          },
+        },
+      };
+
+      return combinedData;
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const createPost = createAsyncThunk(
   "news/createPost",
-  async (data: Partial<Post>, { rejectWithValue }) => {
+  async (data: Partial<Post> | any, { rejectWithValue }) => {
     try {
       const response = await apiService.post("/admin/posts", data);
       toast.success("Tạo tin tức thành công!");
@@ -84,14 +122,14 @@ export const createPost = createAsyncThunk(
       toast.error("Lỗi tạo tin tức");
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updatePost = createAsyncThunk(
   "news/updatePost",
   async (
-    { id, data }: { id: number; data: Partial<Post> },
-    { rejectWithValue }
+    { id, data }: { id: number; data: Partial<Post> | any },
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.put(`/admin/posts/${id}`, data);
@@ -101,7 +139,7 @@ export const updatePost = createAsyncThunk(
       toast.error("Lỗi cập nhật");
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const deletePost = createAsyncThunk(
@@ -115,7 +153,7 @@ export const deletePost = createAsyncThunk(
       toast.error("Lỗi xóa bài viết");
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const uploadImage = async (file: File): Promise<string> => {
@@ -138,7 +176,7 @@ export const uploadImage = async (file: File): Promise<string> => {
       {
         headers: { "Content-Type": "multipart/form-data" },
         timeout: 60000,
-      }
+      },
     );
 
     if (res.file && res.file.url) {
@@ -162,7 +200,7 @@ export const uploadImage = async (file: File): Promise<string> => {
           toast.error("Lỗi Server! Có thể do định dạng ảnh không hỗ trợ.");
         } else {
           toast.error(
-            `Lỗi upload: ${error.response.statusText || "Không xác định"}`
+            `Lỗi upload: ${error.response.statusText || "Không xác định"}`,
           );
         }
       } else if (error.code === "ERR_NETWORK") {
@@ -210,6 +248,7 @@ const newsSlice = createSlice({
       .addCase(fetchPublicPosts.rejected, (state) => {
         state.loading = false;
       })
+
       .addCase(fetchPostBySlug.pending, (state) => {
         state.loading = true;
       })
@@ -217,6 +256,10 @@ const newsSlice = createSlice({
         state.loading = false;
         state.postDetail = action.payload;
       })
+      .addCase(fetchPostBySlug.rejected, (state) => {
+        state.loading = false;
+      })
+
       .addCase(fetchPosts.pending, (state) => {
         state.loading = true;
       })
@@ -225,11 +268,26 @@ const newsSlice = createSlice({
         state.data = action.payload.content || action.payload || [];
         state.totalElements = action.payload.totalElements || 0;
       })
-      .addCase(deletePost.fulfilled, (state, action) => {
-        state.data = state.data.filter((item) => item.id !== action.payload);
+      .addCase(fetchPosts.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(fetchPostDetailAdmin.pending, (state) => {
+        state.loading = true;
       })
       .addCase(fetchPostDetailAdmin.fulfilled, (state, action: any) => {
+        state.loading = false;
         state.postDetail = action.payload;
+      })
+      .addCase(fetchPostDetailAdmin.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(deletePost.fulfilled, (state, action) => {
+        state.data = state.data.filter((item) => item.id !== action.payload);
+        if (state.totalElements > 0) {
+          state.totalElements -= 1;
+        }
       });
   },
 });

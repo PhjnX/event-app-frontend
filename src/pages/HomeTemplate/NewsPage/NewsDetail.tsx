@@ -1,10 +1,10 @@
 import { useEffect, useState, type JSX } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "../../../utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "../../../store";
 import { SeoHelmet } from "@/components/common/SeoHelmet";
-
+import { toast } from "react-toastify";
 import {
   fetchPostBySlug,
   fetchPublicPosts,
@@ -249,34 +249,41 @@ const RightSidebar = ({
         </div>
         <div className="space-y-6">
           {relatedPosts && relatedPosts.length > 0 ? (
-            relatedPosts.slice(0, 4).map((post) => (
-              <Link
-                to={`/news/${post.slug || post.id}`}
-                key={post.id}
-                className="group cursor-pointer flex gap-4 items-start"
-              >
-                <div className="w-20 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                  <OptimizedImage
-                    src={post.thumbnailUrl}
-                    alt={post.title}
-                    width={80}
-                    height={64}
-                    className="w-full h-full"
-                    imgClassName="group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div>
-                  <h5 className="font-bold text-gray-800 text-sm leading-snug group-hover:text-[#B5A65F] transition-colors line-clamp-2">
-                    {post.title}
-                  </h5>
-                  <span className="text-[10px] text-gray-400 mt-1 block font-bold uppercase">
-                    {new Date(post.createdAt).toLocaleDateString(
-                      i18n.language === "en" ? "en-US" : "vi-VN",
-                    )}
-                  </span>
-                </div>
-              </Link>
-            ))
+            relatedPosts
+              .filter((p) => p != null) 
+              .slice(0, 4)
+              .map((post) => {
+                const postTitle =
+                  post.translations?.vi?.title || post.title || "Bài viết";
+                return (
+                  <Link
+                    to={`/news/${post.slug || post.id}`}
+                    key={post.id}
+                    className="group cursor-pointer flex gap-4 items-start"
+                  >
+                    <div className="w-20 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-100">
+                      <OptimizedImage
+                        src={post.thumbnailUrl || "https://placehold.co/100"}
+                        alt={postTitle}
+                        width={80}
+                        height={64}
+                        className="w-full h-full"
+                        imgClassName="group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-gray-800 text-sm leading-snug group-hover:text-[#B5A65F] transition-colors line-clamp-2">
+                        {postTitle}
+                      </h5>
+                      <span className="text-[10px] text-gray-400 mt-1 block font-bold uppercase">
+                        {new Date(post.createdAt).toLocaleDateString(
+                          i18n.language === "en" ? "en-US" : "vi-VN",
+                        )}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })
           ) : (
             <p className="text-gray-400 text-xs text-center italic">
               {t("news_page.detail.sidebar.updating")}
@@ -345,7 +352,9 @@ const RightSidebar = ({
 
 const NewsDetail = () => {
   const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || "vi";
   const { slug } = useParams();
+  const navigate = useNavigate(); // Khởi tạo navigate
   const dispatch = useDispatch<AppDispatch>();
 
   const {
@@ -359,30 +368,49 @@ const NewsDetail = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (slug) dispatch(fetchPostBySlug(slug));
-
-    dispatch(fetchPublicPosts({ page: 0, size: 5 }));
-
+    dispatch(fetchPublicPosts({ page: 0, size: 5, lang: currentLang }));
     dispatch(fetchPublicEvents());
 
     return () => {
       dispatch(clearPostDetail());
     };
-  }, [slug, dispatch]);
+  }, [dispatch, currentLang]);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    if (postDetail?.alternateSlugs) {
+      const correctSlug = postDetail.alternateSlugs[currentLang];
+
+      if (correctSlug && correctSlug !== slug) {
+        navigate(`/${currentLang}/news/${correctSlug}`, { replace: true });
+        return;
+      }
+    }
+
+    dispatch(fetchPostBySlug({ slug, lang: currentLang }))
+      .unwrap()
+      .catch((error) => {
+        console.error("Lỗi lấy bài viết:", error);
+        toast.warn(
+          currentLang === "en"
+            ? "This article is not available in English yet!"
+            : "Bài viết chưa có bản dịch cho ngôn ngữ này!",
+        );
+        navigate(`/${currentLang}/news`, { replace: true });
+      });
+  }, [slug, currentLang, navigate, dispatch]);
 
   const getUpcomingEvent = () => {
     if (!eventsList || eventsList.length === 0) return null;
-
     const now = new Date();
     const upcoming = eventsList.filter(
       (e: any) => new Date(e.startDate) >= now,
     );
-
     upcoming.sort(
       (a: any, b: any) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
     );
-
     return upcoming.length > 0
       ? upcoming[0]
       : eventsList[eventsList.length - 1];
@@ -390,13 +418,22 @@ const NewsDetail = () => {
 
   const upcomingEvent = getUpcomingEvent();
 
-  if (loadingNews || !postDetail) return <LoadingScreen />;
+  const isStaleData =
+    postDetail &&
+    (postDetail.languageCode !== currentLang || postDetail.slug !== slug);
+
+  if (loadingNews || !postDetail || isStaleData) {
+    return <LoadingScreen />;
+  }
+  const displayTitle = postDetail.title || "";
+  const displaySummary = postDetail.summary || "";
+  const displayContent = postDetail.content || "{}";
 
   return (
     <>
       <SeoHelmet
-        title={postDetail.title}
-        description={postDetail.summary}
+        title={displayTitle}
+        description={displaySummary}
         slug={`news/${postDetail.slug || postDetail.id}`}
         image={postDetail.thumbnailUrl}
       />
@@ -411,7 +448,7 @@ const NewsDetail = () => {
           <div className="absolute inset-0 overflow-hidden">
             <OptimizedImage
               src={postDetail.thumbnailUrl}
-              alt={postDetail.title}
+              alt={displayTitle}
               width={1920}
               height={800}
               priority={true}
@@ -421,21 +458,22 @@ const NewsDetail = () => {
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-black/30"></div>
           </div>
 
-          <div className="absolute top-24 left-0 w-full px-6 z-20">
+          <div className="absolute top-32 left-0 w-full px-6 z-40 pointer-events-none">
             <div className="max-w-7xl mx-auto">
               <Link
                 to="/news"
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-full transition-all text-sm font-bold uppercase tracking-wider border border-white/20"
+                className="pointer-events-auto relative inline-flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-full transition-all text-sm font-bold uppercase tracking-wider border border-white/20"
               >
                 <ArrowLeft size={16} /> {t("news_page.detail.back")}
               </Link>
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full px-6 pb-16 z-20">
-            <div className="max-w-4xl mx-auto text-center animate-fade-up">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-8 drop-shadow-xl font-noto">
-                {postDetail.title}
+          {/* VÙNG 2: TIÊU ĐỀ (Thêm pointer-events-none ở ngoài, pointer-events-auto ở trong) */}
+          <div className="absolute bottom-0 left-0 w-full px-6 pb-16 z-20 pointer-events-none">
+            <div className="max-w-4xl mx-auto text-center animate-fade-up pointer-events-auto">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-8 drop-shadow-xl font-noto line-clamp-4">
+                {displayTitle}
               </h1>
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-300 animate-fade-up-delay">
                 <div className="flex items-center gap-2">
@@ -512,11 +550,11 @@ const NewsDetail = () => {
 
               <div className="bg-[#FAFAFA] border-l-4 border-[#B5A65F] p-6 mb-10 rounded-r-lg">
                 <p className="text-xl font-noto italic text-gray-700 leading-relaxed">
-                  {postDetail.summary}
+                  {displaySummary}
                 </p>
               </div>
 
-              <NewsContentRenderer content={postDetail.content} />
+              <NewsContentRenderer content={displayContent} />
 
               <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
                 <Tag size={16} className="text-[#B5A65F] mt-1" />

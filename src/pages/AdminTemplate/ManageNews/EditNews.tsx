@@ -9,31 +9,40 @@ import {
   clearPostDetail,
 } from "../../../store/slices/newsSlice";
 import NewsEditor from "../_components/NewsEditor";
-import {
-  FaArrowLeft,
-  FaSave,
-  FaImage,
-  FaPenFancy,
-  FaSpinner,
-} from "react-icons/fa";
+import { FaArrowLeft, FaSave, FaSpinner, FaGlobe } from "react-icons/fa";
 
-const EditNews: React.FC = () => {
+type LangCode = "vi" | "en";
+
+export default function EditNews() {
   const { id } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { postDetail } = useSelector((state: RootState) => state.news);
 
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
+  const [activeTab, setActiveTab] = useState<LangCode>("vi");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [contentJson, setContentJson] = useState<any>(null);
-  const [readyToRenderEditor, setReadyToRenderEditor] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [readyToRenderEditor, setReadyToRenderEditor] = useState(false);
+
+  const [formData, setFormData] = useState({
+    vi: {
+      title: "",
+      summary: "",
+      content: null as any,
+      seoTitle: "",
+      seoDescription: "",
+    },
+    en: {
+      title: "",
+      summary: "",
+      content: null as any,
+      seoTitle: "",
+      seoDescription: "",
+    },
+  });
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchPostDetailAdmin(Number(id)));
-    }
+    if (id) dispatch(fetchPostDetailAdmin(Number(id)));
     return () => {
       dispatch(clearPostDetail());
     };
@@ -41,25 +50,61 @@ const EditNews: React.FC = () => {
 
   useEffect(() => {
     if (postDetail) {
-      setTitle(postDetail.title || "");
-      setSummary(postDetail.summary || "");
       setThumbnailUrl(postDetail.thumbnailUrl || "");
 
-      try {
-        if (postDetail.content && postDetail.content.trim() !== "") {
-          const parsedContent = JSON.parse(postDetail.content);
-          setContentJson(parsedContent);
-        } else {
-          setContentJson({}); 
+      const parseContent = (str: string | undefined) => {
+        if (!str || str.trim() === "") return {};
+        try {
+          return JSON.parse(str);
+        } catch (e) {
+          return {};
         }
-      } catch (e) {
-        console.error("Lỗi parse JSON content cũ:", e);
-        setContentJson({});
-      } finally {
-        setReadyToRenderEditor(true);
-      }
+      };
+
+      // FIX: Hàm lấy dữ liệu an toàn tương thích cả Object và Array từ API
+      const getTranslation = (langCode: string) => {
+        if (!postDetail.translations) return {};
+        if (Array.isArray(postDetail.translations)) {
+          return (
+            postDetail.translations.find(
+              (t: any) => t.lang === langCode || t.language === langCode,
+            ) || {}
+          );
+        }
+        return postDetail.translations[langCode] || {};
+      };
+
+      const transVi = getTranslation("vi");
+      const finalVi = transVi.title ? transVi : postDetail; // Fallback nếu translations.vi rỗng
+      const transEn = getTranslation("en");
+
+      setFormData({
+        vi: {
+          title: finalVi.title || "",
+          summary: finalVi.summary || "",
+          seoTitle: finalVi.seoTitle || "",
+          seoDescription: finalVi.seoDescription || "",
+          content: parseContent(finalVi.content),
+        },
+        en: {
+          title: transEn.title || "",
+          summary: transEn.summary || "",
+          seoTitle: transEn.seoTitle || "",
+          seoDescription: transEn.seoDescription || "",
+          content: parseContent(transEn.content),
+        },
+      });
+
+      setReadyToRenderEditor(true);
     }
   }, [postDetail]);
+
+  const handleInputChange = (lang: LangCode, field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [lang]: { ...prev[lang], [field]: value },
+    }));
+  };
 
   const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -68,7 +113,6 @@ const EditNews: React.FC = () => {
         const url = await uploadImage(e.target.files[0]);
         setThumbnailUrl(url);
       } catch (err) {
-        console.error(err);
         alert("Upload ảnh thất bại!");
       } finally {
         setUploading(false);
@@ -78,18 +122,34 @@ const EditNews: React.FC = () => {
 
   const handleUpdate = async () => {
     if (!id) return;
-
-    if (!title.trim()) {
-      alert("Tiêu đề không được để trống");
+    if (!formData.vi.title.trim()) {
+      alert("Tiêu đề tiếng Việt không được để trống");
       return;
     }
 
     const payload = {
-      title,
-      summary,
       thumbnailUrl,
-      content: JSON.stringify(contentJson), 
-      status: postDetail?.status || "PUBLISHED", 
+      status: postDetail?.status || "PUBLISHED",
+      translations: {
+        vi: {
+          title: formData.vi.title,
+          summary: formData.vi.summary,
+          seoTitle: formData.vi.seoTitle,
+          seoDescription: formData.vi.seoDescription,
+          content: formData.vi.content
+            ? JSON.stringify(formData.vi.content)
+            : "{}",
+        },
+        en: {
+          title: formData.en.title,
+          summary: formData.en.summary,
+          seoTitle: formData.en.seoTitle,
+          seoDescription: formData.en.seoDescription,
+          content: formData.en.content
+            ? JSON.stringify(formData.en.content)
+            : "{}",
+        },
+      },
     };
 
     await dispatch(updatePost({ id: Number(id), data: payload }));
@@ -114,39 +174,86 @@ const EditNews: React.FC = () => {
         >
           <FaArrowLeft /> Hủy bỏ
         </button>
-        <span className="text-gray-500 text-sm italic">
-          Đang chỉnh sửa bài viết #{id}
-        </span>
+
+        <div className="flex bg-[#1a1a1a] p-1 rounded-lg border border-gray-800">
+          <button
+            onClick={() => setActiveTab("vi")}
+            className={`px-6 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${
+              activeTab === "vi"
+                ? "bg-[#D8C97B] text-black"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <FaGlobe /> Tiếng Việt
+          </button>
+          <button
+            onClick={() => setActiveTab("en")}
+            className={`px-6 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${
+              activeTab === "en"
+                ? "bg-[#D8C97B] text-black"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <FaGlobe /> English
+          </button>
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 shadow-lg">
             <label className="text-[#D8C97B] text-xs uppercase font-bold tracking-wider mb-2 block">
-              Tiêu đề bài viết
+              Tiêu đề bài viết ({activeTab.toUpperCase()})
             </label>
             <input
               className="w-full bg-transparent text-2xl font-bold text-white placeholder-gray-600 focus:outline-none border-b border-gray-700 focus:border-[#D8C97B] transition-colors pb-2"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Nhập tiêu đề..."
+              value={formData[activeTab].title}
+              onChange={(e) =>
+                handleInputChange(activeTab, "title", e.target.value)
+              }
             />
           </div>
 
           <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 shadow-lg overflow-hidden">
-            <div className="bg-[#252525] px-6 py-3 border-b border-gray-700 flex justify-between items-center">
-              <span className="text-[#D8C97B] font-semibold text-sm uppercase tracking-wide flex items-center gap-2">
-                <FaPenFancy /> Nội dung
+            <div className="bg-[#252525] px-6 py-3 border-b border-gray-700">
+              <span className="text-[#D8C97B] font-semibold text-sm uppercase">
+                Nội dung ({activeTab.toUpperCase()})
               </span>
-              <span className="text-xs text-gray-500">Editor Mode</span>
             </div>
-            <div className="p-6 bg-white min-h-[500px] text-black">
-              <NewsEditor
-                key={id}
-                holder="editor-edit"
-                data={contentJson}
-                onChange={setContentJson}
-              />
+            {/* FIX: Bỏ class hidden, dùng opacity để ẩn Editor */}
+            <div className="bg-white min-h-[500px] text-black relative">
+              <div
+                className={`w-full h-full p-6 transition-opacity duration-200 ${
+                  activeTab === "vi"
+                    ? "opacity-100 relative z-10"
+                    : "opacity-0 absolute inset-0 pointer-events-none -z-10"
+                }`}
+              >
+                <NewsEditor
+                  key={`vi-${id}`}
+                  holder="editor-edit-vi"
+                  data={formData.vi.content}
+                  onChange={(data: any) =>
+                    handleInputChange("vi", "content", data)
+                  }
+                />
+              </div>
+              <div
+                className={`w-full h-full p-6 transition-opacity duration-200 ${
+                  activeTab === "en"
+                    ? "opacity-100 relative z-10"
+                    : "opacity-0 absolute inset-0 pointer-events-none -z-10"
+                }`}
+              >
+                <NewsEditor
+                  key={`en-${id}`}
+                  holder="editor-edit-en"
+                  data={formData.en.content}
+                  onChange={(data: any) =>
+                    handleInputChange("en", "content", data)
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -156,47 +263,41 @@ const EditNews: React.FC = () => {
             <h3 className="text-[#D8C97B] font-bold text-lg mb-4 border-b border-gray-700 pb-2">
               Thông tin chung
             </h3>
-
             <div className="space-y-5">
               <div>
                 <label className="block text-gray-400 text-sm mb-2 font-medium">
-                  Tóm tắt
+                  Tóm tắt ({activeTab.toUpperCase()})
                 </label>
                 <textarea
-                  rows={5}
-                  className="w-full bg-[#111] border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:border-[#D8C97B] focus:outline-none transition-colors resize-none"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  placeholder="Nhập tóm tắt..."
+                  rows={4}
+                  className="w-full bg-[#111] border border-gray-700 rounded-lg p-3 text-sm text-gray-200 focus:border-[#D8C97B]"
+                  value={formData[activeTab].summary}
+                  onChange={(e) =>
+                    handleInputChange(activeTab, "summary", e.target.value)
+                  }
                 />
               </div>
 
               <div>
                 <label className="block text-gray-400 text-sm mb-2 font-medium">
-                  Ảnh đại diện
+                  Ảnh đại diện (Dùng chung)
                 </label>
-                <div className="border-2 border-dashed border-gray-700 rounded-lg p-2 text-center hover:border-[#D8C97B] transition-colors bg-[#111] relative group overflow-hidden">
+                <div className="border-2 border-dashed border-gray-700 rounded-lg p-2 text-center hover:border-[#D8C97B] bg-[#111] relative group overflow-hidden">
                   <input
                     type="file"
                     onChange={handleThumbUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
                   {uploading ? (
-                    <div className="py-8 flex flex-col items-center">
-                      <FaSpinner className="animate-spin text-[#D8C97B] mb-2" />
-                      <p className="text-[#D8C97B] text-xs">Uploading...</p>
+                    <div className="py-8">
+                      <FaSpinner className="animate-spin text-[#D8C97B] mx-auto" />
                     </div>
                   ) : thumbnailUrl ? (
-                    <div className="relative">
-                      <img
-                        src={thumbnailUrl}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded-md"
-                      />
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
-                        <FaImage className="text-white text-3xl" />
-                      </div>
-                    </div>
+                    <img
+                      src={thumbnailUrl}
+                      alt="Preview"
+                      className="w-full h-40 object-cover rounded-md"
+                    />
                   ) : (
                     <div className="py-8">
                       <p className="text-gray-500 text-sm">Upload ảnh mới</p>
@@ -205,9 +306,45 @@ const EditNews: React.FC = () => {
                 </div>
               </div>
 
+              {/* SEO FIELDS */}
+              <div className="border-t border-gray-800 pt-4">
+                <h4 className="text-sm font-bold text-[#D8C97B] mb-3">
+                  SEO ({activeTab.toUpperCase()})
+                </h4>
+                <div className="mb-3">
+                  <label className="block text-gray-400 text-xs mb-1">
+                    SEO Title
+                  </label>
+                  <input
+                    className="w-full bg-[#111] border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:border-[#D8C97B] focus:outline-none"
+                    value={formData[activeTab].seoTitle}
+                    onChange={(e) =>
+                      handleInputChange(activeTab, "seoTitle", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1">
+                    SEO Description
+                  </label>
+                  <textarea
+                    rows={2}
+                    className="w-full bg-[#111] border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:border-[#D8C97B] focus:outline-none"
+                    value={formData[activeTab].seoDescription}
+                    onChange={(e) =>
+                      handleInputChange(
+                        activeTab,
+                        "seoDescription",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
               <button
                 onClick={handleUpdate}
-                className="w-full bg-[#D8C97B] hover:bg-[#c4b56a] text-black font-bold py-3 rounded-lg shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-[#D8C97B] hover:bg-[#c4b56a] text-black font-bold py-3 rounded-lg shadow-lg flex justify-center items-center gap-2 mt-2"
               >
                 <FaSave /> Lưu thay đổi
               </button>
@@ -217,6 +354,4 @@ const EditNews: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default EditNews;
+}

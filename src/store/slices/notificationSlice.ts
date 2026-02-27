@@ -5,7 +5,6 @@ import {
 } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 
-// --- Types ---
 interface NotificationData {
   eventId?: string;
   organizerId?: string;
@@ -13,8 +12,9 @@ interface NotificationData {
   rejectionReason?: string;
   reason?: string;
   unlockReason?: string;
+  unlockRequestReason?: string;
   editRequestReason?: string;
-  slug?: string; // Thêm slug để điều hướng tiện hơn
+  slug?: string;
   [key: string]: any;
 }
 
@@ -42,7 +42,6 @@ const initialState: NotificationState = {
   error: null,
 };
 
-// --- HÀM HELPER ---
 const getValidDate = (obj: any, priorityField: string): string => {
   if (!obj) return new Date().toISOString();
   if (obj[priorityField]) return obj[priorityField];
@@ -61,7 +60,6 @@ const getValidDate = (obj: any, priorityField: string): string => {
   return new Date().toISOString();
 };
 
-// --- ADMIN NOTIFICATIONS ---
 export const fetchAdminNotifications = createAsyncThunk(
   "notifications/fetchAdmin",
   async (_, { rejectWithValue }) => {
@@ -73,7 +71,6 @@ export const fetchAdminNotifications = createAsyncThunk(
 
       const notifications: Notification[] = [];
 
-      // 1. Organizer Pending
       if (Array.isArray(organizers)) {
         organizers
           .filter((o) => o.status === "PENDING" || o.approved === false)
@@ -89,7 +86,6 @@ export const fetchAdminNotifications = createAsyncThunk(
             });
           });
 
-        // 2. Unlock Request
         organizers
           .filter((o) => o.unlockRequested)
           .forEach((org) => {
@@ -98,17 +94,18 @@ export const fetchAdminNotifications = createAsyncThunk(
               type: "UNLOCK_REQUEST",
               title: "Yêu cầu mở khóa tài khoản",
               message: `${org.organizerName || org.name} yêu cầu mở khóa`,
-              data: org,
+              data: {
+                ...org,
+                unlockReason: org.unlockRequestReason,
+              },
               createdAt: getValidDate(org, "updatedAt"),
               read: false,
             });
           });
       }
 
-      // 3. Event Notifications
       if (Array.isArray(events)) {
         events.forEach((event) => {
-          // A. Event Pending Approval (Duyệt sự kiện mới)
           if (event.status === "PENDING_APPROVAL") {
             notifications.push({
               id: `event-pending-${event.eventId}`,
@@ -121,8 +118,6 @@ export const fetchAdminNotifications = createAsyncThunk(
             });
           }
 
-          // B. Edit Request (Yêu cầu chỉnh sửa) - QUAN TRỌNG: Kiểm tra cả flag và status
-          // Sửa logic tại đây để bắt được trường hợp từ eventSlice
           if (
             event.editRequested === true ||
             event.editRequestStatus === "PENDING"
@@ -155,7 +150,6 @@ export const fetchAdminNotifications = createAsyncThunk(
   },
 );
 
-// --- ORGANIZER NOTIFICATIONS ---
 export const fetchOrganizerNotifications = createAsyncThunk(
   "notifications/fetchOrganizer",
   async (_, { rejectWithValue }) => {
@@ -165,9 +159,7 @@ export const fetchOrganizerNotifications = createAsyncThunk(
 
       if (Array.isArray(myEvents)) {
         myEvents.forEach((event) => {
-          // 1. Trạng thái sự kiện thay đổi (Approved/Rejected ban đầu)
           if (event.status === "APPROVED" && !event.editRequestStatus) {
-            // Thêm điều kiện !editRequestStatus để tránh trùng với việc Approved Edit Request
             notifList.push({
               id: `event-status-${event.eventId}-APPROVED`,
               type: "EVENT_APPROVED",
@@ -189,9 +181,6 @@ export const fetchOrganizerNotifications = createAsyncThunk(
             });
           }
 
-          // 2. Phản hồi Edit Request (MỚI THÊM)
-
-          // Case A: Request Bị từ chối
           if (event.editRequestStatus === "REJECTED") {
             notifList.push({
               id: `edit-rejected-${event.eventId}`,
@@ -200,7 +189,6 @@ export const fetchOrganizerNotifications = createAsyncThunk(
               message: `Yêu cầu chỉnh sửa cho "${event.eventName}" không được chấp nhận.`,
               data: {
                 ...event,
-                // Ưu tiên lấy rejectionReason từ field riêng nếu có, hoặc dùng field chung
                 rejectionReason:
                   event.editRejectionReason || event.rejectionReason,
               },
@@ -209,13 +197,10 @@ export const fetchOrganizerNotifications = createAsyncThunk(
             });
           }
 
-          // Case B: Request Được duyệt (MỚI THÊM LOGIC NÀY)
-          // Khi SAdmin approve edit request -> editRequestStatus = "APPROVED"
-          // (và thường status sự kiện sẽ về DRAFT để cho phép sửa)
           if (event.editRequestStatus === "APPROVED") {
             notifList.push({
               id: `edit-approved-${event.eventId}`,
-              type: "EDIT_REQUEST_APPROVED", // Type mới
+              type: "EDIT_REQUEST_APPROVED",
               title: "Yêu cầu chỉnh sửa được chấp nhận",
               message: `Bạn đã có thể chỉnh sửa sự kiện "${event.eventName}".`,
               data: event,
@@ -225,7 +210,6 @@ export const fetchOrganizerNotifications = createAsyncThunk(
           }
         });
 
-        // 3. Vé mới (Registrations)
         const activeEvents = myEvents.filter((e) =>
           ["APPROVED", "ONGOING", "PUBLISHED", "DRAFT"].includes(e.status),
         );
@@ -294,7 +278,6 @@ const notificationSlice = createSlice({
       action: PayloadAction<Notification[]>,
     ) => {
       state.isLoading = false;
-      // Giữ lại trạng thái read của các notif cũ nếu ID trùng khớp
       const currentMap = new Map(state.items.map((i) => [i.id, i]));
       const newItems = action.payload.map((newItem) => {
         const existing = currentMap.get(newItem.id);

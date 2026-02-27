@@ -140,8 +140,9 @@ export default function ManagePresenters() {
     name: string;
   }>({ isOpen: false, id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [localFeatured] = useState<Record<number, boolean>>({});
-
+  const [localFeatured, setLocalFeatured] = useState<Record<number, boolean>>(
+    {},
+  );
   useEffect(() => {
     if (isSAdmin) {
       dispatch(fetchOrganizers());
@@ -265,8 +266,57 @@ export default function ManagePresenters() {
     toast.success("Xuất file thành công!");
   };
 
-  const handleToggleFeatured = async (_presenter: Presenter) => {
+  const handleToggleFeatured = async (presenter: Presenter) => {
     if (!isSAdmin) return;
+
+    const currentFeaturedIds = presenters
+      .filter((p) => {
+        if (localFeatured.hasOwnProperty(p.presenterId)) {
+          return localFeatured[p.presenterId];
+        }
+        return p.featured;
+      })
+      .map((p) => p.presenterId);
+
+    const isCurrentlyActive = currentFeaturedIds.includes(
+      presenter.presenterId,
+    );
+    let newFeaturedList: number[] = [];
+
+    if (isCurrentlyActive) {
+      newFeaturedList = currentFeaturedIds.filter(
+        (id) => id !== presenter.presenterId,
+      );
+    } else {
+      if (currentFeaturedIds.length >= 4) {
+        toast.warning("Chỉ được hiển thị tối đa 4 diễn giả nổi bật!");
+      }
+      newFeaturedList = [...currentFeaturedIds, presenter.presenterId];
+    }
+
+    setLocalFeatured((prev) => ({
+      ...prev,
+      [presenter.presenterId]: !isCurrentlyActive,
+    }));
+
+    try {
+      await apiService.put("/presenters/featured", newFeaturedList);
+
+      toast.success("Cập nhật danh sách nổi bật thành công!");
+
+      if (selectedOrgSlug === "ALL") dispatch(fetchPresenters());
+      else dispatch(fetchPresentersByOrganizer(selectedOrgSlug));
+    } catch (error: any) {
+      console.error("Lỗi cập nhật featured:", error);
+
+      setLocalFeatured((prev) => ({
+        ...prev,
+        [presenter.presenterId]: isCurrentlyActive,
+      }));
+      toast.error(
+        error?.response?.data?.message || "Lỗi khi lưu danh sách nổi bật",
+      );
+    }
   };
 
   const openCreateModal = () => {
@@ -569,12 +619,14 @@ export default function ManagePresenters() {
               <FaLock /> Bị hạn chế
             </div>
           ) : (
-            <button
-              onClick={openCreateModal}
-              className="w-full sm:w-auto px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-2xl hover:bg-[#c4b56a] flex justify-center items-center gap-2 shadow-lg"
-            >
-              <FaPlus /> Thêm mới
-            </button>
+            !isSAdmin && (
+              <button
+                onClick={openCreateModal}
+                className="w-full sm:w-auto px-6 py-3 bg-[#B5A65F] text-black font-bold text-sm rounded-2xl hover:bg-[#c4b56a] flex justify-center items-center gap-2 shadow-lg"
+              >
+                <FaPlus /> Thêm mới
+              </button>
+            )
           )}
         </div>
       </div>
@@ -699,31 +751,41 @@ export default function ManagePresenters() {
         </div>
       )}
 
-      {/* --- PAGINATION & MODALS (GIỮ NGUYÊN) --- */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-12">
+        <div className="flex justify-center mt-12 gap-2">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
             <FaChevronLeft size={12} />
           </button>
-          <span className="text-sm font-bold text-gray-400 px-2">
-            Trang <span className="text-white">{currentPage}</span> /{" "}
-            {totalPages}
-          </span>
+
+          {/* Render danh sách số trang */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                currentPage === page
+                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20" // Active: Vàng
+                  : "bg-[#1a1a1a] text-gray-400 hover:text-white border border-white/5 hover:border-[#B5A65F]/50" // Inactive
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1a1a1a] border border-white/10 disabled:opacity-50 hover:border-[#B5A65F] transition-all"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
             <FaChevronRight size={12} />
           </button>
         </div>
       )}
 
-      {/* MODALS: View Detail, Create/Edit Form, Confirm Delete */}
       <AnimatePresence>
         {viewDetailPresenter && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4">

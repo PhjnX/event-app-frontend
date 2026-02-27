@@ -13,8 +13,8 @@ import {
   Lock,
   ChevronDown,
   Maximize2,
-  FileEdit, // Icon mới cho Edit Request
-  AlertCircle, // Icon cho Reject
+  FileEdit,
+  AlertCircle,
 } from "lucide-react";
 import { useCheckNavigate as useNavigate } from "@/utils/i18n-router";
 import {
@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type NotificationData = {
   unlockReason?: string;
+  unlockRequestReason?: string;
   reason?: string;
   rejectionReason?: string;
   editRequestReason?: string;
@@ -48,10 +49,19 @@ type Notification = {
   data?: NotificationData;
 };
 
+const ACTION_TYPES = [
+  "ORGANIZER_PENDING",
+  "UNLOCK_REQUEST",
+  "EVENT_PENDING",
+  "EDIT_REQUEST_PENDING",
+];
+
 const NotificationPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
   const [visibleCount, setVisibleCount] = useState(5);
+  const [activeTab, setActiveTab] = useState<"ALL" | "ACTION" | "INFO">("ALL");
+
   const panelRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -75,7 +85,9 @@ const NotificationPanel = () => {
   }, [dispatch, isSAdmin, isOrganizer]);
 
   useEffect(() => {
-    if (!isOpen) setTimeout(() => setVisibleCount(5), 200);
+    if (!isOpen) {
+      setTimeout(() => setVisibleCount(5), 200);
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -87,39 +99,37 @@ const NotificationPanel = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const sortedItems = useMemo(
-    () =>
-      [...items].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    [items],
-  );
-  const displayedItemsDropdown = useMemo(
-    () => sortedItems.slice(0, visibleCount),
-    [sortedItems, visibleCount],
-  );
-  const hasMoreDropdown = visibleCount < sortedItems.length;
+  const filteredItems = useMemo(() => {
+    let result = [...items].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
 
-  // --- LOGIC ĐIỀU HƯỚNG MỚI ---
+    if (activeTab === "ACTION") {
+      result = result.filter((n) => ACTION_TYPES.includes(n.type));
+    } else if (activeTab === "INFO") {
+      result = result.filter((n) => !ACTION_TYPES.includes(n.type));
+    }
+    return result;
+  }, [items, activeTab]);
+
+  const displayedItemsDropdown = useMemo(
+    () => filteredItems.slice(0, visibleCount),
+    [filteredItems, visibleCount],
+  );
+  const hasMoreDropdown = visibleCount < filteredItems.length;
+
   const handleNotificationClick = (notification: Notification) => {
     dispatch(markAsRead(notification.id));
     const data = notification.data || {};
 
     switch (notification.type) {
-      // 1. EDIT REQUEST PENDING (Admin click vào)
       case "EDIT_REQUEST_PENDING":
-        if (data.eventId)
-          navigate(`/admin/events/${data.eventId}/edit-request`); // Hoặc trang detail và tự mở modal duyệt
-        // Ở code trước mình làm là trang Detail tự hiện Panel duyệt, nên chỉ cần link tới Detail:
         navigate(`/admin/events/${data.slug || data.eventId}`);
         break;
-
-      // 2. EDIT REQUEST REJECTED (Organizer click vào)
       case "EDIT_REQUEST_REJECTED":
         navigate(`/admin/events/${data.slug || data.eventId}`);
         break;
-
       case "ORGANIZER_PENDING":
         if (data.organizerId)
           navigate(
@@ -177,14 +187,12 @@ const NotificationPanel = () => {
     return date.toLocaleDateString("vi-VN");
   };
 
-  // --- ICON MỚI CHO EDIT REQUEST ---
   const getIcon = (type: string) => {
     switch (type) {
       case "EDIT_REQUEST_PENDING":
         return <FileEdit className="w-5 h-5 text-yellow-500" />;
       case "EDIT_REQUEST_REJECTED":
         return <AlertCircle className="w-5 h-5 text-red-500" />;
-
       case "ORGANIZER_PENDING":
         return <User className="w-5 h-5 text-blue-400" />;
       case "EVENT_PENDING":
@@ -210,7 +218,8 @@ const NotificationPanel = () => {
       data.rejectionReason ||
       data.reason ||
       data.editRequestReason ||
-      data.unlockReason
+      data.unlockReason ||
+      data.unlockRequestReason
     );
   };
 
@@ -221,13 +230,11 @@ const NotificationPanel = () => {
   }) => {
     const reasonContent = getReasonText(notification);
     const hasReason = reasonContent && reasonContent.trim() !== "";
-    // Hiển thị lý do cho cả Rejection thường và Edit Rejection
     const showReasonBox =
       notification.type === "UNLOCK_REQUEST" ||
       notification.type === "EVENT_REJECTED" ||
       notification.type === "EDIT_REQUEST_PENDING" ||
       notification.type === "EDIT_REQUEST_REJECTED";
-
     const isErrorType = notification.type.includes("REJECTED");
 
     return (
@@ -251,7 +258,7 @@ const NotificationPanel = () => {
               {formatTime(notification.createdAt)}
             </span>
           </div>
-          <p className="text-sm text-gray-400 leading-relaxed break-words whitespace-pre-wrap">
+          <p className="text-sm text-gray-400 leading-relaxed wrap-break-word whitespace-pre-wrap">
             {notification.message}
           </p>
 
@@ -280,6 +287,31 @@ const NotificationPanel = () => {
     );
   };
 
+  const TabButtons = () => (
+    <div className="flex px-4 gap-5 mt-2 border-b border-zinc-700/50">
+      {[
+        { id: "ALL", label: "Tất cả" },
+        { id: "ACTION", label: "Cần xử lý" },
+        { id: "INFO", label: "Hệ thống" },
+      ].map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => {
+            setActiveTab(tab.id as any);
+            setVisibleCount(5);
+          }}
+          className={`pb-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap ${
+            activeTab === tab.id
+              ? "border-[#D8C97B] text-[#D8C97B]"
+              : "border-transparent text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="relative" ref={panelRef}>
       <button
@@ -296,12 +328,12 @@ const NotificationPanel = () => {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-96 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-800/50">
-            <h3 className="font-bold text-white flex items-center gap-2">
-              <Bell className="w-4 h-4 text-[#D8C97B]" /> Thông báo (
-              {items.length})
-            </h3>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col bg-zinc-800/50 pt-4">
+            <div className="flex items-center justify-between px-4 pb-1">
+              <h3 className="font-bold text-white flex items-center gap-2">
+                <Bell className="w-4 h-4 text-[#D8C97B]" /> Thông báo (
+                {items.length})
+              </h3>
               {unreadCount > 0 && (
                 <button
                   onClick={() => dispatch(markAllAsRead())}
@@ -311,17 +343,19 @@ const NotificationPanel = () => {
                 </button>
               )}
             </div>
+            <TabButtons />
           </div>
-          <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
+
+          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
             {isLoading && items.length === 0 ? (
               <div className="p-8 text-center text-zinc-500 flex flex-col items-center">
                 <div className="w-6 h-6 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin mb-2"></div>
                 <span className="text-xs">Đang tải...</span>
               </div>
-            ) : items.length === 0 ? (
+            ) : filteredItems.length === 0 ? (
               <div className="p-12 text-center text-zinc-500 flex flex-col items-center">
                 <Bell className="w-12 h-12 mb-3 opacity-20" />
-                <p className="text-sm">Không có thông báo mới</p>
+                <p className="text-sm">Không có thông báo nào trong mục này</p>
               </div>
             ) : (
               <>
@@ -347,7 +381,7 @@ const NotificationPanel = () => {
               </>
             )}
           </div>
-          {items.length > 5 && (
+          {filteredItems.length > 5 && (
             <div className="p-3 border-t border-zinc-700 text-center bg-zinc-800/30">
               <button
                 onClick={() => {
@@ -356,7 +390,7 @@ const NotificationPanel = () => {
                 }}
                 className="text-xs font-bold text-[#D8C97B] hover:text-[#f0e68c] uppercase tracking-wider flex items-center justify-center gap-2 w-full"
               >
-                <Maximize2 size={12} /> Xem tất cả thông báo
+                <Maximize2 size={12} /> Xem tất cả
               </button>
             </div>
           )}
@@ -365,7 +399,7 @@ const NotificationPanel = () => {
 
       <AnimatePresence>
         {showAllModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -379,38 +413,44 @@ const NotificationPanel = () => {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-              <div className="flex items-center justify-between p-5 border-b border-zinc-700 bg-zinc-800">
-                <h2 className="text-lg font-bold text-white flex items-center gap-3">
-                  <Bell className="text-[#D8C97B]" /> Tất cả thông báo{" "}
-                  <span className="text-xs bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full">
-                    {items.length}
-                  </span>
-                </h2>
-                <div className="flex gap-3">
-                  {unreadCount > 0 && (
+              <div className="flex flex-col border-b border-zinc-700 bg-zinc-800 pt-5">
+                <div className="flex items-center justify-between px-5 pb-2">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-3">
+                    <Bell className="text-[#D8C97B]" /> Tất cả thông báo{" "}
+                    <span className="text-xs bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full">
+                      {items.length}
+                    </span>
+                  </h2>
+                  <div className="flex gap-3">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => dispatch(markAllAsRead())}
+                        className="text-sm font-bold text-[#D8C97B] hover:text-[#f0e68c] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#D8C97B]/10 hover:bg-[#D8C97B]/20 transition-colors"
+                      >
+                        <CheckCheck size={16} /> Đánh dấu đã đọc hết
+                      </button>
+                    )}
                     <button
-                      onClick={() => dispatch(markAllAsRead())}
-                      className="text-sm font-bold text-[#D8C97B] hover:text-[#f0e68c] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#D8C97B]/10 hover:bg-[#D8C97B]/20 transition-colors"
+                      onClick={() => setShowAllModal(false)}
+                      className="p-2 bg-zinc-700/50 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors"
                     >
-                      <CheckCheck size={16} /> Đánh dấu đã đọc hết
+                      <X size={20} />
                     </button>
-                  )}
-                  <button
-                    onClick={() => setShowAllModal(false)}
-                    className="p-2 bg-zinc-700/50 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
+                  </div>
+                </div>
+                <div className="px-1">
+                  <TabButtons />
                 </div>
               </div>
+
               <div className="overflow-y-auto custom-scrollbar flex-1 bg-zinc-900/95">
-                {sortedItems.length === 0 ? (
+                {filteredItems.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
                     <Bell className="w-16 h-16 mb-4 opacity-20" />
-                    <p>Không có thông báo nào</p>
+                    <p>Không có thông báo nào trong mục này</p>
                   </div>
                 ) : (
-                  sortedItems.map((notification) => (
+                  filteredItems.map((notification) => (
                     <NotificationItem
                       key={`modal-${notification.id}`}
                       notification={notification as Notification}

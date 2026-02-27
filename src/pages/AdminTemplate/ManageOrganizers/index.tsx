@@ -17,6 +17,8 @@ import {
   FaBan,
   FaLock,
   FaCheck,
+  FaChevronRight,
+  FaChevronLeft,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
@@ -304,7 +306,7 @@ export default function ManageOrganizers() {
 
       const getPriority = (org: Organizer) => {
         if (!org.approved) return 1;
-        if (org.unlockRequested) return 2;
+        if (org.unlockRequestReason) return 2;
         if (org.locked) return 3;
         return 4;
       };
@@ -481,23 +483,36 @@ export default function ManageOrganizers() {
       </div>
 
       {!isLoadingOrg && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-12">
+        <div className="flex justify-center mt-12 gap-2">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 rounded-lg bg-[#1a1a1a] text-gray-400 hover:text-white disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
-            Trước
+            <FaChevronLeft size={12} />
           </button>
-          <span className="text-sm font-bold text-[#B5A65F]">
-            {currentPage} / {totalPages}
-          </span>
+
+          {/* Render danh sách số trang */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-10 h-10 rounded-lg text-sm font-bold transition-all flex justify-center items-center ${
+                currentPage === page
+                  ? "bg-[#B5A65F] text-black shadow-lg shadow-[#B5A65F]/20" // Active: Vàng
+                  : "bg-[#1a1a1a] text-gray-400 hover:text-white border border-white/5 hover:border-[#B5A65F]/50" // Inactive
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
           <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-lg bg-[#1a1a1a] text-gray-400 hover:text-white disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1a1a1a] text-white disabled:opacity-30 transition-all border border-white/5 hover:border-[#B5A65F]"
           >
-            Sau
+            <FaChevronRight size={12} />
           </button>
         </div>
       )}
@@ -546,6 +561,17 @@ export default function ManageOrganizers() {
                       {selectedOrg.description || "Chưa cập nhật."}
                     </p>
                   </div>
+                  {selectedOrg.unlockRequestReason &&
+                    selectedOrg.unlockRequestReason && (
+                      <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20 mt-3">
+                        <h4 className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase mb-2">
+                          <FaUnlock /> Lý do xin mở khóa
+                        </h4>
+                        <p className="text-orange-200/80 text-sm italic">
+                          "{selectedOrg.unlockRequestReason}"
+                        </p>
+                      </div>
+                    )}
                   {selectedOrg.approved ? (
                     selectedOrg.locked ? (
                       <button

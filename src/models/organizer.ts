@@ -13,5 +13,6 @@ export interface Organizer {
   username: string;
   approved: boolean;
   locked: boolean;
+  unlockRequestReason: string;
   unlockRequested: boolean;
 }
