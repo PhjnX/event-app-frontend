@@ -29,12 +29,10 @@ export const fetchPublicPosts = createAsyncThunk(
     try {
       const response = await apiService.get(`/posts`, {
         params: { page, size, lang },
-        // ✅ Truyền signal để có thể abort request khi đổi lang nhanh
         signal,
       });
       return { response, lang };
     } catch (error: any) {
-      // ✅ Nếu bị abort thì không cần xử lý
       if (error.name === "AbortError" || error.name === "CanceledError") {
         return rejectWithValue("aborted");
       }
