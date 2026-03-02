@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
 import {
   motion,
   AnimatePresence,
@@ -77,6 +77,7 @@ const NewsCard = memo(
         dragElastic={0.2}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
+        layout={false}
         initial={{
           x: isCenter ? 0 : isLeft ? -200 : 200,
           scale: 0.8,
@@ -93,8 +94,8 @@ const NewsCard = memo(
           cursor: isCenter ? "grab" : "default",
         }}
         whileTap={{ cursor: "grabbing" }}
-        exit={{ opacity: 0, scale: 0.5 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         className="absolute w-[90%] md:w-[800px] h-[350px] md:h-[450px] rounded-3xl"
       >
         <div
@@ -133,6 +134,7 @@ const NewsCard = memo(
 
               <motion.div
                 animate={{ opacity: isCenter ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
                 className="overflow-hidden pointer-events-auto"
               >
                 <p className="text-gray-300 text-base md:text-lg line-clamp-2 mb-6 max-w-2xl font-light">
@@ -160,33 +162,58 @@ const NewsSection = () => {
   const currentLang = i18n.language || "vi";
 
   const dispatch = useDispatch<AppDispatch>();
-  const { data: apiData, loading } = useSelector(
-    (state: RootState) => state.news,
-  );
+  const {
+    data: apiData,
+    dataLang,
+    loading,
+  } = useSelector((state: RootState) => state.news);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const isAnimatingRef = useRef(false);
+
+  const fetchPromiseRef = useRef<{ abort: () => void } | null>(null);
 
   useEffect(() => {
-    dispatch(fetchPublicPosts({ page: 0, size: 10, lang: currentLang }));
+    if (fetchPromiseRef.current) {
+      fetchPromiseRef.current.abort();
+    }
+
+    const promise = dispatch(
+      fetchPublicPosts({ page: 0, size: 10, lang: currentLang }),
+    );
+    fetchPromiseRef.current = promise;
+
+    return () => {
+      promise.abort();
+    };
   }, [dispatch, currentLang]);
+
+  useEffect(() => {
+    if (dataLang === currentLang) {
+      setActiveIndex(0);
+    }
+  }, [dataLang, currentLang]);
 
   const newsList: NewsUI[] = useMemo(() => {
     if (!apiData || !Array.isArray(apiData) || apiData.length === 0) return [];
+
+    const effectiveLang = dataLang || currentLang;
 
     const mapped = apiData
       .filter((item: any) => item != null)
       .map((item: any) => {
         const displayTitle =
-          item.translations?.[currentLang]?.title ||
           item.title ||
-          "Không có tiêu đề";
+          item.translations?.[effectiveLang]?.title ||
+          (effectiveLang === "en" ? "No title" : "Không có tiêu đề");
+
         const displaySummary =
-          item.translations?.[currentLang]?.summary || item.summary || "";
+          item.summary || item.translations?.[effectiveLang]?.summary || "";
 
         const displaySlug =
-          item.alternateSlugs?.[currentLang] ||
-          item.translations?.[currentLang]?.slug ||
           item.slug ||
+          item.alternateSlugs?.[effectiveLang] ||
+          item.translations?.[effectiveLang]?.slug ||
           item.id ||
           "";
 
@@ -198,7 +225,7 @@ const NewsSection = () => {
           category: "",
           date: item.createdAt
             ? new Date(item.createdAt).toLocaleDateString(
-                currentLang === "en" ? "en-US" : "vi-VN",
+                effectiveLang === "en" ? "en-US" : "vi-VN",
               )
             : "",
           author: "",
@@ -211,53 +238,64 @@ const NewsSection = () => {
     }
 
     return mapped;
-  }, [apiData, currentLang]);
+  }, [apiData, dataLang, currentLang]);
 
   useEffect(() => {
-    if (isPaused || newsList.length === 0) return;
+    if (isPaused || loading || newsList.length === 0) return;
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % newsList.length);
-    }, 4000);
+      if (!isAnimatingRef.current) {
+        setActiveIndex((prev) => (prev + 1) % newsList.length);
+      }
+    }, 5000);
     return () => clearInterval(interval);
-  }, [isPaused, newsList.length]);
+  }, [isPaused, loading, newsList.length]);
 
-  const handleNext = () => {
-    if (newsList.length === 0) return;
+  const handleNext = useCallback(() => {
+    if (newsList.length === 0 || isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     setActiveIndex((prev) => (prev + 1) % newsList.length);
-  };
+    setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 600);
+  }, [newsList.length]);
 
-  const handlePrev = () => {
-    if (newsList.length === 0) return;
+  const handlePrev = useCallback(() => {
+    if (newsList.length === 0 || isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     setActiveIndex((prev) => (prev - 1 + newsList.length) % newsList.length);
-  };
+    setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 600);
+  }, [newsList.length]);
 
-  const onDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
-  ) => {
-    const threshold = 50;
-    if (info.offset.x > threshold) {
-      handlePrev();
-    } else if (info.offset.x < -threshold) {
-      handleNext();
-    }
-    setIsPaused(false);
-  };
+  const onDragEnd = useCallback(
+    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      const threshold = 50;
+      if (info.offset.x > threshold) {
+        handlePrev();
+      } else if (info.offset.x < -threshold) {
+        handleNext();
+      }
+      setIsPaused(false);
+    },
+    [handleNext, handlePrev],
+  );
 
-  const getVisibleItems = () => {
+  const getVisibleItems = useCallback(() => {
     if (newsList.length === 0) return [];
     const len = newsList.length;
-    const prevIndex = (activeIndex - 1 + len) % len;
-    const nextIndex = (activeIndex + 1) % len;
+    const safeIndex = activeIndex % len;
+    const prevIndex = (safeIndex - 1 + len) % len;
+    const nextIndex = (safeIndex + 1) % len;
 
     return [
       { ...newsList[prevIndex], position: "left" as const },
-      { ...newsList[activeIndex], position: "center" as const },
+      { ...newsList[safeIndex], position: "center" as const },
       { ...newsList[nextIndex], position: "right" as const },
     ];
-  };
+  }, [newsList, activeIndex]);
 
-  if (loading && newsList.length === 0) {
+  if (loading && newsList.length === 0 && !dataLang) {
     return (
       <section className="py-32 bg-[#0a0a0a] flex justify-center items-center h-[600px]">
         <div className="flex flex-col items-center gap-4">
@@ -284,7 +322,7 @@ const NewsSection = () => {
             variants={scrollVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, amount: 0.5 }}
+            viewport={{ once: true, amount: 0.5 }}
             className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-wide mb-6 font-noto drop-shadow-xl"
           >
             {t("home.news_section.title")}{" "}
@@ -297,7 +335,7 @@ const NewsSection = () => {
             variants={scrollVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, amount: 0.5 }}
+            viewport={{ once: true, amount: 0.5 }}
             transition={{ delay: 0.2 }}
             className="text-gray-400 text-lg md:text-xl font-noto max-w-2xl mx-auto leading-relaxed "
           >
@@ -310,7 +348,7 @@ const NewsSection = () => {
           variants={scrollVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.2 }}
         >
           <button
             onClick={handlePrev}
@@ -328,10 +366,10 @@ const NewsSection = () => {
             <FaChevronRight size={24} />
           </button>
 
-          <AnimatePresence mode="popLayout">
-            {getVisibleItems().map((news, index) => (
+          <AnimatePresence mode="sync">
+            {getVisibleItems().map((news) => (
               <NewsCard
-                key={`${news.id}-${index}-${news.position}-${currentLang}`}
+                key={`${news.position}-${news.id}`}
                 news={news}
                 position={news.position}
                 onDragStart={() => setIsPaused(true)}
@@ -345,7 +383,7 @@ const NewsSection = () => {
           variants={scrollVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.5 }}
+          viewport={{ once: true, amount: 0.5 }}
           className="mt-12 flex justify-center relative z-20"
         >
           <Link

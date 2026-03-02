@@ -24,14 +24,20 @@ export const fetchPublicPosts = createAsyncThunk(
   "news/fetchPublicPosts",
   async (
     { page, size, lang = "vi" }: { page: number; size: number; lang?: string },
-    { rejectWithValue },
+    { rejectWithValue, signal },
   ) => {
     try {
       const response = await apiService.get(`/posts`, {
         params: { page, size, lang },
+        // ✅ Truyền signal để có thể abort request khi đổi lang nhanh
+        signal,
       });
-      return response;
+      return { response, lang };
     } catch (error: any) {
+      // ✅ Nếu bị abort thì không cần xử lý
+      if (error.name === "AbortError" || error.name === "CanceledError") {
+        return rejectWithValue("aborted");
+      }
       return rejectWithValue(error.message);
     }
   },
@@ -215,6 +221,7 @@ export const uploadImage = async (file: File): Promise<string> => {
 
 interface NewsState {
   data: Post[];
+  dataLang: string;
   totalElements: number;
   postDetail: Post | null;
   loading: boolean;
@@ -222,6 +229,7 @@ interface NewsState {
 
 const initialState: NewsState = {
   data: [],
+  dataLang: "",
   totalElements: 0,
   postDetail: null,
   loading: false,
@@ -242,10 +250,13 @@ const newsSlice = createSlice({
       })
       .addCase(fetchPublicPosts.fulfilled, (state, action: any) => {
         state.loading = false;
-        state.data = action.payload.content || action.payload || [];
-        state.totalElements = action.payload.totalElements || 0;
+        const { response, lang } = action.payload;
+        state.data = response.content || response || [];
+        state.dataLang = lang;
+        state.totalElements = response.totalElements || 0;
       })
-      .addCase(fetchPublicPosts.rejected, (state) => {
+      .addCase(fetchPublicPosts.rejected, (state, action) => {
+        if (action.payload === "aborted") return;
         state.loading = false;
       })
 
