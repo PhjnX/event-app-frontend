@@ -150,7 +150,7 @@ export default function RegistrationSection() {
                       <a
                         href={googleMapsLink}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="block mt-2 text-xs text-blue-500 underline"
                       >
                         Xem trên Google Maps

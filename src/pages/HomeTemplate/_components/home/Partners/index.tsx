@@ -60,6 +60,9 @@ const PartnerCard = ({ partner }: { partner: Partner }) => (
     <motion.img
       src={partner.logo}
       alt={partner.name}
+      width={200}
+      height={100}
+      loading="lazy"
       className="max-h-full max-w-full object-contain"
       animate={{
         filter: [

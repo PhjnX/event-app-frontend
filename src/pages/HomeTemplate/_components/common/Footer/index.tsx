@@ -181,6 +181,9 @@ export default function Footer() {
               <img
                 src={logoImage}
                 alt="Webie Event"
+                width={150}
+                height={50}
+                loading="lazy"
                 className="h-[50px] w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
               />
             </Link>
