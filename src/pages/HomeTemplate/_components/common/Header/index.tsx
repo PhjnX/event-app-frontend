@@ -208,6 +208,8 @@ export default function Header() {
             <img
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               src={logoImage}
+              width={56}
+              height={56}
               className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:-translate-y-1 drop-shadow-md"
               alt="Logo"
             />
@@ -376,6 +378,8 @@ export default function Header() {
                         <img
                           src={user.avatarUrl}
                           alt="User"
+                          width={40}
+                          height={40}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -481,6 +485,8 @@ export default function Header() {
                     <img
                       src={user.avatarUrl}
                       alt="User"
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover"
                     />
                   ) : (
