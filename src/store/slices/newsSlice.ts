@@ -249,7 +249,10 @@ const newsSlice = createSlice({
       .addCase(fetchPublicPosts.fulfilled, (state, action: any) => {
         state.loading = false;
         const { response, lang } = action.payload;
-        state.data = response.content || response || [];
+        const rawData = response?.content || response || [];
+        state.data = Array.isArray(rawData)
+          ? rawData.filter((item) => item !== null && item !== undefined)
+          : [];
         state.dataLang = lang;
         state.totalElements = response.totalElements || 0;
       })
@@ -274,7 +277,10 @@ const newsSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action: any) => {
         state.loading = false;
-        state.data = action.payload.content || action.payload || [];
+        const rawData = action.payload?.content || action.payload || [];
+        state.data = Array.isArray(rawData)
+          ? rawData.filter((item) => item !== null && item !== undefined)
+          : [];
         state.totalElements = action.payload.totalElements || 0;
       })
       .addCase(fetchPosts.rejected, (state) => {
