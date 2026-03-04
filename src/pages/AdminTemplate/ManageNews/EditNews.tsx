@@ -57,6 +57,7 @@ export default function EditNews() {
         try {
           return JSON.parse(str);
         } catch (e) {
+          console.error(e);
           return {};
         }
       };
@@ -112,7 +113,7 @@ export default function EditNews() {
       try {
         const url = await uploadImage(e.target.files[0]);
         setThumbnailUrl(url);
-      } catch (err) {
+      } catch (_err) {
         alert("Upload ảnh thất bại!");
       } finally {
         setUploading(false);

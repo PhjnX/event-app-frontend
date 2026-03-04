@@ -86,7 +86,7 @@ export default function EditEventPage() {
           location: res.location,
           description: res.description,
           visibility: res.visibility,
-          status: res.status, 
+          status: res.status,
           bannerImageUrl: res.bannerImageUrl,
           startDateDate: start.date,
           startDateTime: start.time,
@@ -97,6 +97,7 @@ export default function EditEventPage() {
         });
         setPreviewUrl(res.bannerImageUrl);
       } catch (error) {
+        console.error(error);
         toast.error("Không tìm thấy sự kiện!");
         navigate("/admin/events");
       } finally {

@@ -24,6 +24,7 @@ interface FooterSectionData {
 
 interface SocialLinkData {
   id: string;
+  label: string;
   icon: React.ReactNode;
   url: string;
 }
@@ -114,21 +115,25 @@ export default function Footer() {
   const socialLinks: SocialLinkData[] = [
     {
       id: "facebook",
+      label: "Facebook Webie Vietnam",
       icon: <FaFacebookF />,
       url: "https://www.facebook.com/Webie.Vietnam",
     },
     {
       id: "linkedin",
+      label: "LinkedIn Webie Vietnam",
       icon: <FaLinkedinIn />,
       url: "https://www.linkedin.com/company/webie-vietnam-co-ltd/",
     },
     {
       id: "instagram",
+      label: "Instagram Webie Vietnam",
       icon: <FaInstagram />,
       url: "https://www.instagram.com/webievietnam/",
     },
     {
       id: "youtube",
+      label: "YouTube Webie Vietnam",
       icon: <FaYoutube />,
       url: "https://www.youtube.com/@WebieVietnamProductionHouse",
     },
@@ -196,7 +201,9 @@ export default function Footer() {
                   target="_blank"
                   key={social.id}
                   href={social.url}
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer external"
+                  aria-label={social.label}
+                  title={social.label}
                   className="w-10 h-10 flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-gray-400 transition-all duration-300 hover:bg-[#D8C97B] hover:border-[#D8C97B] hover:text-black hover:-translate-y-1"
                 >
                   <span className="text-sm">{social.icon}</span>

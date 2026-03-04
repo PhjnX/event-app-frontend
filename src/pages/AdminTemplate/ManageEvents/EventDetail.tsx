@@ -22,7 +22,7 @@ import {
   FaCloudUploadAlt,
   FaLock,
   FaUnlockAlt,
-  FaBan, 
+  FaBan,
 } from "react-icons/fa";
 
 import type { AppDispatch, RootState } from "../../../store";
@@ -148,7 +148,7 @@ export default function EventDetail() {
   const editStatus = (event as any)?.editRequestStatus;
   const isEditRequested = editStatus === "PENDING";
   const currentEditReason = (event as any)?.editRequestReason || "";
-  const isEditApproved = editStatus === "APPROVED"; 
+  const isEditApproved = editStatus === "APPROVED";
   const isLocked =
     (event?.status === "APPROVED" || event?.status === "PUBLISHED") &&
     !isEditApproved;
@@ -171,6 +171,7 @@ export default function EventDetail() {
           else dispatch(fetchPresenters());
         }
       } catch (error) {
+        console.error(error);
         toast.error("Không thể tải thông tin sự kiện");
       } finally {
         setLoadingEvent(false);

@@ -28,7 +28,6 @@ const OptimizedImage = ({
   onClick,
   enableHover = false,
   aspectRatio,
-  objectFit = "cover", // DEFAULT is cover
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -66,13 +65,17 @@ const OptimizedImage = ({
       )}
 
       <img
+        ref={(el) => {
+          if (el && priority) {
+            el.setAttribute("fetchpriority", "high");
+          }
+        }}
         src={finalSrc}
         alt={alt}
         width={width}
         height={height}
         loading={priority ? "eager" : "lazy"}
         decoding={priority ? "sync" : "async"}
-        {...(priority ? ({ fetchpriority: "high" } as any) : {})}
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={`
@@ -82,7 +85,6 @@ const OptimizedImage = ({
     ${enableHover ? "group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" : ""}
     ${imgClassName}
   `}
-        style={{ objectFit }}
       />
     </div>
   );

@@ -279,7 +279,7 @@ export default function ManageOrganizers() {
   );
 
   const processedData = useMemo(() => {
-    let filtered = organizers.filter((org) => {
+    const filtered = organizers.filter((org) => {
       const isTarget = org.organizerId.toString() === targetId;
       if (isTarget) return true;
 
@@ -355,6 +355,7 @@ export default function ManageOrganizers() {
       XLSX.writeFile(wb, `Organizers_List.xlsx`);
       toast.success("Xuất Excel thành công!");
     } catch (e) {
+      console.error(e);
       toast.error("Lỗi xuất file.");
     }
   };

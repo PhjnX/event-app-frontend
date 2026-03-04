@@ -56,7 +56,7 @@ export const SLIDES: Slide[] = [
     subtitle: "home.hero.slides.3.subtitle",
     btnPrimary: "home.hero.slides.3.btnPrimary",
     btnSecondary: "home.hero.slides.3.btnSecondary",
-    pathPrimary: "/#contact",
+    pathPrimary: "#contact",
     pathSecondary: "/admin/events/create",
   },
 ];

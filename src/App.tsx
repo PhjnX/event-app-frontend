@@ -95,6 +95,7 @@ function AppContent() {
       try {
         await dispatch(fetchCurrentUser()).unwrap();
       } catch (error) {
+        console.error(error);
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       } finally {
         setIsInitializing(false);

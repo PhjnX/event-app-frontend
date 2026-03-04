@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import {
   FaHandshake,
@@ -7,26 +7,10 @@ import {
   FaEnvelope,
   FaMapMarkerAlt,
 } from "react-icons/fa";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import OrganizerRegModal from "../../common/OrganizerRegModal";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
-import iconMarker from "leaflet/dist/images/marker-icon.png";
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-
-const defaultIcon = L.icon({
-  iconUrl: iconMarker,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41],
-});
+const OfficeMap = lazy(() => import("./OfficeMap"));
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -52,10 +36,12 @@ const InfoCard = ({
       <div className="w-10 h-10 rounded-full bg-[#D8C97B]/10 flex items-center justify-center text-[#D8C97B] border border-[#D8C97B]/20 shrink-0 group-hover/card:scale-110 transition-transform">
         {icon}
       </div>
+
       <div>
         <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5">
           {title}
         </p>
+
         <p className="text-zinc-100 font-medium text-sm md:text-base leading-tight group-hover/card:text-[#D8C97B] transition-colors">
           {value}
         </p>
@@ -81,17 +67,34 @@ const InfoCard = ({
 
 export default function RegistrationSection() {
   const { t } = useTranslation();
-  const [showModal, setShowModal] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [showModal, setShowModal] = useState(false);
+  const [loadMap, setLoadMap] = useState(false);
 
   const officePosition: [number, number] = [10.78525, 106.74827];
 
   const businessName = "Webie Vietnam - Địa Điểm Kinh Doanh";
-  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessName)}`;
+
+  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    businessName,
+  )}`;
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLoadMap(true);
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    const element = document.getElementById("contact");
+
+    if (element) observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
@@ -114,6 +117,7 @@ export default function RegistrationSection() {
               {t("home.contact.highlight")}
             </span>
           </h2>
+
           <p className="text-zinc-500 text-lg font-light max-w-2xl mx-auto">
             {t("home.contact.description")}
           </p>
@@ -127,38 +131,24 @@ export default function RegistrationSection() {
             transition={{ duration: 0.6 }}
             className="h-[450px] lg:h-full min-h-[500px] w-full relative rounded-3xl overflow-hidden shadow-[0_0_40px_-10px_rgba(255,255,255,0.1)] border border-zinc-700"
           >
-            {isClient && (
-              <MapContainer
-                center={officePosition}
-                zoom={18}
-                scrollWheelZoom={false}
-                className="w-full h-full z-10"
+            {loadMap ? (
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-full text-zinc-500">
+                    Loading map...
+                  </div>
+                }
               >
-                <TileLayer
-                  attribution="&copy; Google Maps"
-                  url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                <OfficeMap
+                  position={officePosition}
+                  googleMapsLink={googleMapsLink}
+                  t={t}
                 />
-                <Marker position={officePosition} icon={defaultIcon}>
-                  <Popup>
-                    <div className="text-center p-1">
-                      <b className="text-blue-600 block mb-1">
-                        {t("home.contact.map_popup.title")}
-                      </b>
-                      <span className="text-gray-600 text-xs">
-                        <Trans i18nKey="home.contact.map_popup.address" />
-                      </span>
-                      <a
-                        href={googleMapsLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block mt-2 text-xs text-blue-500 underline"
-                      >
-                        Xem trên Google Maps
-                      </a>
-                    </div>
-                  </Popup>
-                </Marker>
-              </MapContainer>
+              </Suspense>
+            ) : (
+              <div className="flex items-center justify-center h-full text-zinc-500">
+                Map loading...
+              </div>
             )}
           </motion.div>
 
@@ -176,6 +166,7 @@ export default function RegistrationSection() {
                   {t("home.contact.for_organizers.highlight")}
                 </span>
               </h3>
+
               <p className="text-zinc-400 leading-relaxed mb-8">
                 {t("home.contact.for_organizers.desc")}
               </p>
@@ -187,11 +178,12 @@ export default function RegistrationSection() {
                 >
                   <FaHandshake /> {t("home.contact.buttons.register")}
                 </button>
+
                 <a
                   href="tel:0969838467"
                   className="px-8 py-3.5 bg-zinc-900 border border-zinc-700 hover:border-[#D8C97B] text-white hover:text-[#D8C97B] font-bold rounded-xl transition-all flex items-center gap-2 group"
                 >
-                  {t("home.contact.buttons.hotline")}{" "}
+                  {t("home.contact.buttons.hotline")}
                   <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </a>
               </div>
@@ -204,12 +196,14 @@ export default function RegistrationSection() {
                 value={t("home.contact.info.office.value")}
                 href={googleMapsLink}
               />
+
               <InfoCard
                 icon={<FaPhoneAlt />}
                 title={t("home.contact.info.hotline.title")}
                 value={t("home.contact.info.hotline.value")}
                 href="tel:0969838467"
               />
+
               <InfoCard
                 icon={<FaEnvelope />}
                 title={t("home.contact.info.email.title")}
