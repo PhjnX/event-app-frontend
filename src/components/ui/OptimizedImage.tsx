@@ -13,7 +13,7 @@ interface OptimizedImageProps {
   onClick?: () => void;
   enableHover?: boolean;
   aspectRatio?: string;
-  objectFit?: "cover" | "contain" | "fill" | "none"; 
+  objectFit?: "cover" | "contain" | "fill" | "none";
 }
 
 const OptimizedImage = ({
@@ -27,7 +27,7 @@ const OptimizedImage = ({
   fallback = "",
   onClick,
   enableHover = false,
-  aspectRatio, 
+  aspectRatio,
   objectFit = "cover", // DEFAULT is cover
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -50,7 +50,7 @@ const OptimizedImage = ({
   return (
     <div
       className={`relative overflow-hidden bg-zinc-800 ${className}`}
-      style={{ aspectRatio: aspectRatio || `${width}/${height}` }} 
+      style={{ aspectRatio: aspectRatio || `${width}/${height}` }}
       onClick={onClick}
     >
       {!isLoaded && (
@@ -72,17 +72,17 @@ const OptimizedImage = ({
         height={height}
         loading={priority ? "eager" : "lazy"}
         decoding={priority ? "sync" : "async"}
-        fetchPriority={priority ? "high" : "low"}
+        {...(priority ? ({ fetchpriority: "high" } as any) : {})}
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={`
-          w-full h-full
-          transition-opacity duration-300
-          ${isLoaded ? "opacity-100" : "opacity-0"}
-          ${enableHover ? "group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" : ""}
-          ${imgClassName}
-        `}
-        style={{ objectFit }} 
+    w-full h-full
+    transition-opacity duration-300
+    ${isLoaded ? "opacity-100" : "opacity-0"}
+    ${enableHover ? "group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" : ""}
+    ${imgClassName}
+  `}
+        style={{ objectFit }}
       />
     </div>
   );

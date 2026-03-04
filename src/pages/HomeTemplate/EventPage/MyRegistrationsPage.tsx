@@ -217,7 +217,7 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
 
             <div className="space-y-2">
               <Link
-                to={`/events/${ticket.eventSlug}`}
+                to={`/event/${ticket.eventSlug}`}
                 className="w-full h-9 bg-white text-black hover:bg-[#D4AF37] transition-all rounded font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 group/btn"
               >
                 {t("my_registrations.ticket.btn_view")}
