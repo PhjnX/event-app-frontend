@@ -719,6 +719,13 @@ const ShareButtons = ({
   );
 };
 
+/* ── [THÊM MỚI] autoLinkify: tự động biến email thành mailto link ── */
+const autoLinkify = (html: string): string => {
+  const emailRegex =
+    /(?<!href=["'][^"']{0,200})([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g;
+  return html.replace(emailRegex, '<a href="mailto:$1">$1</a>');
+};
+
 const NewsContentRenderer = ({ content }: { content: string }) => {
   const { t } = useTranslation();
   let blocks: any[] = [];
@@ -853,14 +860,76 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
             return null;
         }
       })}
+
+      {/* ── [THÊM MỚI] Contact footer — tự động cuối mọi bài viết ── */}
+      <div
+        className="article-content-pad"
+        style={{
+          marginTop: "3rem",
+          paddingTop: "1.5rem",
+          borderTop: "1px solid var(--border-med)",
+        }}
+      >
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--text-muted)",
+            marginBottom: "0.4rem",
+            fontStyle: "normal",
+          }}
+        >
+          <span style={{ fontWeight: 700, color: "var(--text-sub)" }}>
+            Hotline:
+          </span>{" "}
+          <a
+            href="tel:0969838467"
+            style={{
+              color: "var(--text-sub)",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            0969 838 467
+          </a>{" "}
+          – Huyen DANG
+        </p>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--text-muted)",
+            marginBottom: "0.4rem",
+            fontStyle: "normal",
+          }}
+        >
+          <span style={{ fontWeight: 700, color: "var(--text-sub)" }}>
+            Email:
+          </span>{" "}
+          <a href="mailto:huyen.dang@webie.com.vn">huyen.dang@webie.com.vn</a>
+        </p>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--text-muted)",
+            marginBottom: 0,
+            fontStyle: "normal",
+          }}
+        >
+          <span style={{ fontWeight: 700, color: "var(--text-sub)" }}>
+            Website:
+          </span>{" "}
+          <a
+            href="https://webie.com.vn"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            https://webie.com.vn
+          </a>
+        </p>
+      </div>
     </div>
   );
 };
-const autoLinkify = (html: string): string => {
-  const emailRegex =
-    /(?<!href=["'][^"']{0,200})([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g;
-  return html.replace(emailRegex, '<a href="mailto:$1">$1</a>');
-};
+
 const RightSidebar = ({
   relatedPosts,
   upcomingEvent,
