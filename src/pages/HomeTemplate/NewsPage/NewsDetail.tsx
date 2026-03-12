@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useState, useRef, type JSX } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "../../../utils/i18n-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,195 +10,842 @@ import {
   fetchPublicPosts,
   clearPostDetail,
 } from "../../../store/slices/newsSlice";
-
 import { fetchPublicEvents } from "../../../store/slices/eventSlice";
-
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import {
   Calendar,
   User,
   ArrowLeft,
-  Share2,
   Facebook,
-  Twitter,
   Linkedin,
+  Instagram,
   Link as LinkIcon,
   Clock,
   ChevronRight,
   TrendingUp,
   Tag,
   MapPin,
+  Check,
+  BookOpen,
 } from "lucide-react";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { useTranslation } from "react-i18next";
 
+const DOMAIN = "https://ems.webie.com.vn";
+
 const styles = `
-  @keyframes zoomSlow {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.15); }
+  :root {
+    --gold: #B8960C;
+    --gold-light: #D4AE1A;
+    --gold-dark: #8A6F00;
+    --gold-dim: rgba(184,150,12,0.09);
+    --gold-border: rgba(184,150,12,0.22);
+    --page-bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface-2: #F3F1EC;
+    --surface-3: #EAE7E0;
+    --text: #1A1714;
+    --text-sub: #4A4540;
+    --text-body: #3A3530;
+    --text-muted: #8A8480;
+    --text-dim: #B0ADA8;
+    --border: rgba(0,0,0,0.07);
+    --border-med: rgba(0,0,0,0.11);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.09), 0 2px 8px rgba(0,0,0,0.04);
   }
-  .animate-zoom-slow {
-    animation: zoomSlow 20s ease-in-out infinite alternate;
+
+  /* Reading progress */
+  .rp-bar {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light), var(--gold));
+    background-size: 200%;
+    animation: rp-shimmer 3s linear infinite;
+    transition: width 0.08s linear;
+    box-shadow: 0 0 10px rgba(184,150,12,0.5);
   }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes rp-shimmer {
+    from { background-position: 0% 0; }
+    to   { background-position: 200% 0; }
   }
-  .animate-fade-up {
-    animation: fadeUp 1s ease-out forwards;
+
+  /* Hero */
+  .hero-wrap {
+    position: relative; width: 100%;
+    height: 100vh; min-height: 700px; max-height: 1040px;
+    overflow: hidden; background: #111;
   }
-  .animate-fade-up-delay {
-    animation: fadeUp 1s ease-out 0.3s forwards;
-    opacity: 0;
+  .hero-grain {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.35; mix-blend-mode: overlay;
+  }
+
+  /* Page */
+  .page-light {
+    background: var(--page-bg);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ── Gold top accent bar (stays, but not a card now) ───────────────── */
+  .article-top-bar {
+    height: 3px;
+    background: linear-gradient(90deg,
+      transparent 0%, var(--gold-dark) 15%,
+      var(--gold) 40%, var(--gold-light) 55%,
+      var(--gold) 75%, transparent 100%
+    );
+    opacity: 0.8;
+    margin-bottom: 0;
+  }
+
+  /* ── OPEN ARTICLE — no card, full open layout ──────────────────────── */
+  .article-open {
+    background: transparent;
+    position: relative;
+  }
+
+  /* Section blocks inside the article alternate white bg for readability */
+  .article-section {
+    background: var(--surface);
+    padding: 0;
+  }
+
+  /* ── Content padding — ZERO horizontal (outer container provides spacing) ── */
+  .article-content-pad {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .article-content-pad-top    { padding-top:    48px; }
+  .article-content-pad-bottom { padding-bottom: 48px; }
+  @media (min-width: 768px) {
+    .article-content-pad-top    { padding-top:    64px; }
+    .article-content-pad-bottom { padding-bottom: 64px; }
+  }
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  .article-body { color: var(--text-body); }
+
+  .article-body p {
+    font-size: 17.5px; line-height: 2;
+    margin-bottom: 1.7rem;
+    color: var(--text-body);
+    text-align: justify;
+  }
+
+  .article-body h2 {
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+    font-weight: 800; color: var(--text);
+    margin: 3.5rem 0 1.2rem;
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+    padding: 0.85rem 1.2rem 0.85rem 1.4rem;
+    background: linear-gradient(90deg, rgba(184,150,12,0.07) 0%, rgba(184,150,12,0.01) 100%);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 12px 12px 0;
+    display: block;
+  }
+  .article-body h2::before { display: none; }
+
+  .article-body h3 {
+    font-size: 1.05rem; font-weight: 800;
+    color: var(--text);
+    margin: 2.5rem 0 0.6rem;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    display: block;
+  }
+  .article-body h3::before { display: none; }
+
+  /* ── IMAGE — TRUE FULL-BLEED ─────────────────────────────────────────
+     Breaks out of the article-content-pad to fill the entire article
+     column width (and slightly beyond via the bleed technique).
+     No card overflow:hidden to clip it anymore.
+  ────────────────────────────────────────────────────────────────────── */
+  .img-block {
+    /* Pull out horizontally to fill full article element width */
+    width: 100%;
+    margin: 3rem 0;
+    position: relative;
+    /* No padding — image touches edges */
+  }
+
+  .img-block-frame {
+    position: relative;
+    overflow: hidden;
+    background: #050505;
+    line-height: 0;
+    border-radius: 5px;
+  }
+
+  /* Cinematic lines top/bottom */
+  .img-block-frame::before,
+  .img-block-frame::after {
+    content: '';
+    position: absolute; left: 0; right: 0; z-index: 2; height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%, var(--gold-border) 20%,
+      rgba(184,150,12,0.45) 50%,
+      var(--gold-border) 80%, transparent 100%
+    );
+    pointer-events: none;
+  }
+  .img-block-frame::before { top: 0; }
+  .img-block-frame::after  { bottom: 0; }
+
+  .img-block-img {
+    width: 100%; height: auto; display: block;
+    transition: transform 1s cubic-bezier(0.22,1,0.36,1), filter 0.5s ease;
+    filter: brightness(0.97);
+  }
+  .img-block-frame:hover .img-block-img {
+    transform: scale(1.02);
+    filter: brightness(1.02);
+  }
+
+  /* Caption */
+  .img-caption {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 10px 24px 12px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+  }
+  .img-caption-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gold); opacity: 0.5; flex-shrink: 0; }
+  .img-caption-text { font-size: 12.5px; font-style: italic; color: var(--text-muted); text-align: center; line-height: 1.5; letter-spacing: 0.01em; }
+
+  /* ── Quote ──────────────────────────────────────────────────────────── */
+  .dq {
+    position: relative; margin: 2.5rem 0;
+    padding: 2rem 2rem 2rem 2.5rem;
+    background: linear-gradient(135deg, rgba(184,150,12,0.055) 0%, rgba(184,150,12,0.01) 100%);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 14px 14px 0;
+    border-top: 1px solid rgba(184,150,12,0.12);
+    border-bottom: 1px solid rgba(184,150,12,0.12);
+    border-right: 1px solid var(--border);
+  }
+  .dq-mark {
+    position: absolute; top: -14px; left: 12px;
+    font-size: 72px; line-height: 1; color: var(--gold);
+    opacity: 0.15; font-family: Georgia, serif;
+    pointer-events: none; user-select: none;
+  }
+
+  /* ── List ───────────────────────────────────────────────────────────── */
+  .dl {
+    background: transparent;
+    border: none;
+    border-radius: 0; padding: 0.25rem 0; margin: 1.5rem 0;
+  }
+  .dl li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 6px 0; color: var(--text-body); font-size: 16px; line-height: 1.75;
+    border-bottom: none;
+  }
+  .dl li:last-child { border-bottom: none; }
+  .dl-dot { margin-top: 10px; width: 5px; height: 5px; border-radius: 50%; background: #1A1714; flex-shrink: 0; }
+
+  /* ── Lead summary ───────────────────────────────────────────────────── */
+  .lead-box {
+    border-left: 2px solid var(--gold);
+    padding: 0.25rem 0 0.25rem 1.4rem;
+    margin-bottom: 2.5rem;
+  }
+  .lead-text { font-size: 19px; font-style: italic; line-height: 1.85; color: var(--text-sub); }
+
+  /* ── Diamond divider ────────────────────────────────────────────────── */
+  .dv-wrap { display: flex; align-items: center; gap: 14px; margin: 2.5rem 0; }
+  .dv-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--border-med), transparent); }
+  .dv-diamond { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 8px rgba(184,150,12,0.5); flex-shrink: 0; }
+
+  /* ── Section separator between text blocks ──────────────────────────── */
+  .section-sep {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-med) 30%, var(--border-med) 70%, transparent);
+    margin: 0;
+  }
+
+  /* ── Byline ─────────────────────────────────────────────────────────── */
+  .byline {
+    margin-top: 32px; padding: 18px 24px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-med);
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .s-card {
+    background: var(--surface);
+    border: 1px solid var(--border-med);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Related */
+  .rel-thumb { transition: transform 0.5s cubic-bezier(0.22,1,0.36,1); }
+  .rel-row:hover .rel-thumb { transform: scale(1.08); }
+  .rel-title { color: var(--text-sub); transition: color 0.2s; }
+  .rel-row:hover .rel-title { color: var(--gold-dark); }
+
+  /* Tag pill */
+  .tag-p {
+    padding: 3px 11px; border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-med);
+    font-size: 11px; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+  }
+  .tag-p:hover { background: var(--gold-dim); border-color: var(--gold); color: var(--gold-dark); transform: translateY(-1px); }
+
+  /* Share btn */
+  .sh-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--border-med);
+    background: var(--surface);
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: var(--shadow-sm);
+  }
+  .sh-btn:hover {
+    transform: translateY(-3px) scale(1.1);
+    border-color: var(--gold); color: var(--gold-dark);
+    background: var(--gold-dim);
+    box-shadow: 0 4px 12px rgba(184,150,12,0.18);
+  }
+  .sh-btn:active { transform: scale(0.93); }
+  .sh-btn.copied { border-color: #16a34a; color: #16a34a; background: rgba(22,163,74,0.06); }
+
+  /* Event card */
+  .ev-card { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; border: 1px solid var(--border-med); box-shadow: var(--shadow-md); }
+  .ev-card .ev-img { transition: transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+  .ev-card:hover .ev-img { transform: scale(1.06); }
+
+  /* Scroll hint */
+  @keyframes sc-bounce { 0%,100%{transform:translateY(0);opacity:.5;} 50%{transform:translateY(7px);opacity:1;} }
+  .sc-arrow { animation: sc-bounce 2s ease-in-out infinite; }
+
+  /* Back btn */
+  .back-b { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); transition: color 0.2s; }
+  .back-b:hover { color: rgba(255,255,255,0.92); }
+  .back-circle { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .back-b:hover .back-circle { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.1); }
+
+  /* ── Article full-open wrapper ───────────────────────────────────────
+     Completely transparent — content sits on var(--page-bg) directly.
+     No card, no border, no shadow, no overflow:hidden.
+     Images bleed to full column width naturally.
+  ─────────────────────────────────────────────────────────────────── */
+  .article-body-wrap {
+    background: transparent;
+  }
+
+  /* Paragraphs, headers, lead, lists etc. get a subtle white bg strip
+     so text stays legible on the warm page-bg */
+  .article-body p,
+  .article-body h2,
+  .article-body h3,
+  .lead-box,
+  .dq,
+  .dl,
+  .dv-wrap {
+    /* no extra bg needed — var(--text-body) on var(--page-bg) is readable */
+  }
+
+  /* ── Links inside article content ──────────────────────────────────── */
+  .article-body a {
+    color: var(--gold-dark);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: rgba(184,150,12,0.35);
+    text-underline-offset: 3px;
+    transition: color 0.2s, text-decoration-color 0.2s;
+  }
+  .article-body a:hover {
+    color: var(--gold);
+    text-decoration-color: var(--gold);
+  }
+
+  /* ── Tags footer */
+  .tags-footer {
+    padding: 24px 0 0;
+    margin-top: 16px;
+    border-top-color: var(--border-med);
+    border-top: 1px solid var(--border-med);
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
   }
 `;
 
 const LoadingScreen = () => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col h-screen w-full items-center justify-center bg-[#0a0a0a] z-50 fixed inset-0">
+    <div
+      style={{ background: "#0C0C0C" }}
+      className="flex flex-col h-screen w-full items-center justify-center fixed inset-0 z-50"
+    >
       <div className="relative flex items-center justify-center">
         <motion.div
-          className="w-24 h-24 border-[3px] border-[#D8C97B]/20 border-t-[#D8C97B] rounded-full"
+          className="w-24 h-24 rounded-full"
+          style={{
+            border: "2px solid rgba(209,196,131,0.12)",
+            borderTopColor: "#D1C483",
+          }}
           animate={{ rotate: 360 }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute w-14 h-14 border-[3px] border-[#D8C97B]/20 border-b-[#D8C97B] rounded-full"
+          className="absolute w-14 h-14 rounded-full"
+          style={{
+            border: "2px solid rgba(209,196,131,0.08)",
+            borderBottomColor: "#E8D99A",
+          }}
           animate={{ rotate: -360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute w-3 h-3 bg-[#D8C97B] rounded-full shadow-[0_0_15px_#D8C97B]"
-          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-2 h-2 rounded-full"
+          style={{ background: "#D1C483", boxShadow: "0 0 12px #D1C483" }}
+          animate={{ scale: [1, 1.7, 1], opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
         />
       </div>
-      <motion.div
-        className="mt-8 text-[#D8C97B] font-noto font-bold tracking-[0.3em] text-sm uppercase"
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      <motion.p
+        className="mt-8 font-noto font-bold tracking-[0.3em] text-sm uppercase"
+        style={{ color: "#D1C483" }}
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity }}
       >
         {t("news_page.detail.loading")}
-      </motion.div>
+      </motion.p>
     </div>
   );
 };
 
 const useScrollProgress = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [p, setP] = useState(0);
   useEffect(() => {
-    const updateScroll = () => {
-      const currentScroll = window.scrollY;
-      const scrollHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      if (scrollHeight) setScrollProgress((currentScroll / scrollHeight) * 100);
+    const fn = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setP(h ? (window.scrollY / h) * 100 : 0);
     };
-    window.addEventListener("scroll", updateScroll);
-    return () => window.removeEventListener("scroll", updateScroll);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
   }, []);
-  return scrollProgress;
+  return p;
+};
+
+const ParallaxHero = ({
+  src,
+  alt,
+  title,
+  date,
+  readTime,
+  onBack,
+  backLabel,
+}: {
+  src: string;
+  alt: string;
+  title: string;
+  date: string;
+  readTime: string;
+  onBack: () => void;
+  backLabel: string;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const rawY = useTransform(scrollYProgress, [0, 1], [0, 220]);
+  const scaleVal = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 0.65], [0, -40]);
+  const ySpring = useSpring(rawY, { stiffness: 60, damping: 18 });
+  const scaleSpring = useSpring(scaleVal, { stiffness: 60, damping: 18 });
+
+  return (
+    <div ref={ref} className="hero-wrap">
+      <motion.div
+        className="absolute inset-0 overflow-hidden"
+        style={{ scale: scaleSpring }}
+      >
+        <motion.div className="absolute inset-0" style={{ y: ySpring }}>
+          <OptimizedImage
+            src={src}
+            alt={alt}
+            width={1920}
+            height={1080}
+            priority
+            className="w-full h-full"
+            imgClassName="w-full h-full object-cover"
+          />
+        </motion.div>
+      </motion.div>
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.8) 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(0,0,0,0.18) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.18) 100%)",
+        }}
+      />
+      <div className="hero-grain" />
+
+      <div className="absolute top-0 left-0 right-0 z-30 px-6 sm:px-10 pt-28">
+        <div className="max-w-7xl mx-auto">
+          <button onClick={onBack} className="back-b">
+            <span className="back-circle">
+              <ArrowLeft size={12} />
+            </span>
+            {backLabel}
+          </button>
+        </div>
+      </div>
+
+      <motion.div
+        className="absolute inset-0 z-20 px-6 sm:px-10 flex items-center justify-center"
+        style={{ opacity: contentOpacity, y: contentY }}
+      >
+        <div className="max-w-4xl w-full text-center mt-20">
+          <h1
+            className="font-noto font-black text-white mb-8"
+            style={{
+              fontSize: "clamp(2rem, 4.5vw, 3.75rem)",
+              lineHeight: 1.18,
+              letterSpacing: "-0.02em",
+              textShadow: "0 4px 40px rgba(0,0,0,0.7)",
+            }}
+          >
+            {title}
+          </h1>
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span
+              style={{
+                width: 40,
+                height: 1,
+                background: "linear-gradient(to right, transparent, #D4AE1A)",
+                display: "inline-block",
+              }}
+            />
+            <span
+              style={{
+                width: 5,
+                height: 5,
+                background: "#D4AE1A",
+                transform: "rotate(45deg)",
+                display: "inline-block",
+                boxShadow: "0 0 6px rgba(212,174,26,0.6)",
+              }}
+            />
+            <span
+              style={{
+                width: 40,
+                height: 1,
+                background: "linear-gradient(to left, transparent, #D4AE1A)",
+                display: "inline-block",
+              }}
+            />
+          </div>
+          <div
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
+            style={{ color: "rgba(237,232,220,0.55)" }}
+          >
+            <span className="flex items-center gap-2">
+              <User size={13} style={{ color: "#D4AE1A" }} />
+              <span style={{ color: "rgba(237,232,220,0.9)", fontWeight: 600 }}>
+                Webie Vietnam
+              </span>
+            </span>
+            <span
+              className="w-px h-3"
+              style={{ background: "rgba(255,255,255,0.2)" }}
+            />
+            <span className="flex items-center gap-2">
+              <Calendar size={13} style={{ color: "#D4AE1A" }} />
+              {date}
+            </span>
+            <span
+              className="w-px h-3"
+              style={{ background: "rgba(255,255,255,0.2)" }}
+            />
+            <span className="flex items-center gap-2">
+              <BookOpen size={13} style={{ color: "#D4AE1A" }} />
+              {readTime}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1">
+        <span
+          className="text-[9px] tracking-[0.25em] uppercase font-bold"
+          style={{ color: "rgba(212,174,26,0.4)" }}
+        >
+          Scroll
+        </span>
+        <svg
+          className="sc-arrow"
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          style={{ color: "rgba(212,174,26,0.45)" }}
+        >
+          <path
+            d="M7 2v10M2 8l5 5 5-5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+const ShareButtons = ({
+  url,
+  layout = "vertical",
+}: {
+  url: string;
+  title: string;
+  layout?: "vertical" | "horizontal";
+}) => {
+  const [copied, setCopied] = useState(false);
+  const enc = encodeURIComponent;
+  const open = (href: string) =>
+    window.open(href, "_blank", "width=620,height=520,noopener,noreferrer");
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  const btns = [
+    {
+      label: "Facebook",
+      icon: <Facebook size={14} />,
+      fn: () =>
+        open(`https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`),
+    },
+    {
+      label: "LinkedIn",
+      icon: <Linkedin size={14} />,
+      fn: () =>
+        open(`https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`),
+    },
+    {
+      label: "Instagram",
+      icon: <Instagram size={14} />,
+      fn: () => open("https://www.instagram.com/"),
+    },
+    {
+      label: copied ? "Copied" : "Copy",
+      icon: copied ? <Check size={14} /> : <LinkIcon size={14} />,
+      fn: copy,
+      extra: copied ? "copied" : "",
+    },
+  ];
+  if (layout === "horizontal") {
+    return (
+      <div className="flex items-center gap-3">
+        <span
+          className="text-[10px] font-black uppercase tracking-[0.2em] mr-1"
+          style={{ color: "var(--text-muted)" }}
+        >
+          Share
+        </span>
+        {btns.map((b) => (
+          <button
+            key={b.label}
+            aria-label={b.label}
+            onClick={b.fn}
+            className={`sh-btn ${b.extra ?? ""}`}
+          >
+            {b.icon}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        style={{
+          width: 1,
+          height: 20,
+          background:
+            "linear-gradient(to bottom, transparent, var(--gold-border))",
+        }}
+      />
+      {btns.map((b) => (
+        <button
+          key={b.label}
+          aria-label={b.label}
+          onClick={b.fn}
+          className={`sh-btn ${b.extra ?? ""}`}
+        >
+          {b.icon}
+        </button>
+      ))}
+      <div
+        style={{
+          width: 1,
+          height: 20,
+          background:
+            "linear-gradient(to bottom, var(--gold-border), transparent)",
+        }}
+      />
+    </div>
+  );
 };
 
 const NewsContentRenderer = ({ content }: { content: string }) => {
   const { t } = useTranslation();
-  let blocks = [];
+  let blocks: any[] = [];
   try {
-    const data = JSON.parse(content);
-    blocks = data.blocks || [];
-  } catch (e) {
+    blocks = JSON.parse(content).blocks || [];
+  } catch {
     return (
-      <p className="text-red-500 py-4 font-noto">
+      <p
+        style={{ color: "#ef4444" }}
+        className="article-content-pad py-4 font-noto"
+      >
         {t("news_page.detail.error")}
       </p>
     );
   }
+
   return (
-    <div className="space-y-6 font-noto text-gray-800">
+    <div className="article-body font-noto">
       {blocks.map((block: any) => {
         switch (block.type) {
-          case "header":
-            const Tag = `h${block.data.level}` as keyof JSX.IntrinsicElements;
+          case "header": {
+            const l = block.data.level;
+            const Tag = `h${l}` as keyof JSX.IntrinsicElements;
             return (
               <Tag
                 key={block.id}
-                className={`font-bold text-gray-900 mt-8 mb-4 leading-tight font-noto ${block.data.level === 2 ? "text-2xl md:text-3xl border-l-4 border-[#B5A65F] pl-4" : "text-xl md:text-2xl"}`}
-              >
-                {block.data.text}
-              </Tag>
+                className="article-content-pad"
+                dangerouslySetInnerHTML={{
+                  __html: autoLinkify(block.data.text),
+                }}
+              />
             );
+          }
+
           case "paragraph":
             return (
               <p
                 key={block.id}
-                className="text-lg leading-8 text-gray-700 mb-6 text-justify"
-                dangerouslySetInnerHTML={{ __html: block.data.text }}
+                className="article-content-pad"
+                dangerouslySetInnerHTML={{
+                  __html: autoLinkify(block.data.text),
+                }}
               />
             );
+
           case "list":
-            const ListTag = block.data.style === "ordered" ? "ol" : "ul";
             return (
-              <ListTag
-                key={block.id}
-                className="pl-4 mb-6 space-y-2 bg-gray-50 p-6 rounded-xl border border-gray-100"
-              >
+              <ul key={block.id} className="dl article-content-pad">
                 {block.data.items.map((item: any, i: number) => {
-                  const content =
+                  const html =
                     typeof item === "string"
                       ? item
                       : item.content || item.text || "";
                   return (
-                    <li
-                      key={i}
-                      className="flex gap-3 text-lg text-gray-700 leading-relaxed"
-                    >
-                      <span className="text-[#B5A65F] font-bold mt-1.5 text-sm">
-                        ●
-                      </span>
-                      <span dangerouslySetInnerHTML={{ __html: content }} />
+                    <li key={i}>
+                      <span className="dl-dot" />
+                      <span dangerouslySetInnerHTML={{ __html: html }} />
                     </li>
                   );
                 })}
-              </ListTag>
+              </ul>
             );
-          case "image":
+
+          case "image": {
+            const imgSrc = block.data.file?.url;
+            const imgAlt = block.data.caption || "Image";
+            if (!imgSrc) return null;
+
             return (
-              <figure key={block.id} className="my-10 w-full group">
-                <div className="overflow-hidden rounded-xl shadow-sm border border-gray-100 bg-gray-50 text-center">
+              <figure key={block.id} className="img-block">
+                <div className="img-block-frame">
                   <OptimizedImage
-                    src={block.data.file.url}
-                    alt={block.data.caption || "Image"}
-                    width={800}
-                    height={600}
-                    className="w-auto max-w-full max-h-[80vh] mx-auto"
+                    src={imgSrc}
+                    alt={imgAlt}
+                    width={1600}
+                    height={900}
+                    className="w-full block"
+                    imgClassName="img-block-img"
                   />
                 </div>
                 {block.data.caption && (
-                  <figcaption className="text-center text-gray-500 text-sm mt-3 italic">
-                    {block.data.caption}
+                  <figcaption className="img-caption">
+                    <span className="img-caption-text">
+                      {block.data.caption}
+                    </span>
                   </figcaption>
                 )}
               </figure>
             );
+          }
+
           case "quote":
             return (
               <blockquote
                 key={block.id}
-                className="relative p-8 my-8 bg-[#fffdf5] border border-[#B5A65F]/30 rounded-xl text-center font-noto"
+                className="dq article-content-pad"
+                style={{ paddingTop: "1.75rem", paddingBottom: "1.75rem" }}
               >
-                <span className="text-5xl text-[#B5A65F] absolute -top-4 left-4 bg-[#fffdf5] px-2 leading-none font-serif">
-                  ❝
-                </span>
-                <p className="text-xl italic text-gray-800 font-medium leading-relaxed px-4 pt-2">
+                <span className="dq-mark">❝</span>
+                <p
+                  className="relative text-xl italic leading-relaxed font-noto"
+                  style={{
+                    color: "var(--text-sub)",
+                    fontWeight: 500,
+                    marginBottom: 0,
+                  }}
+                >
                   {block.data.text}
                 </p>
-                <span className="text-5xl text-[#B5A65F] absolute -bottom-6 right-4 bg-[#fffdf5] px-2 leading-none font-serif">
-                  ❞
-                </span>
                 {block.data.caption && (
-                  <div className="mt-4 text-[#B5A65F] font-bold text-xs tracking-widest uppercase border-t border-[#B5A65F]/20 inline-block pt-2">
-                    — {block.data.caption}
-                  </div>
+                  <footer className="flex items-center gap-3 mt-4">
+                    <span
+                      style={{
+                        width: 28,
+                        height: 1,
+                        background: "var(--gold)",
+                        display: "inline-block",
+                        borderRadius: 1,
+                      }}
+                    />
+                    <cite
+                      className="not-italic text-[11px] font-black uppercase tracking-widest"
+                      style={{ color: "var(--gold-dark)" }}
+                    >
+                      {block.data.caption}
+                    </cite>
+                  </footer>
                 )}
               </blockquote>
             );
@@ -209,90 +856,129 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
     </div>
   );
 };
-
+const autoLinkify = (html: string): string => {
+  const emailRegex =
+    /(?<!href=["'][^"']{0,200})([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g;
+  return html.replace(emailRegex, '<a href="mailto:$1">$1</a>');
+};
 const RightSidebar = ({
   relatedPosts,
   upcomingEvent,
+  tags,
 }: {
   relatedPosts: any[];
   upcomingEvent: any;
+  tags: string[];
 }) => {
   const { t, i18n } = useTranslation();
+  const locale = i18n.language === "en" ? "en-US" : "vi-VN";
 
   return (
-    <div className="space-y-8 font-noto">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">
-          {t("news_page.detail.sidebar.about_title")}
-        </h4>
-        <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+    <div className="space-y-5 font-noto">
+      <div className="s-card p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Tag size={13} style={{ color: "var(--gold)" }} />
+          <h4
+            className="text-[10px] font-black uppercase tracking-[0.18em]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {t("news_page.detail.sidebar.about_title")}
+          </h4>
+        </div>
+        <p
+          className="text-sm leading-relaxed mb-4"
+          style={{ color: "var(--text-sub)" }}
+        >
           {t("news_page.detail.sidebar.about_desc")}
         </p>
         <div className="flex flex-wrap gap-2">
-          {["#EventTech", "#AI", "#Hybrid", "#Tips"].map((tag) => (
+          {tags?.length > 0 ? (
+            tags.map((tag) => (
+              <span key={tag} className="tag-p">
+                #{tag}
+              </span>
+            ))
+          ) : (
             <span
-              key={tag}
-              className="px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded-full hover:bg-[#B5A65F] hover:text-white cursor-pointer transition-colors"
+              className="text-xs italic"
+              style={{ color: "var(--text-muted)" }}
             >
-              {tag}
+              Chưa có tag
             </span>
-          ))}
+          )}
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-2">
-          <TrendingUp size={18} className="text-[#B5A65F]" />
-          <h4 className="font-bold text-gray-900 uppercase text-sm tracking-wider">
+      <div className="s-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp size={14} style={{ color: "var(--gold)" }} />
+          <h4
+            className="text-[10px] font-black uppercase tracking-[0.18em]"
+            style={{ color: "var(--text-muted)" }}
+          >
             {t("news_page.detail.sidebar.related_title")}
           </h4>
         </div>
-        <div className="space-y-6">
-          {relatedPosts && relatedPosts.length > 0 ? (
-            relatedPosts
-              .filter((p) => p != null) 
-              .slice(0, 4)
-              .map((post) => {
-                const postTitle =
-                  post.translations?.vi?.title || post.title || "Bài viết";
-                return (
-                  <Link
-                    to={`/news/${post.slug || post.id}`}
-                    key={post.id}
-                    className="group cursor-pointer flex gap-4 items-start"
+        <div>
+          {relatedPosts
+            ?.filter(Boolean)
+            .slice(0, 4)
+            .map((post, idx) => {
+              const title =
+                post.translations?.vi?.title || post.title || "Bài viết";
+              return (
+                <Link
+                  to={`/news/${post.slug || post.id}`}
+                  key={post.id}
+                  className="rel-row flex gap-3 items-start py-4"
+                  style={{
+                    borderTop: idx === 0 ? "none" : "1px solid var(--border)",
+                  }}
+                >
+                  <div
+                    className="shrink-0 overflow-hidden rounded-lg"
+                    style={{
+                      width: 64,
+                      height: 50,
+                      border: "1px solid var(--border-med)",
+                      background: "var(--surface-2)",
+                    }}
                   >
-                    <div className="w-20 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                      <OptimizedImage
-                        src={post.thumbnailUrl || "https://placehold.co/100"}
-                        alt={postTitle}
-                        width={80}
-                        height={64}
-                        className="w-full h-full"
-                        imgClassName="group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-gray-800 text-sm leading-snug group-hover:text-[#B5A65F] transition-colors line-clamp-2">
-                        {postTitle}
-                      </h5>
-                      <span className="text-[10px] text-gray-400 mt-1 block font-bold uppercase">
-                        {new Date(post.createdAt).toLocaleDateString(
-                          i18n.language === "en" ? "en-US" : "vi-VN",
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })
-          ) : (
-            <p className="text-gray-400 text-xs text-center italic">
+                    <OptimizedImage
+                      src={post.thumbnailUrl || "https://placehold.co/100"}
+                      alt={title}
+                      width={64}
+                      height={50}
+                      className="w-full h-full"
+                      imgClassName="rel-thumb w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="rel-title font-semibold text-[13px] leading-snug line-clamp-2 mb-1">
+                      {title}
+                    </h5>
+                    <span
+                      className="text-[11px] font-medium"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {new Date(post.createdAt).toLocaleDateString(locale)}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          {(!relatedPosts || relatedPosts.filter(Boolean).length === 0) && (
+            <p
+              className="text-xs italic text-center py-5"
+              style={{ color: "var(--text-muted)" }}
+            >
               {t("news_page.detail.sidebar.updating")}
             </p>
           )}
         </div>
       </div>
 
-      <div className="relative rounded-2xl overflow-hidden aspect-3/4 group cursor-pointer shadow-lg">
+      <div className="ev-card aspect-3/4">
         {upcomingEvent ? (
           <Link
             to={`/event/${upcomingEvent.slug || upcomingEvent.eventId}`}
@@ -304,25 +990,42 @@ const RightSidebar = ({
               width={400}
               height={533}
               className="w-full h-full"
-              imgClassName="transition-transform duration-700 group-hover:scale-110"
+              imgClassName="ev-img w-full h-full object-cover"
               fallback="https://placehold.co/600x800"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
-              <div className="bg-[#B5A65F] w-fit px-2 py-1 rounded text-[10px] font-black uppercase mb-2 text-black">
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)",
+              }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+              <span
+                className="inline-block text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-full mb-3"
+                style={{ background: "var(--gold)", color: "#1A1714" }}
+              >
                 {t("news_page.detail.sidebar.upcoming_event_label")}
-              </div>
-              <h4 className="text-xl font-bold leading-tight mb-2 drop-shadow-md line-clamp-2">
+              </span>
+              <h4
+                className="font-bold leading-tight line-clamp-2 mb-2 text-white"
+                style={{ fontSize: 15 }}
+              >
                 {upcomingEvent.eventName || upcomingEvent.title}
               </h4>
-              <div className="flex items-center gap-2 text-xs text-gray-300">
-                <Calendar size={12} className="text-[#B5A65F]" />
-                {new Date(upcomingEvent.startDate).toLocaleDateString(
-                  i18n.language === "en" ? "en-US" : "vi-VN",
-                )}
+              <div
+                className="flex items-center gap-1.5 text-xs mb-1"
+                style={{ color: "rgba(237,232,220,0.55)" }}
+              >
+                <Calendar size={10} style={{ color: "var(--gold)" }} />
+                {new Date(upcomingEvent.startDate).toLocaleDateString(locale)}
               </div>
               {upcomingEvent.location && (
-                <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
-                  <MapPin size={12} className="text-[#B5A65F]" />
+                <div
+                  className="flex items-center gap-1.5 text-xs"
+                  style={{ color: "rgba(237,232,220,0.55)" }}
+                >
+                  <MapPin size={10} style={{ color: "var(--gold)" }} />
                   <span className="truncate">{upcomingEvent.location}</span>
                 </div>
               )}
@@ -333,13 +1036,23 @@ const RightSidebar = ({
             <img
               src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80"
               className="w-full h-full object-cover"
-              alt="Ads"
+              alt="Event"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex flex-col justify-end p-6 text-white">
-              <span className="text-[#B5A65F] text-xs font-bold uppercase mb-2">
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)",
+              }}
+            />
+            <div className="absolute bottom-0 p-5 z-10 text-white">
+              <span
+                className="block text-[9px] font-black uppercase tracking-widest mb-2"
+                style={{ color: "var(--gold-light)" }}
+              >
                 {t("news_page.detail.sidebar.ads_title")}
               </span>
-              <h4 className="text-xl font-bold leading-tight">
+              <h4 className="font-bold leading-tight" style={{ fontSize: 15 }}>
                 {t("news_page.detail.sidebar.ads_desc")}
               </h4>
             </div>
@@ -354,7 +1067,7 @@ const NewsDetail = () => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || "vi";
   const { slug } = useParams();
-  const navigate = useNavigate(); // Khởi tạo navigate
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
   const {
@@ -363,14 +1076,12 @@ const NewsDetail = () => {
     loading: loadingNews,
   } = useSelector((state: RootState) => state.news);
   const { data: eventsList } = useSelector((state: RootState) => state.events);
-
   const scrollProgress = useScrollProgress();
 
   useEffect(() => {
     window.scrollTo(0, 0);
     dispatch(fetchPublicPosts({ page: 0, size: 5, lang: currentLang }));
     dispatch(fetchPublicEvents());
-
     return () => {
       dispatch(clearPostDetail());
     };
@@ -378,20 +1089,16 @@ const NewsDetail = () => {
 
   useEffect(() => {
     if (!slug) return;
-
     if (postDetail?.alternateSlugs) {
-      const correctSlug = postDetail.alternateSlugs[currentLang];
-
-      if (correctSlug && correctSlug !== slug) {
-        navigate(`/${currentLang}/news/${correctSlug}`, { replace: true });
+      const correct = postDetail.alternateSlugs[currentLang];
+      if (correct && correct !== slug) {
+        navigate(`/${currentLang}/news/${correct}`, { replace: true });
         return;
       }
     }
-
     dispatch(fetchPostBySlug({ slug, lang: currentLang }))
       .unwrap()
-      .catch((error) => {
-        console.error("Lỗi lấy bài viết:", error);
+      .catch(() => {
         toast.warn(
           currentLang === "en"
             ? "This article is not available in English yet!"
@@ -402,181 +1109,202 @@ const NewsDetail = () => {
   }, [slug, currentLang, navigate, dispatch]);
 
   const getUpcomingEvent = () => {
-    if (!eventsList || eventsList.length === 0) return null;
+    if (!eventsList?.length) return null;
     const now = new Date();
-    const upcoming = eventsList.filter(
-      (e: any) => new Date(e.startDate) >= now,
-    );
-    upcoming.sort(
-      (a: any, b: any) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
-    return upcoming.length > 0
-      ? upcoming[0]
-      : eventsList[eventsList.length - 1];
+    const up = [...eventsList]
+      .filter((e: any) => new Date(e.startDate) >= now)
+      .sort(
+        (a: any, b: any) => +new Date(a.startDate) - +new Date(b.startDate),
+      );
+    return up[0] ?? eventsList[eventsList.length - 1];
   };
 
   const upcomingEvent = getUpcomingEvent();
-
-  const isStaleData =
+  const isStale =
     postDetail &&
     (postDetail.languageCode !== currentLang || postDetail.slug !== slug);
+  if (loadingNews || !postDetail || isStale) return <LoadingScreen />;
 
-  if (loadingNews || !postDetail || isStaleData) {
-    return <LoadingScreen />;
-  }
   const displayTitle = postDetail.title || "";
   const displaySummary = postDetail.summary || "";
   const displayContent = postDetail.content || "{}";
+  const seoTitle = postDetail.seoTitle || displayTitle;
+  const seoDescription = postDetail.seoDescription || displaySummary;
+  const postTags = Array.isArray(postDetail.tags)
+    ? (postDetail.tags as string[])
+    : [];
+  const currentUrl =
+    currentLang === "vi"
+      ? `${DOMAIN}/news/${postDetail.slug || postDetail.id}`
+      : `${DOMAIN}/${currentLang}/news/${postDetail.slug || postDetail.id}`;
+  const locale = i18n.language === "en" ? "en-US" : "vi-VN";
+  const dateStr = new Date(postDetail.createdAt).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <>
       <SeoHelmet
-        title={displayTitle}
-        description={displaySummary}
+        title={seoTitle}
+        description={seoDescription}
         slug={`news/${postDetail.slug || postDetail.id}`}
         image={postDetail.thumbnailUrl}
+        type="article"
+        publishedAt={postDetail.createdAt}
+        tags={postTags}
       />
       <style>{styles}</style>
-      <div className="bg-[#FAFAFA] min-h-screen font-noto text-gray-800 selection:bg-[#B5A65F] selection:text-white">
-        <div
-          className="fixed top-0 left-0 h-1 bg-[#B5A65F] z-50 transition-all duration-100 ease-out"
-          style={{ width: `${scrollProgress}%` }}
-        ></div>
 
-        <header className="relative w-full h-[60vh] min-h-[500px] overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden">
-            <OptimizedImage
-              src={postDetail.thumbnailUrl}
-              alt={displayTitle}
-              width={1920}
-              height={800}
-              priority={true}
-              className="w-full h-full"
-              imgClassName="animate-zoom-slow origin-center"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-black/30"></div>
-          </div>
+      <div className="rp-bar" style={{ width: `${scrollProgress}%` }} />
 
-          <div className="absolute top-32 left-0 w-full px-6 z-40 pointer-events-none">
-            <div className="max-w-7xl mx-auto">
-              <Link
-                to="/news"
-                className="pointer-events-auto relative inline-flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-full transition-all text-sm font-bold uppercase tracking-wider border border-white/20"
-              >
-                <ArrowLeft size={16} /> {t("news_page.detail.back")}
-              </Link>
-            </div>
-          </div>
+      <div className="page-light">
+        <ParallaxHero
+          src={postDetail.thumbnailUrl}
+          alt={displayTitle}
+          title={displayTitle}
+          date={dateStr}
+          readTime={t("news_page.detail.read_time")}
+          onBack={() => navigate(`/${currentLang}/news`)}
+          backLabel={t("news_page.detail.back")}
+        />
 
-          {/* VÙNG 2: TIÊU ĐỀ (Thêm pointer-events-none ở ngoài, pointer-events-auto ở trong) */}
-          <div className="absolute bottom-0 left-0 w-full px-6 pb-16 z-20 pointer-events-none">
-            <div className="max-w-4xl mx-auto text-center animate-fade-up pointer-events-auto">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-8 drop-shadow-xl font-noto line-clamp-4">
-                {displayTitle}
-              </h1>
-              <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-300 animate-fade-up-delay">
-                <div className="flex items-center gap-2">
-                  <User size={16} className="text-[#B5A65F]" />
-                  <span>{postDetail.authorName || "Webie Team"}</span>
-                </div>
-                <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-[#B5A65F]" />
-                  <span>
-                    {new Date(postDetail.createdAt).toLocaleDateString(
-                      i18n.language === "en" ? "en-US" : "vi-VN",
-                    )}
-                  </span>
-                </div>
-                <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-[#B5A65F]" />
-                  <span>{t("news_page.detail.read_time")}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-30">
-          <div className="flex flex-col lg:flex-row gap-12">
-            <div className="hidden lg:block w-16 shrink-0 pt-2">
-              <div className="sticky top-32 flex flex-col gap-4 items-center">
-                <span className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 mb-2">
-                  <Share2 size={18} />
-                </span>
-                <button
-                  aria-label="Share on Facebook"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
-                >
-                  <Facebook size={18} />
-                </button>
-                <button
-                  aria-label="Share on Twitter"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-sky-500 hover:border-sky-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
-                >
-                  <Twitter size={18} />
-                </button>
-                <button
-                  aria-label="Share on LinkedIn"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-blue-800 hover:border-blue-800 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
-                >
-                  <Linkedin size={18} />
-                </button>
-                <button
-                  aria-label="Copy link"
-                  className="w-10 h-10 rounded-full bg-white border border-gray-100 text-gray-500 hover:text-gray-900 hover:border-gray-900 flex items-center justify-center transition-all shadow-sm hover:shadow-md hover:-translate-y-1"
-                >
-                  <LinkIcon size={18} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100 min-w-0">
-              <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase tracking-wider mb-8 overflow-hidden">
-                <Link to="/" className="hover:text-[#B5A65F] shrink-0">
-                  {t("news_page.detail.breadcrumb.home")}
-                </Link>
-                <ChevronRight size={12} />
-                <Link to="/news" className="hover:text-[#B5A65F] shrink-0">
-                  {t("news_page.detail.breadcrumb.news")}
-                </Link>
-                <ChevronRight size={12} />
-                <span className="text-[#B5A65F] truncate">
-                  {t("news_page.detail.breadcrumb.detail")}
-                </span>
-              </div>
-
-              <div className="bg-[#FAFAFA] border-l-4 border-[#B5A65F] p-6 mb-10 rounded-r-lg">
-                <p className="text-xl font-noto italic text-gray-700 leading-relaxed">
-                  {displaySummary}
-                </p>
-              </div>
-
-              <NewsContentRenderer content={displayContent} />
-
-              <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
-                <Tag size={16} className="text-[#B5A65F] mt-1" />
-                {["Sự kiện", "Công nghệ", "Tin tức"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-gray-100 text-xs text-gray-600 rounded hover:bg-[#B5A65F] hover:text-white cursor-pointer transition-colors"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="w-full lg:w-80 shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+          <div className="flex flex-col lg:flex-row gap-10 xl:gap-14">
+            {/* Share sidebar */}
+            <aside className="hidden lg:flex flex-col items-center w-10 shrink-0 pt-1">
               <div className="sticky top-32">
+                <ShareButtons url={currentUrl} title={displayTitle} />
+              </div>
+            </aside>
+
+            <article className="flex-1 min-w-0">
+              <div className="article-body-wrap">
+                <nav
+                  className="article-content-pad flex items-center gap-1.5 mb-8 flex-wrap"
+                  style={{ paddingBottom: 0, paddingTop: "12px" }}
+                >
+                  {[
+                    { label: t("news_page.detail.breadcrumb.home"), to: "/" },
+                    {
+                      label: t("news_page.detail.breadcrumb.news"),
+                      to: "/news",
+                    },
+                  ].map(({ label, to }) => (
+                    <span key={to} className="flex items-center gap-1.5">
+                      <Link
+                        to={to}
+                        className="text-[11px] font-bold uppercase tracking-widest transition-colors"
+                        style={{ color: "var(--text-muted)" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.color = "var(--gold-dark)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = "var(--text-muted)")
+                        }
+                      >
+                        {label}
+                      </Link>
+                      <ChevronRight
+                        size={9}
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                    </span>
+                  ))}
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-widest"
+                    style={{ color: "var(--gold-dark)" }}
+                  >
+                    {t("news_page.detail.breadcrumb.detail")}
+                  </span>
+                </nav>
+
+                <div
+                  className="article-content-pad lead-box"
+                  style={{ marginTop: "2rem" }}
+                >
+                  <p className="lead-text font-noto">{displaySummary}</p>
+                </div>
+
+                <div className="article-content-pad">
+                  <div className="dv-wrap">
+                    <span className="dv-line" />
+                    <div className="dv-diamond" />
+                    <span className="dv-line" />
+                  </div>
+                </div>
+
+                <NewsContentRenderer content={displayContent} />
+
+                {postTags.length > 0 && (
+                  <div className="article-content-pad tags-footer">
+                    <Tag
+                      size={13}
+                      style={{ color: "var(--gold)", marginRight: 4 }}
+                    />
+                    {postTags.map((tag) => (
+                      <span key={tag} className="tag-p">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div
+                  className="article-content-pad article-content-pad-bottom mt-6 pt-6 flex lg:hidden"
+                  style={{
+                    borderTop: "1px solid var(--border-med)",
+                    marginTop: postTags.length > 0 ? "1rem" : "2.5rem",
+                  }}
+                >
+                  <ShareButtons
+                    url={currentUrl}
+                    title={displayTitle}
+                    layout="horizontal"
+                  />
+                </div>
+
+                {postTags.length === 0 && (
+                  <div className="article-content-pad-bottom" />
+                )}
+              </div>
+
+              <div
+                className="flex items-center gap-2 mt-6 pb-2"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <img
+                  src="/src/assets/images/Logo_EMS.webp"
+                  alt="Webie Vietnam"
+                  className="w-5 h-5 object-contain opacity-70"
+                />
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: "var(--text-sub)" }}
+                >
+                  Webie Vietnam
+                </span>
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--border-med)" }}
+                >
+                  ·
+                </span>
+                <Clock size={11} style={{ color: "var(--gold)" }} />
+                <span className="text-xs">{dateStr}</span>
+              </div>
+            </article>
+
+            <aside className="w-full lg:w-72 xl:w-80 shrink-0">
+              <div className="sticky top-28">
                 <RightSidebar
                   relatedPosts={relatedPosts}
                   upcomingEvent={upcomingEvent}
+                  tags={postTags}
                 />
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>

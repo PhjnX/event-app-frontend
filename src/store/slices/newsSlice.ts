@@ -11,6 +11,8 @@ interface Post {
   content: string;
   seoTitle?: string;
   seoDescription?: string;
+  focusKeyword?: string; // MỚI
+  tags?: string[]; // MỚI
   thumbnailUrl: string;
   status: string;
   createdAt: string;
@@ -88,6 +90,18 @@ export const fetchPostDetailAdmin = createAsyncThunk(
         console.warn("Chưa có bản dịch Tiếng Anh cho bài viết này");
       }
 
+      // Parse tags an toàn
+      const parseTags = (tags: any): string[] => {
+        if (!tags) return [];
+        if (Array.isArray(tags)) return tags;
+        try {
+          const parsed = JSON.parse(tags);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      };
+
       const combinedData = {
         ...resVi,
         translations: {
@@ -97,6 +111,8 @@ export const fetchPostDetailAdmin = createAsyncThunk(
             content: resVi.content || "{}",
             seoTitle: resVi.seoTitle || "",
             seoDescription: resVi.seoDescription || "",
+            focusKeyword: resVi.focusKeyword || "", // MỚI
+            tags: parseTags(resVi.tags), // MỚI
           },
           en: {
             title: resEn.title || "",
@@ -104,6 +120,8 @@ export const fetchPostDetailAdmin = createAsyncThunk(
             content: resEn.content || "{}",
             seoTitle: resEn.seoTitle || "",
             seoDescription: resEn.seoDescription || "",
+            focusKeyword: resEn.focusKeyword || "", // MỚI
+            tags: parseTags(resEn.tags), // MỚI
           },
         },
       };
@@ -183,10 +201,7 @@ export const uploadImage = async (file: File): Promise<string> => {
       },
     );
 
-    if (res.file && res.file.url) {
-      return res.file.url;
-    }
-
+    if (res.file && res.file.url) return res.file.url;
     if (typeof res === "string") return res;
     if (res.url) return res.url;
     if (res.link && typeof res.link === "string") return res.link;
@@ -195,7 +210,6 @@ export const uploadImage = async (file: File): Promise<string> => {
     throw new Error("Không lấy được link ảnh (Cấu trúc không khớp)");
   } catch (error: any) {
     const isClientValidationError = error.message.includes("Ảnh quá lớn!");
-
     if (!isClientValidationError) {
       if (error.response) {
         if (error.response.status === 413) {

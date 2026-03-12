@@ -25,7 +25,10 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
         tools: {
           header: {
             class: Header as any,
-            config: { levels: [2, 3, 4], defaultLevel: 2 },
+            config: {
+              levels: [1, 2, 3, 4], // ← thêm 1 vào đây
+              defaultLevel: 2,
+            },
           },
           list: {
             class: List as any,
@@ -76,8 +79,7 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
       if (ref.current && typeof ref.current.destroy === "function") {
         try {
           ref.current.destroy();
-        } catch (e) {
-        }
+        } catch (e) {}
         ref.current = null;
       }
     };

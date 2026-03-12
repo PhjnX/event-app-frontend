@@ -9,6 +9,10 @@ interface SeoHelmetProps {
   keywords?: string;
   image?: string;
   slug?: string;
+  // Thêm mới cho trang bài viết
+  type?: "website" | "article";
+  publishedAt?: string;
+  tags?: string[];
 }
 
 const DOMAIN = "https://ems.webie.com.vn";
@@ -19,6 +23,9 @@ export const SeoHelmet: React.FC<SeoHelmetProps> = ({
   keywords,
   image = `${DOMAIN}/og-image-preview.png`,
   slug = "",
+  type = "website",
+  publishedAt,
+  tags = [],
 }) => {
   const lang = useCurrentLang();
   const location = useLocation();
@@ -39,28 +46,43 @@ export const SeoHelmet: React.FC<SeoHelmetProps> = ({
   const alternateVi = buildUrl("vi");
   const alternateEn = buildUrl("en");
 
+  // Gộp keywords từ prop + tags từ bài viết
+  const allKeywords = [...(keywords ? [keywords] : []), ...tags]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <Helmet>
       <html lang={lang} />
       <title>{title}</title>
 
       <meta name="description" content={description} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      {allKeywords && <meta name="keywords" content={allKeywords} />}
 
       <link rel="canonical" href={currentUrl} />
-
       <link rel="alternate" hrefLang="vi" href={alternateVi} />
       <link rel="alternate" hrefLang="en" href={alternateEn} />
       <link rel="alternate" hrefLang="x-default" href={alternateVi} />
 
+      {/* Open Graph */}
       <meta property="og:locale" content={lang === "vi" ? "vi_VN" : "en_US"} />
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={currentUrl} />
       <meta property="og:image" content={image} />
       <meta property="og:site_name" content="Webie EMS" />
 
+      {/* Article specific - chỉ render khi type=article */}
+      {type === "article" && publishedAt && (
+        <meta property="article:published_time" content={publishedAt} />
+      )}
+      {type === "article" &&
+        tags.map((tag) => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+
+      {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />

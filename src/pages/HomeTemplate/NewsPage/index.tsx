@@ -23,6 +23,7 @@ import { optimizeImageUrl } from "@/utils/imageOptimizer";
 import { useTranslation } from "react-i18next";
 import { SeoHelmet } from "@/components/common/SeoHelmet";
 import { SEO_DATA } from "@/constants/seo-config";
+import LoadingScreen from "./../_components/common/LoadingSrceen";
 
 const useScrollProgress = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -182,7 +183,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
   const post = posts[current];
 
   return (
-    <section className="relative h-[85vh] min-h-[600px] w-full bg-[#050505] overflow-hidden group">
+    <section className="relative h-[85vh] min-h-150 w-full bg-[#050505] overflow-hidden group">
       {posts.map((p, index) => (
         <div
           key={`hero-bg-${p.id}-${index}`}
@@ -203,7 +204,7 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
         </div>
       ))}
 
-      <div className="absolute inset-0 z-20 flex flex-col justify-end pb-16 px-6 md:px-16 max-w-[1600px] mx-auto">
+      <div className="absolute inset-0 z-20 flex flex-col justify-end pb-16 px-6 md:px-16 max-w-400 mx-auto">
         <div
           key={`content-${current}`}
           className="max-w-4xl animate-[fadeInUp_0.8s_ease-out]"
@@ -294,7 +295,7 @@ const WeeklyHighlights: React.FC<{ posts: any[] }> = ({ posts }) => {
         }}
       ></div>
 
-      <div className="container mx-auto px-6 relative z-10 max-w-[1400px]">
+      <div className="container mx-auto px-6 relative z-10 max-w-350">
         <SectionHeader
           subtitle={t("news_page.weekly_highlights.subtitle")}
           title={
@@ -343,7 +344,7 @@ const ExploreMasonry: React.FC<{ posts: any[] }> = ({ posts }) => {
         <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#020202]"></div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 max-w-[1400px]">
+      <div className="container mx-auto px-6 relative z-10 max-w-350">
         <SectionHeader
           subtitle={t("news_page.explore.subtitle")}
           title={
@@ -381,11 +382,15 @@ export default function NewsPage() {
   const { data, loading } = useSelector((state: RootState) => state.news);
   const scrollProgress = useScrollProgress();
   const currentLang = i18n.language || "vi";
+  const [hasFetched, setHasFetched] = useState(false);
 
   const seo = SEO_DATA.news[currentLang as "vi" | "en"] || SEO_DATA.news.vi;
 
   useEffect(() => {
-    dispatch(fetchPublicPosts({ page: 0, size: 50, lang: currentLang }));
+    setHasFetched(false);
+    dispatch(
+      fetchPublicPosts({ page: 0, size: 50, lang: currentLang }),
+    ).finally(() => setHasFetched(true));
   }, [dispatch, currentLang]);
 
   const { heroPosts, weeklyHighlights, explorePosts } = useMemo(() => {
@@ -418,7 +423,7 @@ export default function NewsPage() {
     return { heroPosts: hero, weeklyHighlights: weekly, explorePosts: explore };
   }, [data, currentLang]);
 
-  const isEmpty = !loading && heroPosts.length === 0;
+  const isEmpty = hasFetched && !loading && heroPosts.length === 0;
 
   return (
     <>
@@ -435,12 +440,8 @@ export default function NewsPage() {
           style={{ width: `${scrollProgress}%` }}
         ></div>
 
-        <Suspense fallback={<div className="h-screen bg-[#050505]" />}>
-          {loading && (
-            <div className="h-screen flex flex-col items-center justify-center gap-4 text-[#D8C97B]">
-              <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
+        <Suspense fallback={<LoadingScreen />}>
+          {(!hasFetched || loading) && <LoadingScreen />}
 
           {isEmpty && (
             <div className="h-screen flex flex-col items-center justify-center opacity-50">
@@ -451,7 +452,7 @@ export default function NewsPage() {
             </div>
           )}
 
-          {!loading && !isEmpty && (
+          {hasFetched && !loading && !isEmpty && (
             <>
               <HeroSlider posts={heroPosts} />
 
