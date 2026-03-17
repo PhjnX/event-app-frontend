@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { useTranslation } from "react-i18next";
+import logoEms from "@/assets/images/Logo_EMS.webp";
 
 const DOMAIN = "https://ems.webie.com.vn";
 
@@ -869,7 +870,7 @@ const ArticleFooter = ({
       <div className="article-byline font-noto">
         <div className="flex items-center gap-2">
           <img
-            src="/src/assets/images/Logo_EMS.webp"
+            src={logoEms}
             alt="Webie Vietnam"
             className="w-5 h-5 object-contain opacity-70"
           />
