@@ -10,7 +10,6 @@ import {
   ArrowRight,
   Quote,
   Newspaper,
-  Sparkles,
   ChevronRight,
   ChevronLeft,
   Tag,
