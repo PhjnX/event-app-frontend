@@ -9,6 +9,10 @@ import {
   clearPostDetail,
   createPost,
 } from "../../../store/slices/newsSlice";
+import {
+  fetchAdminCategories,
+  getCategoryName,
+} from "../../../store/slices/categorySlice";
 import NewsEditor from "../_components/NewsEditor";
 import {
   FaArrowLeft,
@@ -18,6 +22,7 @@ import {
   FaTags,
   FaKey,
   FaTimes,
+  FaFolder,
 } from "react-icons/fa";
 
 type LangCode = "vi" | "en";
@@ -27,6 +32,12 @@ export default function EditNews() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { postDetail } = useSelector((state: RootState) => state.news);
+
+  // ─── Category ─────────────────────────────────────────────────────────────
+  const { adminList: categories } = useSelector(
+    (state: RootState) => state.categories,
+  );
+  const [categoryId, setCategoryId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<LangCode>("vi");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -59,6 +70,11 @@ export default function EditNews() {
     },
   });
 
+  // ─── Fetch categories when mounted ────────────────────────────────────────
+  useEffect(() => {
+    dispatch(fetchAdminCategories());
+  }, [dispatch]);
+
   useEffect(() => {
     if (id) {
       dispatch(fetchPostDetailAdmin(Number(id)));
@@ -73,13 +89,14 @@ export default function EditNews() {
   useEffect(() => {
     if (postDetail) {
       setThumbnailUrl(postDetail.thumbnailUrl || "");
+      // ─── Restore categoryId when editing ──────────────────────────────
+      setCategoryId(postDetail.categoryId ?? null);
 
       const parseContent = (str: string | undefined) => {
         if (!str || str.trim() === "") return {};
         try {
           return JSON.parse(str);
-        } catch (e) {
-          console.error(e);
+        } catch {
           return {};
         }
       };
@@ -162,27 +179,32 @@ export default function EditNews() {
 
   const addTag = (lang: LangCode, value: string) => {
     const trimmed = value.trim().replace(/,/g, "");
-    if (!trimmed) return;
-    if (formData[lang].tags.includes(trimmed)) return;
-    if (formData[lang].tags.length >= 5) return;
-
+    if (
+      !trimmed ||
+      formData[lang].tags.includes(trimmed) ||
+      formData[lang].tags.length >= 5
+    )
+      return;
     handleInputChange(lang, "tags", [...formData[lang].tags, trimmed]);
     if (lang === "vi") setTagInputVi("");
     else setTagInputEn("");
   };
 
   const removeTag = (lang: LangCode, index: number) => {
-    const newTags = formData[lang].tags.filter((_, i) => i !== index);
-    handleInputChange(lang, "tags", newTags);
+    handleInputChange(
+      lang,
+      "tags",
+      formData[lang].tags.filter((_, i) => i !== index),
+    );
   };
 
   const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setUploading(true);
       try {
         const url = await uploadImage(e.target.files[0]);
         setThumbnailUrl(url);
-      } catch (_err) {
+      } catch {
         alert("Upload ảnh thất bại!");
       } finally {
         setUploading(false);
@@ -195,8 +217,13 @@ export default function EditNews() {
       alert("Tiêu đề tiếng Việt không được để trống");
       return;
     }
+    if (!categoryId) {
+      alert("Vui lòng chọn danh mục cho bài viết");
+      return;
+    }
 
     const payload = {
+      categoryId, // ← key fix: include categoryId
       thumbnailUrl,
       status: postDetail?.status || "PUBLISHED",
       translations: {
@@ -206,7 +233,7 @@ export default function EditNews() {
           seoTitle: formData.vi.seoTitle,
           seoDescription: formData.vi.seoDescription,
           focusKeyword: formData.vi.focusKeyword || null,
-          tags: formData.vi.tags.length > 0 ? formData.vi.tags : [],
+          tags: formData.vi.tags,
           content: formData.vi.content
             ? JSON.stringify(formData.vi.content)
             : "{}",
@@ -217,7 +244,7 @@ export default function EditNews() {
           seoTitle: formData.en.seoTitle,
           seoDescription: formData.en.seoDescription,
           focusKeyword: formData.en.focusKeyword || null,
-          tags: formData.en.tags.length > 0 ? formData.en.tags : [],
+          tags: formData.en.tags,
           content: formData.en.content
             ? JSON.stringify(formData.en.content)
             : "{}",
@@ -225,13 +252,20 @@ export default function EditNews() {
       },
     };
 
+    let result;
     if (id) {
-      await dispatch(updatePost({ id: Number(id), data: payload }));
+      result = await dispatch(updatePost({ id: Number(id), data: payload }));
     } else {
-      await dispatch(createPost(payload));
+      result = await dispatch(createPost(payload));
     }
 
-    navigate("/admin/news");
+    // Only navigate if action succeeded
+    if (
+      updatePost.fulfilled.match(result as any) ||
+      createPost.fulfilled.match(result as any)
+    ) {
+      navigate("/admin/news");
+    }
   };
 
   const analyzeSeo = (lang: LangCode) => {
@@ -246,6 +280,11 @@ export default function EditNews() {
       inSummary: summary.toLowerCase().includes(kw),
     };
   };
+
+  // ─── Category tree for dropdown ───────────────────────────────────────────
+  const categoryRoots = categories.filter((c) => !c.parent);
+  const categoryChildren = (parentId: number) =>
+    categories.filter((c) => c.parent?.id === parentId);
 
   const seoAnalysis = analyzeSeo(activeTab);
   const tagInput = activeTab === "vi" ? tagInputVi : tagInputEn;
@@ -263,6 +302,7 @@ export default function EditNews() {
 
   return (
     <div className="min-h-screen bg-black text-white p-6 pb-20">
+      {/* Header */}
       <div className="max-w-6xl mx-auto mb-6 flex justify-between items-center">
         <button
           onClick={() => navigate("/admin/news")}
@@ -272,30 +312,26 @@ export default function EditNews() {
         </button>
 
         <div className="flex bg-[#1a1a1a] p-1 rounded-lg border border-gray-800">
-          <button
-            onClick={() => setActiveTab("vi")}
-            className={`px-6 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${
-              activeTab === "vi"
-                ? "bg-[#D8C97B] text-black"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            <FaGlobe /> Tiếng Việt
-          </button>
-          <button
-            onClick={() => setActiveTab("en")}
-            className={`px-6 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${
-              activeTab === "en"
-                ? "bg-[#D8C97B] text-black"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            <FaGlobe /> English
-          </button>
+          {(["vi", "en"] as LangCode[]).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setActiveTab(lang)}
+              className={`px-6 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${
+                activeTab === lang
+                  ? "bg-[#D8C97B] text-black"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <FaGlobe />
+              {lang === "vi" ? "Tiếng Việt" : "English"}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Grid */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 shadow-lg">
             <label className="text-[#D8C97B] text-xs uppercase font-bold tracking-wider mb-2 block">
@@ -307,6 +343,7 @@ export default function EditNews() {
               onChange={(e) =>
                 handleInputChange(activeTab, "title", e.target.value)
               }
+              placeholder="Nhập tiêu đề..."
             />
           </div>
 
@@ -316,7 +353,7 @@ export default function EditNews() {
                 Nội dung ({activeTab.toUpperCase()})
               </span>
             </div>
-            <div className="bg-white min-h-125 text-black relative">
+            <div className="bg-white min-h-[500px] text-black relative">
               <div
                 className={`w-full h-full p-6 transition-opacity duration-200 ${
                   activeTab === "vi"
@@ -353,12 +390,66 @@ export default function EditNews() {
           </div>
         </div>
 
+        {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800 shadow-lg sticky top-6 space-y-5">
             <h3 className="text-[#D8C97B] font-bold text-lg border-b border-gray-700 pb-2">
               Thông tin chung
             </h3>
 
+            {/* ─── CATEGORY SELECTOR ──────────────────────────────────── */}
+            <div>
+              <label className="block text-gray-400 text-sm mb-2 font-medium flex items-center gap-2">
+                <FaFolder className="text-[#D8C97B]" />
+                Danh mục
+                <span className="text-red-400 text-xs">*</span>
+              </label>
+              <select
+                value={categoryId ?? ""}
+                onChange={(e) =>
+                  setCategoryId(e.target.value ? Number(e.target.value) : null)
+                }
+                className={`w-full bg-[#111] border rounded-lg p-2.5 text-sm text-gray-200 focus:outline-none transition-colors cursor-pointer ${
+                  !categoryId
+                    ? "border-red-800 focus:border-red-500"
+                    : "border-gray-700 focus:border-[#D8C97B]"
+                }`}
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {categoryRoots.length > 0 ? (
+                  categoryRoots.map((root) => {
+                    const children = categoryChildren(root.id);
+                    const rootName =
+                      getCategoryName(root, "vi") || `Category #${root.id}`;
+                    return children.length > 0 ? (
+                      <optgroup key={root.id} label={rootName}>
+                        <option value={root.id}>{rootName} (Tất cả)</option>
+                        {children.map((child) => (
+                          <option key={child.id} value={child.id}>
+                            &nbsp;&nbsp;↳{" "}
+                            {getCategoryName(child, "vi") ||
+                              `Category #${child.id}`}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      <option key={root.id} value={root.id}>
+                        {rootName}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option disabled>Chưa có danh mục nào</option>
+                )}
+              </select>
+              {!categoryId && (
+                <p className="text-red-400 text-xs mt-1">
+                  Bắt buộc chọn danh mục
+                </p>
+              )}
+            </div>
+
+            {/* Summary */}
             <div>
               <label className="block text-gray-400 text-sm mb-2 font-medium">
                 Tóm tắt ({activeTab.toUpperCase()})
@@ -373,6 +464,7 @@ export default function EditNews() {
               />
             </div>
 
+            {/* Thumbnail */}
             <div>
               <label className="block text-gray-400 text-sm mb-2 font-medium">
                 Ảnh đại diện (Dùng chung)
@@ -401,18 +493,19 @@ export default function EditNews() {
               </div>
             </div>
 
+            {/* SEO */}
             <div className="border-t border-gray-800 pt-4">
               <h4 className="text-sm font-bold text-[#D8C97B] mb-3">
                 SEO ({activeTab.toUpperCase()})
               </h4>
 
               <div className="mb-3">
-                <label className="block text-gray-400 text-xs mb-1 items-center gap-1">
+                <label className="block text-gray-400 text-xs mb-1 flex items-center gap-1">
                   <FaKey className="text-[#D8C97B]" /> Từ khóa chính (Focus
                   Keyword)
                 </label>
                 <input
-                  className="w-full bg-[#111] border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:border-[#D8C97B] focus:outline-none transition-colors"
+                  className="w-full bg-[#111] border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:border-[#D8C97B] focus:outline-none"
                   value={formData[activeTab].focusKeyword}
                   onChange={(e) =>
                     handleInputChange(activeTab, "focusKeyword", e.target.value)
@@ -420,8 +513,6 @@ export default function EditNews() {
                   placeholder="VD: tổ chức sự kiện hybrid"
                   maxLength={255}
                 />
-
-                {/* SEO ANALYZER */}
                 {seoAnalysis && (
                   <div className="mt-2 space-y-1">
                     <p className="text-xs text-gray-500 mb-1">
@@ -486,6 +577,7 @@ export default function EditNews() {
               </div>
             </div>
 
+            {/* Tags */}
             <div className="border-t border-gray-800 pt-4">
               <h4 className="text-sm font-bold text-[#D8C97B] mb-1 flex items-center gap-2">
                 <FaTags /> Tags / Hashtag ({activeTab.toUpperCase()})
@@ -534,11 +626,12 @@ export default function EditNews() {
               </p>
             </div>
 
+            {/* Save button */}
             <button
               onClick={handleUpdate}
               className="w-full bg-[#D8C97B] hover:bg-[#c4b56a] text-black font-bold py-3 rounded-lg shadow-lg flex justify-center items-center gap-2 mt-2"
             >
-              <FaSave /> Lưu thay đổi
+              <FaSave /> {id ? "Lưu thay đổi" : "Tạo bài viết"}
             </button>
           </div>
         </div>

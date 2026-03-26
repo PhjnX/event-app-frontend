@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 interface NewsUI {
   id: number | string;
   slug: string;
+  categorySlug: string; // <-- THÊM MỚI
   title: string;
   image: string;
   category: string;
@@ -70,6 +71,9 @@ const NewsCard = memo(
     const isCenter = position === "center";
     const isLeft = position === "left";
 
+    // Tạo URL động chứa cả categorySlug
+    const postUrl = `/news/${news.categorySlug}/${news.slug}`;
+
     return (
       <motion.div
         drag={isCenter ? "x" : false}
@@ -115,7 +119,7 @@ const NewsCard = memo(
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
           />
-          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent opacity-90 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 pointer-events-none"></div>
 
           <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end pointer-events-none">
             <div className="transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
@@ -132,7 +136,7 @@ const NewsCard = memo(
               </div>
 
               <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight font-noto group-hover:text-[#D8C97B] transition-colors pointer-events-auto line-clamp-2">
-                <Link to={`/news/${news.slug}`}>{news.title}</Link>
+                <Link to={postUrl}>{news.title}</Link>
               </h3>
 
               <motion.div
@@ -144,7 +148,7 @@ const NewsCard = memo(
                   {news.excerpt}
                 </p>
                 <Link
-                  to={`/news/${news.slug}`}
+                  to={postUrl}
                   className="inline-flex items-center gap-3 text-[#D8C97B] text-sm font-bold uppercase tracking-widest hover:text-white transition-colors border-b border-[#D8C97B] pb-1 hover:border-white"
                 >
                   {t("home.news_section.card.details")} <FaArrowRight />
@@ -223,9 +227,10 @@ const NewsSection = () => {
         return {
           id: item.id || Math.random().toString(),
           slug: displaySlug,
+          categorySlug: item.categorySlug || "tin-tuc", // <-- Đã ghép categorySlug
           title: displayTitle,
           image: item.thumbnailUrl || "https://placehold.co/800x450",
-          category: "",
+          category: item.categoryName || "", // <-- Bổ sung tên chuyên mục
           date: item.createdAt
             ? new Date(item.createdAt).toLocaleDateString(
                 effectiveLang === "en" ? "en-US" : "vi-VN",

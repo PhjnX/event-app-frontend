@@ -60,7 +60,11 @@ const userRoutes: RouteObject = {
             { path: "events", element: <EventPage /> },
             { path: "news", element: <NewsPage /> },
 
+            // THÊM ROUTE MỚI CÓ CATEGORY SLUG Ở ĐÂY
+            { path: "news/:categorySlug/:slug", element: <NewsDetail /> },
+            // GIỮ LẠI ROUTE CŨ LÀM FALLBACK (Tránh lỗi 404 cho các link cũ)
             { path: "news/:slug", element: <NewsDetail /> },
+
             { path: "event/:slug", element: <PublicEventDetail /> },
 
             {
