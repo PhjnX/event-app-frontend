@@ -65,8 +65,18 @@ export default defineConfig({
           "vendor-ui": ["react-toastify", "flowbite"],
           "vendor-websocket": ["sockjs-client", "@stomp/stompjs"],
           "vendor-utils": ["axios", "clsx", "tailwind-merge"],
-          "vendor-i18n": ["i18next", "react-i18next", "i18next-browser-languagedetector"],
-          "vendor-editor": ["@editorjs/editorjs", "@editorjs/header", "@editorjs/image", "@editorjs/list", "@editorjs/quote"],
+          "vendor-i18n": [
+            "i18next",
+            "react-i18next",
+            "i18next-browser-languagedetector",
+          ],
+          "vendor-editor": [
+            "@editorjs/editorjs",
+            "@editorjs/header",
+            "@editorjs/image",
+            "@editorjs/list",
+            "@editorjs/quote",
+          ],
           "vendor-map": ["leaflet", "react-leaflet"],
         },
 
