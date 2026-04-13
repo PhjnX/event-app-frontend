@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 interface NewsUI {
   id: number | string;
   slug: string;
-  categorySlug: string; // <-- THÊM MỚI
+  categorySlug: string;
   title: string;
   image: string;
   category: string;
@@ -29,6 +29,58 @@ interface NewsUI {
   author: string;
   excerpt: string;
 }
+
+// ─── Video detection ──────────────────────────────────────────────────────────
+const checkIsVideo = (url?: string | null): boolean => {
+  if (!url) return false;
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url.split("?")[0]);
+};
+
+// ─── MediaThumb: renders video or image depending on URL ──────────────────────
+const MediaThumb = ({ src, alt }: { src: string; alt: string }) => {
+  const isVideo = checkIsVideo(src);
+
+  if (isVideo) {
+    return (
+      <>
+        <video
+          src={src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
+        />
+        {/* VIDEO badge */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-[#D8C97B] text-black px-2.5 py-1 rounded-md pointer-events-none">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 10 10"
+            fill="currentColor"
+            className="shrink-0"
+          >
+            <path d="M2 1.5l6 3.5-6 3.5V1.5z" />
+          </svg>
+          <span className="text-[9px] font-black tracking-wider">VIDEO</span>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={800}
+      height={450}
+      loading="lazy"
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
+    />
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const BackgroundDecoration = () => (
   <div
@@ -71,7 +123,6 @@ const NewsCard = memo(
     const isCenter = position === "center";
     const isLeft = position === "left";
 
-    // Tạo URL động chứa cả categorySlug
     const postUrl = `/news/${news.categorySlug}/${news.slug}`;
 
     return (
@@ -111,14 +162,9 @@ const NewsCard = memo(
             }
         `}
         >
-          <img
-            src={news.image}
-            alt={news.title}
-            width={800}
-            height={450}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 pointer-events-none"
-          />
+          {/* ✅ Replaced <img> with <MediaThumb> — supports video URLs */}
+          <MediaThumb src={news.image} alt={news.title} />
+
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 pointer-events-none"></div>
 
           <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end pointer-events-none">
@@ -227,10 +273,10 @@ const NewsSection = () => {
         return {
           id: item.id || Math.random().toString(),
           slug: displaySlug,
-          categorySlug: item.categorySlug || "tin-tuc", // <-- Đã ghép categorySlug
+          categorySlug: item.categorySlug || "tin-tuc",
           title: displayTitle,
           image: item.thumbnailUrl || "https://placehold.co/800x450",
-          category: item.categoryName || "", // <-- Bổ sung tên chuyên mục
+          category: item.categoryName || "",
           date: item.createdAt
             ? new Date(item.createdAt).toLocaleDateString(
                 effectiveLang === "en" ? "en-US" : "vi-VN",
@@ -345,7 +391,7 @@ const NewsSection = () => {
             whileInView="visible"
             viewport={{ once: true, amount: 0.5 }}
             transition={{ delay: 0.2 }}
-            className="text-gray-400 text-lg md:text-xl font-noto max-w-2xl mx-auto leading-relaxed "
+            className="text-gray-400 text-lg md:text-xl font-noto max-w-2xl mx-auto leading-relaxed"
           >
             {t("home.news_section.subtitle")}
           </motion.p>

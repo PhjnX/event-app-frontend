@@ -135,6 +135,49 @@
         "details": "Read more"
       }
     },
+    "faq": {
+      "title": "Frequently",
+      "highlight": "asked questions",
+      "description": "Everything you need to know about the Webie EMS event management platform",
+      "items": [
+        {
+          "q": "What is Webie EMS and why should I use it?",
+          "a": "Webie EMS is a digital event management platform that automates everything from ticket delivery and check-in to data analytics. It helps businesses save 80% of their logistics time, reduce errors, and elevate the professionalism of their events."
+        },
+        {
+          "q": "Is Webie EMS suitable for both small and very large-scale events?",
+          "a": "Absolutely. The system is built to run smoothly at any scale — from a 50-person workshop to a mega-event with thousands of attendees."
+        },
+        {
+          "q": "Can I customize QR tickets and emails to match my brand identity?",
+          "a": "Yes. The system fully supports customization of images, logos, and colors on e-tickets, emails, and registration pages to ensure 100% consistency with your brand."
+        },
+        {
+          "q": "If the venue loses internet connection, will the Check-in system go down?",
+          "a": "No. The system has an offline fallback mechanism and will automatically sync data as soon as the internet is restored, ensuring the guest check-in flow is never interrupted."
+        },
+        {
+          "q": "Is attendee data kept secure?",
+          "a": "Absolutely secure. Data is encrypted, stored on safe cloud servers, and strictly complies with privacy regulations. We are committed to never sharing data with third parties."
+        },
+        {
+          "q": "Does Webie Vietnam provide on-site technical support at events?",
+          "a": "Yes. Webie offers a service package that dispatches a technical specialist directly to the venue to coordinate equipment and resolve any issues in real time."
+        },
+        {
+          "q": "Does the system have automated post-event attendee follow-up features?",
+          "a": "Yes. You can configure Automation workflows on Webie EMS to send thank-you emails, e-Certificates, or satisfaction survey forms to attendees right after the event concludes."
+        },
+        {
+          "q": "Does Webie EMS support check-in for individual breakout rooms?",
+          "a": "Yes. The system supports Multi-point Check-in. You can set up separate QR scanning at each room to control ticket access and accurately track attendance per session."
+        },
+        {
+          "q": "How can I measure the success of my event?",
+          "a": "Webie EMS provides a real-time reporting Dashboard. You can instantly track the attendance rate versus registrations, peak check-in hours, and export detailed guest data after the event for Remarketing campaigns."
+        }
+      ]
+    },
     "contact": {
       "title": "Contact",
       "highlight": "Partnership",

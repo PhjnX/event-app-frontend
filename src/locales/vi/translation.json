@@ -135,6 +135,49 @@
         "details": "Xem chi tiết"
       }
     },
+    "faq": {
+      "title": "Câu hỏi",
+      "highlight": "thường gặp",
+      "description": "Mọi thứ bạn cần biết về nền tảng quản lý sự kiện Webie EMS",
+      "items": [
+        {
+          "q": "Webie EMS là gì và tại sao nên sử dụng?",
+          "a": "Webie EMS là nền tảng quản lý sự kiện số hóa, tự động hóa từ khâu gửi vé, check-in đến thống kê dữ liệu. Giải pháp giúp doanh nghiệp tiết kiệm 80% thời gian hậu cần, giảm sai sót và nâng tầm chuyên nghiệp cho sự kiện."
+        },
+        {
+          "q": "Webie EMS có phù hợp với sự kiện quy mô nhỏ hoặc cực lớn không?",
+          "a": "Hoàn toàn phù hợp. Hệ thống được thiết kế linh hoạt để vận hành mượt mà cho mọi quy mô, từ workshop 50 người đến các siêu sự kiện hàng ngàn người tham dự."
+        },
+        {
+          "q": "Tôi có thể tùy chỉnh vé QR và Email theo bộ nhận diện thương hiệu không?",
+          "a": "Có. Hệ thống hỗ trợ tùy biến toàn bộ hình ảnh, logo và màu sắc trên vé điện tử, email và trang đăng ký để đồng nhất 100% với thương hiệu của bạn."
+        },
+        {
+          "q": "Nếu tại sự kiện bị mất mạng, hệ thống Check-in có tê liệt không?",
+          "a": "Không. Hệ thống có cơ chế hoạt động offline tạm thời và sẽ tự động đồng bộ dữ liệu (sync) ngay khi có Internet trở lại, đảm bảo luồng đón khách không bị gián đoạn."
+        },
+        {
+          "q": "Dữ liệu của khách mời có được bảo mật không?",
+          "a": "Bảo mật tuyệt đối. Dữ liệu được mã hóa, lưu trữ trên máy chủ đám mây an toàn và tuân thủ nghiêm ngặt các quy định về quyền riêng tư, cam kết không chia sẻ cho bên thứ ba."
+        },
+        {
+          "q": "Webie Vietnam có hỗ trợ kỹ thuật trực tiếp tại sự kiện không?",
+          "a": "Có. Webie cung cấp gói dịch vụ cử chuyên viên kỹ thuật trực tiếp đến hiện trường để điều phối thiết bị và xử lý tức thời các vấn đề phát sinh."
+        },
+        {
+          "q": "Hệ thống có tính năng tự động chăm sóc khách mời sau sự kiện không?",
+          "a": "Có. Bạn có thể thiết lập các kịch bản tự động hóa (Automation) trên Webie EMS để gửi Email cảm ơn, giấy chứng nhận điện tử (e-Certificate) hoặc form khảo sát mức độ hài lòng đến khách mời ngay sau khi sự kiện khép lại."
+        },
+        {
+          "q": "Webie EMS có hỗ trợ điểm danh cho từng phòng hội thảo nhỏ không?",
+          "a": "Có. Hệ thống hỗ trợ Check-in đa điểm (Multi-point Check-in). Bạn có thể bố trí quét QR riêng tại từng phòng để kiểm soát vé và thống kê chính xác lượng khách tham dự mỗi phiên."
+        },
+        {
+          "q": "Làm thế nào để tôi đo lường được mức độ thành công của sự kiện?",
+          "a": "Webie EMS cung cấp cho bạn một Dashboard báo cáo theo thời gian thực. Bạn có thể theo dõi ngay lập tức tỷ lệ khách đến so với lượng đăng ký, khung giờ cao điểm, và trích xuất dữ liệu khách hàng chi tiết sau sự kiện để phục vụ cho các chiến dịch Remarketing."
+        }
+      ]
+    },
     "contact": {
       "title": "Liên Hệ",
       "highlight": "Hợp Tác",

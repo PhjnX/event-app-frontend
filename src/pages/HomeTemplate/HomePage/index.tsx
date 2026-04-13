@@ -15,7 +15,7 @@ const AboutSection = React.lazy(() => import("../_components/home/AboutUs"));
 const EventsSection = React.lazy(() => import("../_components/home/Event"));
 const NewsSection = React.lazy(() => import("../_components/home/News"));
 const ContactSection = React.lazy(() => import("../_components/home/Contact"));
-
+const FAQSection = React.lazy(() => import("../_components/home/F&q"));
 const SectionLoader = () => (
   <div className="w-full h-40 md:h-64 flex items-center justify-center bg-[#0a0a0a]">
     <div className="w-8 h-8 border-2 border-[#D8C97B] border-t-[rgba(216,201,123,0)] rounded-full animate-spin"></div>
@@ -70,6 +70,10 @@ export default function HomePage() {
 
         <Suspense fallback={<SectionLoader />}>
           <NewsSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionLoader />}>
+          <FAQSection />
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
