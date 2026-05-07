@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import {
-  FaLinkedinIn,
-  FaEnvelope,
-  FaQuoteLeft,
-  FaArrowRight,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { FaQuoteLeft, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import CEO from "@/assets/images/CEO.webp";
 import CTO1 from "@/assets/images/CTO_1.webp";
 import CTO2 from "@/assets/images/CTO_2.webp";
@@ -118,7 +112,7 @@ const TeamSection: React.FC = () => {
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3"
+          className="absolute top-0 right-0 w-150 h-150 bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
@@ -128,7 +122,7 @@ const TeamSection: React.FC = () => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3"
+          className="absolute bottom-0 left-0 w-125 h-125 bg-[rgba(216,201,123,0.05)] rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3"
         />
       </div>
 
@@ -142,7 +136,7 @@ const TeamSection: React.FC = () => {
         >
           <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-4 leading-snug">
             {t("about_page.team.title")}{" "}
-            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r from-[#D8C97B] to-[#E5D588]">
+            <span className="inline-block pt-2 pb-2 leading-normal text-transparent bg-clip-text bg-linear-to-r from-[#D8C97B] to-[#E5D588]">
               {t("about_page.team.highlight")}
             </span>
           </h2>
@@ -166,38 +160,19 @@ const TeamSection: React.FC = () => {
               initial="enter"
               animate="center"
               exit="exit"
-              className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[600px]"
+              className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-150"
             >
               <div className="lg:col-span-5 relative group order-2 lg:order-1 ">
                 <div className="absolute top-4 -left-4 w-full h-full border border-[rgba(216,201,123,0.3)] rounded-br-[40px] z-0 transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2" />
                 <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-[rgba(216,201,123,0.1)] z-0"></div>
 
-                <div className="relative h-[450px] md:h-[550px] w-full rounded-br-[60px] overflow-hidden shadow-2xl z-10">
+                <div className="relative h-112.5 md:h-137.5 w-full rounded-br-[60px] overflow-hidden shadow-2xl z-10">
                   <motion.img
                     src={currentMember.image}
                     alt={currentMember.name}
                     className="absolute inset-0 w-full h-full object-cover object-top"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0a] via-[rgba(10,10,10,0)] to-[rgba(10,10,10,0)] opacity-60"></div>
-
-                  <div className="absolute bottom-0 left-0 p-6 flex gap-3">
-                    <a
-                      href="#"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
-                    >
-                      <FaLinkedinIn />
-                    </a>
-                    <a
-                      href="#"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-[rgba(255,255,255,0.1)] backdrop-blur-md border border-[rgba(255,255,255,0.2)] flex items-center justify-center hover:bg-[#D8C97B] hover:text-black transition-all rounded-full text-white"
-                    >
-                      <FaEnvelope />
-                    </a>
-                  </div>
                 </div>
               </div>
 

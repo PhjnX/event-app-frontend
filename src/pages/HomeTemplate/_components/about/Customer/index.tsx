@@ -16,6 +16,10 @@ interface Partner {
   name: string;
 }
 
+interface CustomerSectionProps {
+  onOpenOrgModal?: () => void;
+}
+
 const partners: Partner[] = [
   { id: 1, logo: c1, name: "Minh Nguyen Design" },
   { id: 2, logo: c2, name: "Ogawa" },
@@ -77,10 +81,12 @@ const BackgroundDecoration = () => (
       WebkitMaskImage:
         "linear-gradient(to bottom, rgba(0,0,0,0), black 15%, black 85%, rgba(0,0,0,0))",
     }}
-  ></div>
+  />
 );
 
-export default function CustomerSection() {
+export default function CustomerSection({
+  onOpenOrgModal,
+}: CustomerSectionProps) {
   const { t } = useTranslation();
 
   return (
@@ -118,16 +124,26 @@ export default function CustomerSection() {
 
             <motion.div
               variants={revealVariants}
-              className="flex flex-col items-center justify-center opacity-40 hover:opacity-80 transition-opacity duration-300"
+              className="flex flex-col items-center justify-center"
             >
-              <div className="flex gap-1.5 mb-2">
-                <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse"></span>
-                <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse delay-75"></span>
-                <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse delay-150"></span>
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-[#D8C97B]">
-                {t("about_page.customer_section.more")}
-              </span>
+              <motion.div
+                variants={revealVariants}
+                className="flex flex-col items-center justify-center"
+              >
+                <button
+                  onClick={() => onOpenOrgModal?.()}
+                  className="group flex flex-col items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-300"
+                >
+                  <div className="flex gap-1.5 mb-2">
+                    <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse delay-75"></span>
+                    <span className="w-1.5 h-1.5 bg-[#D8C97B] rounded-full animate-pulse delay-150"></span>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#D8C97B]">
+                    {t("about_page.customer_section.more")}
+                  </span>
+                </button>
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>
@@ -138,8 +154,8 @@ export default function CustomerSection() {
           viewport={{ once: false, amount: 0.5 }}
           className="relative text-center border-t border-white/5 pt-24"
         >
-          <div className="absolute top-0 left-0 w-px h-24 bg-linear-to-b from-transparent via-[#D8C97B]/50 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-px h-24 bg-linear-to-b from-transparent via-[#D8C97B]/50 to-transparent"></div>
+          <div className="absolute top-0 left-0 w-px h-24 bg-linear-to-b from-transparent via-[#D8C97B]/50 to-transparent" />
+          <div className="absolute top-0 right-0 w-px h-24 bg-linear-to-b from-transparent via-[#D8C97B]/50 to-transparent" />
 
           <motion.h2
             variants={sloganVariants}
@@ -164,11 +180,11 @@ export default function CustomerSection() {
             variants={revealVariants}
             className="mt-16 flex justify-center items-center gap-6 opacity-30"
           >
-            <div className="h-px w-24 bg-white"></div>
+            <div className="h-px w-24 bg-white" />
             <span className="text-xs tracking-[0.3em] uppercase font-bold">
               {t("about_page.customer_section.slogan.since")}
             </span>
-            <div className="h-px w-24 bg-white"></div>
+            <div className="h-px w-24 bg-white" />
           </motion.div>
         </motion.div>
       </div>

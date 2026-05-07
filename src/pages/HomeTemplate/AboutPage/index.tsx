@@ -1,8 +1,9 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import AboutHero from "../_components/about/Banner";
 import { SeoHelmet } from "@/components/common/SeoHelmet";
 import { SEO_DATA } from "@/constants/seo-config";
 import { useCurrentLang } from "@/utils/i18n-router";
+import OrganizerRegModal from "../_components/common/OrganizerRegModal";
 
 const TimelineSection = React.lazy(
   () => import("../_components/about/TimeLine"),
@@ -22,6 +23,7 @@ const SectionLoader = () => (
 export default function AboutPage() {
   const lang = useCurrentLang();
   const seo = SEO_DATA.about[lang as "vi" | "en"] || SEO_DATA.about.vi;
+  const [showOrgModal, setShowOrgModal] = useState(false);
 
   return (
     <>
@@ -48,9 +50,14 @@ export default function AboutPage() {
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
-          <CustomerSection />
+          <CustomerSection onOpenOrgModal={() => setShowOrgModal(true)} />
         </Suspense>
       </div>
+
+      <OrganizerRegModal
+        isOpen={showOrgModal}
+        onClose={() => setShowOrgModal(false)}
+      />
     </>
   );
 }
