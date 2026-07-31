@@ -82,11 +82,17 @@ export default function CreateEventPage() {
         uploadEventImage(bannerFile),
       ).unwrap();
 
+      // Sửa lại đoạn này:
       let bannerImageUrl = "";
-      if (typeof uploadResult === "string") bannerImageUrl = uploadResult;
-      else if (typeof uploadResult === "object" && uploadResult.url)
+      if (typeof uploadResult === "string") {
+        bannerImageUrl = uploadResult;
+      } else if (uploadResult?.file?.url) {
+        bannerImageUrl = uploadResult.file.url; // ✅ Lấy chuẩn theo response Cloudinary
+      } else if (uploadResult?.url) {
         bannerImageUrl = uploadResult.url;
-      else bannerImageUrl = (uploadResult as any)?.data || "";
+      } else {
+        bannerImageUrl = (uploadResult as any)?.data || "";
+      }
 
       if (!bannerImageUrl) throw new Error("Lỗi upload ảnh");
 
