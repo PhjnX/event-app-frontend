@@ -122,9 +122,13 @@ export default function LoginPage() {
               animate={{ opacity: 1, height: "auto" }}
               className="w-full mb-6 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-red-400 text-sm rounded-lg text-center font-medium"
             >
-              {typeof error === "string"
+              {/* loginUser trả về chuỗi "Bad credentials" làm dấu hiệu sai
+                  email/mật khẩu (xem utils/apiError.ts), để mỗi màn tự hiện câu
+                  hợp với ngôn ngữ của mình. Trang này trước đây in thẳng chuỗi
+                  đó ra, người dùng đọc được đúng chữ "Bad credentials". */}
+              {typeof error === "string" && !/bad credentials/i.test(error)
                 ? error
-                : "Thông tin đăng nhập không chính xác"}
+                : "Email hoặc mật khẩu không đúng."}
             </motion.div>
           )}
 

@@ -60,17 +60,17 @@ const TeamSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(0);
 
+  const handleNext = () => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % TEAM_MEMBERS.length);
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       handleNext();
     }, 8000);
     return () => clearInterval(timer);
   }, [currentIndex]);
-
-  const handleNext = () => {
-    setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % TEAM_MEMBERS.length);
-  };
 
   const handlePrev = () => {
     setDirection(-1);

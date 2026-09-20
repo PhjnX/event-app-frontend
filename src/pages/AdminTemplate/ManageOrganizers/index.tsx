@@ -131,7 +131,9 @@ const OrganizerCard = memo(
           {[
             { icon: FaUserTie, val: org.username },
             { icon: FaPhone, val: org.contactPhoneNumber || "---" },
-            { icon: FaEnvelope, val: org.contactEmail },
+            // Organizer bị khoá do chủ tài khoản đã xoá thì hai trường liên
+            // hệ bị xoá theo, phải có giá trị dự phòng chứ không để ô trống
+            { icon: FaEnvelope, val: org.contactEmail || "---" },
           ].map((item, i) => (
             <div
               key={i}
@@ -240,7 +242,10 @@ export default function ManageOrganizers() {
   const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
-    if (organizers.length === 0) dispatch(fetchOrganizers());
+    // Luôn tải lại khi vào trang. Trước đây chỉ tải khi danh sách rỗng, nên
+    // bấm thông báo "Yêu cầu đăng ký Organizer" tới đây thì organizer mới
+    // đăng ký không có trong danh sách cũ và không tô sáng được.
+    dispatch(fetchOrganizers());
     dispatch(fetchUserList());
   }, [dispatch]);
 
@@ -365,9 +370,10 @@ export default function ManageOrganizers() {
     if (!data) return;
     setIsProcessing(true);
     try {
-      if (type === "ACTIVATE")
+      if (type === "ACTIVATE") {
         await dispatch(approveOrganizer(data.organizerId)).unwrap();
-      else if (type === "LOCK") {
+        toast.success(`Đã duyệt ${data.name}`);
+      } else if (type === "LOCK") {
         await dispatch(lockOrganizer(data.organizerId)).unwrap();
         toast.success(`Đã khóa ${data.name}`);
       } else if (type === "UNLOCK") {

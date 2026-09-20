@@ -79,7 +79,9 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ data, onChange, holder }) => {
       if (ref.current && typeof ref.current.destroy === "function") {
         try {
           ref.current.destroy();
-        } catch (e) {}
+        } catch {
+          // Trình soạn thảo đã bị huỷ trước đó, không cần làm gì thêm
+        }
         ref.current = null;
       }
     };

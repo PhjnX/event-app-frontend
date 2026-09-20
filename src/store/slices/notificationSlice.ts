@@ -4,6 +4,7 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
+import { parseServerDate } from "../../utils/datetime";
 
 interface NotificationData {
   eventId?: string;
@@ -40,6 +41,56 @@ const initialState: NotificationState = {
   unreadCount: 0,
   isLoading: false,
   error: null,
+};
+
+// Backend dùng lẫn lộn "APPROVED" và "PUBLISHED" cho sự kiện đã duyệt; phần còn
+// lại của dự án chấp nhận cả hai nên ở đây cũng phải vậy, không thì organizer
+// mất hẳn thông báo "Sự kiện đã được duyệt".
+const APPROVED_EVENT_STATUSES = ["APPROVED", "PUBLISHED"];
+
+// Thông báo được dựng lại từ API mỗi lần poll nên không mang theo trạng thái đã
+// đọc. Lưu id đã đọc xuống localStorage, giống cách useUserNotifications làm cho
+// phía người dùng — nếu không, badge đỏ hiện lại sau mỗi lần F5.
+// Thông báo cũ hơn mốc này không hiện nữa. Không có mốc thì danh sách tích tụ
+// vô hạn và mỗi lần poll đều phải dựng lại toàn bộ.
+const NOTIFICATION_TTL_DAYS = 30;
+
+const isWithinTtl = (iso: string): boolean => {
+  const time = new Date(iso).getTime();
+  // Không đọc được ngày thì giữ lại — thà thừa một dòng còn hơn giấu mất việc cần xử lý
+  if (Number.isNaN(time)) return true;
+  return Date.now() - time <= NOTIFICATION_TTL_DAYS * 24 * 60 * 60 * 1000;
+};
+
+const READ_STORAGE_KEY = "admin_notifications_read_ids";
+const MAX_STORED_READ_IDS = 500;
+
+const loadReadIds = (): string[] => {
+  try {
+    const raw = localStorage.getItem(READ_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveReadIds = (ids: string[]) => {
+  try {
+    // Giữ các id mới nhất để localStorage không phình vô hạn
+    localStorage.setItem(
+      READ_STORAGE_KEY,
+      JSON.stringify(ids.slice(-MAX_STORED_READ_IDS)),
+    );
+  } catch {
+    /* private mode hoặc hết quota — bỏ qua */
+  }
+};
+
+const rememberRead = (newIds: string[]) => {
+  const merged = loadReadIds();
+  for (const id of newIds) if (!merged.includes(id)) merged.push(id);
+  saveReadIds(merged);
 };
 
 const getValidDate = (obj: any, priorityField: string): string => {
@@ -140,7 +191,8 @@ export const fetchAdminNotifications = createAsyncThunk(
 
       return notifications.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          parseServerDate(b.createdAt).getTime() -
+          parseServerDate(a.createdAt).getTime(),
       );
     } catch (error: unknown) {
       return rejectWithValue(
@@ -159,7 +211,10 @@ export const fetchOrganizerNotifications = createAsyncThunk(
 
       if (Array.isArray(myEvents)) {
         myEvents.forEach((event) => {
-          if (event.status === "APPROVED" && !event.editRequestStatus) {
+          if (
+            APPROVED_EVENT_STATUSES.includes(event.status) &&
+            !event.editRequestStatus
+          ) {
             notifList.push({
               id: `event-status-${event.eventId}-APPROVED`,
               type: "EVENT_APPROVED",
@@ -211,7 +266,7 @@ export const fetchOrganizerNotifications = createAsyncThunk(
         });
 
         const activeEvents = myEvents.filter((e) =>
-          ["APPROVED", "ONGOING", "PUBLISHED", "DRAFT"].includes(e.status),
+          ["APPROVED", "ONGOING", "PUBLISHED"].includes(e.status),
         );
 
         await Promise.all(
@@ -222,10 +277,11 @@ export const fetchOrganizerNotifications = createAsyncThunk(
               );
               if (Array.isArray(regs)) {
                 regs
+                  // Chỉ những đăng ký organizer thực sự cần bấm duyệt.
+                  // "SUCCESS" đã hoàn tất nên không còn là việc cần xử lý —
+                  // để nó ở đây thì sự kiện đông khách sẽ làm ngập chuông.
                   .filter((r) =>
-                    ["PENDING", "PROCESSING", "WAITING", "SUCCESS"].includes(
-                      r.status,
-                    ),
+                    ["PENDING", "PROCESSING", "WAITING"].includes(r.status),
                   )
                   .forEach((reg) => {
                     notifList.push({
@@ -239,14 +295,22 @@ export const fetchOrganizerNotifications = createAsyncThunk(
                     });
                   });
               }
-            } catch (e) {}
+            } catch (e) {
+              // Một sự kiện lỗi không được làm hỏng cả chuông thông báo, nhưng
+              // cũng không được im lặng — nếu không sẽ mất thông báo mà chẳng ai biết.
+              console.warn(
+                `Không tải được đăng ký của sự kiện ${event.eventId}:`,
+                e,
+              );
+            }
           }),
         );
       }
 
       return notifList.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          parseServerDate(b.createdAt).getTime() -
+          parseServerDate(a.createdAt).getTime(),
       );
     } catch (error: unknown) {
       return rejectWithValue(
@@ -265,11 +329,13 @@ const notificationSlice = createSlice({
       if (notification && !notification.read) {
         notification.read = true;
         state.unreadCount = Math.max(0, state.unreadCount - 1);
+        rememberRead([action.payload]);
       }
     },
     markAllAsRead: (state) => {
       state.items.forEach((n) => (n.read = true));
       state.unreadCount = 0;
+      rememberRead(state.items.map((n) => n.id));
     },
   },
   extraReducers: (builder) => {
@@ -279,14 +345,28 @@ const notificationSlice = createSlice({
     ) => {
       state.isLoading = false;
       const currentMap = new Map(state.items.map((i) => [i.id, i]));
+      const storedReadIds = loadReadIds();
       const newItems = action.payload.map((newItem) => {
         const existing = currentMap.get(newItem.id);
-        return existing ? { ...newItem, read: existing.read } : newItem;
+        if (existing) {
+          // Giữ nguyên createdAt cũ: getValidDate rơi về thời điểm hiện tại khi
+          // không tìm được ngày nào, nên nếu nhận mốc mới sau mỗi lần poll thì
+          // danh sách sẽ tự xáo trộn thứ tự trước mắt người dùng.
+          return {
+            ...newItem,
+            read: existing.read,
+            createdAt: existing.createdAt,
+          };
+        }
+        return { ...newItem, read: storedReadIds.includes(newItem.id) };
       });
-      state.items = newItems.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
+      state.items = newItems
+        .filter((n) => isWithinTtl(n.createdAt))
+        .sort(
+          (a, b) =>
+            parseServerDate(b.createdAt).getTime() -
+          parseServerDate(a.createdAt).getTime(),
+        );
       state.unreadCount = state.items.filter((n) => !n.read).length;
     };
 

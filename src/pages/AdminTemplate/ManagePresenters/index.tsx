@@ -271,7 +271,7 @@ export default function ManagePresenters() {
 
     const currentFeaturedIds = presenters
       .filter((p) => {
-        if (localFeatured.hasOwnProperty(p.presenterId)) {
+        if (Object.hasOwn(localFeatured, p.presenterId)) {
           return localFeatured[p.presenterId];
         }
         return p.featured;
@@ -650,7 +650,8 @@ export default function ManagePresenters() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 z-0 min-h-[400px]">
           <AnimatePresence mode="popLayout">
             {paginatedData.map((item) => {
-              const isStarActive = localFeatured.hasOwnProperty(
+              const isStarActive = Object.hasOwn(
+                localFeatured,
                 item.presenterId,
               )
                 ? localFeatured[item.presenterId]

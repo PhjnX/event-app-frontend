@@ -50,6 +50,11 @@ import {
   approveEditRequest,
   rejectEditRequest,
 } from "../../../store/slices/eventSlice";
+import { TimeSelect24 } from "../../../components/common/DateTimePicker";
+import {
+  SUC_CHUA_KHONG_GIOI_HAN,
+  laKhongGioiHan,
+} from "../../../utils/capacity";
 
 const parseDateTimeToInput = (isoString: string) => {
   if (!isoString) return { date: "", time: "" };
@@ -310,20 +315,47 @@ export default function EventDetail() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const objectUrl = URL.createObjectURL(file);
     setPreviewImage(objectUrl);
     setIsUploading(true);
+
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", file); // Kiểm tra xem backend nhận key "image" hay "file" nhé
+
       const res: any = await apiService.post("/images/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      const uploadedUrl = res.url || res.data || res;
-      setActForm((prev) => ({ ...prev, activityImageUrl: uploadedUrl }));
+
+
+      // Bóc tách chính xác chuỗi URL string
+      let finalUrl = "";
+
+      if (typeof res === "string") {
+        finalUrl = res;
+      } else if (res?.url && typeof res.url === "string") {
+        finalUrl = res.url;
+      } else if (res?.data?.url && typeof res.data.url === "string") {
+        finalUrl = res.data.url;
+      } else if (res?.data && typeof res.data === "string") {
+        finalUrl = res.data;
+      } else if (res?.file?.url) {
+        // 👈 Thêm trường hợp nếu response dạng { file: { url: "https://..." }, success: 1 }
+        finalUrl = res.file.url;
+      }
+
+      if (!finalUrl) {
+        toast.error("Không tìm thấy đường dẫn ảnh sau khi upload!");
+        return;
+      }
+
+      // 🎯 Đảm bảo gán CHUỖI STRING vào state
+      setActForm((prev) => ({ ...prev, activityImageUrl: finalUrl }));
+      setPreviewImage(finalUrl);
       toast.success("Đã tải ảnh lên!");
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi upload:", error);
       toast.error("Lỗi upload ảnh.");
     } finally {
       setIsUploading(false);
@@ -360,7 +392,11 @@ export default function EventDetail() {
         categoryId: Number(actForm.categoryId),
         startTime: startISO,
         endTime: endISO,
-        maxAttendees: actForm.maxAttendees ? Number(actForm.maxAttendees) : 0,
+        // Để trống nghĩa là không giới hạn. Không gửi 0: backend hiểu 0 là hết
+        // chỗ nên không ai đăng ký được (xem utils/capacity.ts).
+        maxAttendees: actForm.maxAttendees
+          ? Number(actForm.maxAttendees)
+          : SUC_CHUA_KHONG_GIOI_HAN,
         presenterId:
           actForm.presenterIds.length > 0 ? actForm.presenterIds[0] : null,
         accessibleTo: [],
@@ -774,12 +810,12 @@ export default function EventDetail() {
                                   {act.presenter.fullName}
                                 </div>
                               ) : null}
-                              {(act as any).maxAttendees > 0 && (
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 bg-black/30 px-3 py-1.5 rounded-full border border-white/5">
-                                  <FaUsers className="text-[#B5A65F]" /> Max:{" "}
-                                  {(act as any).maxAttendees}
-                                </div>
-                              )}
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-300 bg-black/30 px-3 py-1.5 rounded-full border border-white/5">
+                                <FaUsers className="text-[#B5A65F]" />
+                                {laKhongGioiHan((act as any).maxAttendees)
+                                  ? "Không giới hạn"
+                                  : "Max: " + ((act as any).maxAttendees ?? 0)}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1002,18 +1038,10 @@ export default function EventDetail() {
                           }
                           style={{ colorScheme: "dark" }}
                         />
-                        <input
-                          type="time"
-                          required
-                          className="bg-[#0a0a0a] border border-white/10 rounded-lg px-2 py-2 text-xs text-white w-24 outline-none focus:border-green-500"
+                        <TimeSelect24
+                          className="w-28 shrink-0"
                           value={actForm.startTime}
-                          onChange={(e) =>
-                            setActForm({
-                              ...actForm,
-                              startTime: e.target.value,
-                            })
-                          }
-                          style={{ colorScheme: "dark" }}
+                          onChange={(v) => setActForm({ ...actForm, startTime: v })}
                         />
                       </div>
                     </div>
@@ -1032,15 +1060,10 @@ export default function EventDetail() {
                           }
                           style={{ colorScheme: "dark" }}
                         />
-                        <input
-                          type="time"
-                          required
-                          className="bg-[#0a0a0a] border border-white/10 rounded-lg px-2 py-2 text-xs text-white w-24 outline-none focus:border-red-500"
+                        <TimeSelect24
+                          className="w-28 shrink-0"
                           value={actForm.endTime}
-                          onChange={(e) =>
-                            setActForm({ ...actForm, endTime: e.target.value })
-                          }
-                          style={{ colorScheme: "dark" }}
+                          onChange={(v) => setActForm({ ...actForm, endTime: v })}
                         />
                       </div>
                     </div>
@@ -1163,16 +1186,26 @@ export default function EventDetail() {
                       </label>
                       <input
                         type="number"
+                        min={1}
                         className={modalInputStyle}
-                        value={actForm.maxAttendees}
+                        value={
+                          laKhongGioiHan(Number(actForm.maxAttendees))
+                            ? ""
+                            : actForm.maxAttendees
+                        }
                         onChange={(e) =>
                           setActForm({
                             ...actForm,
                             maxAttendees: e.target.value,
                           })
                         }
-                        placeholder="0 = Không giới hạn"
+                        placeholder="Để trống = Không giới hạn"
                       />
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        Nhập số chỗ, ví dụ 50. Để trống nếu không giới hạn —
+                        đừng nhập 0, số 0 nghĩa là hết chỗ và không ai đăng ký
+                        được.
+                      </p>
                     </div>
                   </div>
                   <div>

@@ -41,6 +41,9 @@ const CreateNewsPage = React.lazy(
 const EditNewsPage = React.lazy(
   () => import("../pages/AdminTemplate/ManageNews/EditNews"),
 );
+const ManageReportsPage = React.lazy(
+  () => import("../pages/AdminTemplate/ManageReports"),
+);
 const adminRoutes: RouteObject = {
   path: "admin",
   element: <AdminProtectedRoute />,
@@ -68,6 +71,7 @@ const adminRoutes: RouteObject = {
         { path: "news", element: <ManageNewsPage /> },
         { path: "news/create", element: <CreateNewsPage /> },
         { path: "news/:id/edit", element: <EditNewsPage /> },
+        { path: "reports", element: <ManageReportsPage /> },
       ],
     },
   ],

@@ -50,8 +50,6 @@ export default function CTANewsletter() {
     user?.role === ROLES.ORGANIZER ||
     user?.role === ROLES.SUPER_ADMIN;
 
-  if (isPrivilegedUser) return null;
-
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -113,6 +111,12 @@ export default function CTANewsletter() {
     setIsRegisterOpen(false);
     setTimeout(() => setIsLoginOpen(true), 200);
   };
+
+  // Organizer/admin không thấy khối đăng ký nhận tin. Điều kiện này phải nằm
+  // DƯỚI mọi hook: trước đây nó đứng trên 4 useState và 1 useEffect, nên khi
+  // phiên đăng nhập khôi phục xong và vai trò đổi giữa hai lần vẽ, React báo
+  // "Rendered fewer hooks than expected" và cả trang Sự kiện trắng màn hình.
+  if (isPrivilegedUser) return null;
 
   return (
     <>

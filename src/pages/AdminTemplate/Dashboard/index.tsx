@@ -42,6 +42,7 @@ import { fetchUserList } from "@/store/slices/userSlice";
 import { fetchPresenters } from "@/store/slices/presenterSlice";
 import { fetchPublicPosts } from "@/store/slices/newsSlice";
 import { ROLES } from "@/constants";
+import { parseServerDate } from "../../../utils/datetime";
 
 const THEME = {
   bg: "bg-[#09090b]",
@@ -209,7 +210,7 @@ const ListItem = ({ data, type, onClick }: any) => {
   } else if (type === "news") {
     title = data.title;
     sub = data.createdAt
-      ? new Date(data.createdAt).toLocaleDateString("vi-VN")
+      ? parseServerDate(data.createdAt).toLocaleDateString("vi-VN")
       : "";
     img = data.thumbnailUrl;
     icon = <FileText size={16} className="text-[#B5A65F]" />;

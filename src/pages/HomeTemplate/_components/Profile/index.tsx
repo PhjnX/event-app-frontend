@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
+  FaTrashAlt,
   FaUser,
   FaEnvelope,
   FaPhone,
@@ -24,6 +25,7 @@ import type { User } from "../../../../models/user";
 
 import OrganizerRegModal from "../common/OrganizerRegModal";
 import ChangePasswordModal from "../modals/ChangePasswordModal";
+import { ROLES } from "../../../../constants";
 
 export default function ProfilePage() {
   const { t } = useTranslation(); // Init hook
@@ -237,6 +239,28 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </button>
+
+                  {/* Google Play yêu cầu người dùng tự xoá được tài khoản ngay
+                      trong sản phẩm. Quản trị hệ thống không tự xoá được nên
+                      ẩn mục này với họ (backend cũng chặn bằng lỗi 403). */}
+                  {user?.role !== ROLES.SUPER_ADMIN && (
+                    <Link
+                      to="/account/delete"
+                      className="w-full flex items-center gap-3 p-3 bg-[rgba(239,68,68,0.06)] hover:bg-[rgba(239,68,68,0.12)] rounded-xl border border-[rgba(239,68,68,0.18)] hover:border-[rgba(239,68,68,0.4)] transition-all group"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[rgba(239,68,68,0.15)] flex items-center justify-center text-red-400 shrink-0">
+                        <FaTrashAlt size={13} />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs text-gray-400 uppercase font-bold group-hover:text-red-300 transition-colors">
+                          Tài khoản
+                        </p>
+                        <p className="text-sm text-red-300 font-medium">
+                          Xoá tài khoản
+                        </p>
+                      </div>
+                    </Link>
+                  )}
                 </div>
 
                 <input

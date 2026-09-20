@@ -212,5 +212,4 @@ const listUserSlice = createSlice({
   },
 });
 
-export const {} = listUserSlice.actions;
 export default listUserSlice.reducer;

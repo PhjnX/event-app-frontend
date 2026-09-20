@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -15,6 +21,10 @@ import {
   FaEllipsisH,
   FaExclamationTriangle,
   FaImage,
+  FaFlag,
+  FaBan,
+  FaEyeSlash,
+  FaShieldAlt,
 } from "react-icons/fa";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
@@ -25,6 +35,24 @@ import type { RootState, AppDispatch } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import { STORAGE_KEYS } from "@/constants";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { NOISE_TEXTURE_URL } from "@/constants/textures";
+import ReportModal from "@/components/moments/ReportModal";
+import PolicyGateModal from "@/components/moments/PolicyGateModal";
+import {
+  reportMoment,
+  blockUser,
+  getCachedBlockedUsers,
+  syncBlockedUsers,
+  getHiddenMomentIds,
+  hideMomentLocally,
+  hasAcceptedCurrentPolicy,
+  acceptContentPolicy,
+  getMomentStatusOverrides,
+  syncPolicyAcceptance,
+  fetchCurrentPolicyVersion,
+} from "@/services/moderationService";
+import type { MomentStatus, ReportReason } from "@/models/moderation";
+import { formatPostedTime } from "../../../utils/datetime";
 
 // --- TYPES ---
 interface Moment {
@@ -36,6 +64,8 @@ interface Moment {
   imageUrl?: string;
   postedAt: string;
   timeAgo: string;
+  // Backend nên trả về; thiếu thì coi như VISIBLE
+  status?: MomentStatus;
 }
 
 interface WebSocketPayload {
@@ -64,6 +94,9 @@ interface MomentCardProps {
   isOwner: boolean;
   onDeleteRequest: (id: number) => void;
   onEdit: (moment: Moment) => void;
+  onReport: (moment: Moment) => void;
+  onBlock: (moment: Moment) => void;
+  onHide: (moment: Moment) => void;
 }
 
 const getWebSocketUrl = () => {
@@ -72,6 +105,29 @@ const getWebSocketUrl = () => {
     "https://event-app-y77p.onrender.com/api";
   const rootUrl = apiUrl.endsWith("/api") ? apiUrl.slice(0, -4) : apiUrl;
   return `${rootUrl}/ws`;
+};
+
+/**
+ * Bóc chuỗi URL từ phản hồi của POST /images/upload.
+ *
+ * Interceptor trong apiService đã trả thẳng `response.data`, nên `res` chính là
+ * payload — không còn lớp `res.data` của axios nữa. Backend lại trả về vài dạng
+ * khác nhau tuỳ endpoint, nên thử lần lượt và bắt buộc kết quả phải là string:
+ * gán nhầm cả object vào imageUrl sẽ tạo ra moment có ảnh "[object Object]".
+ */
+const extractUploadedUrl = (res: any): string => {
+  const candidates = [
+    res,
+    res?.url,
+    res?.data,
+    res?.data?.url,
+    res?.file?.url,
+    res?.result?.url,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c;
+  }
+  return "";
 };
 
 // Modified helper to return null instead of hardcoded string if no specific message
@@ -204,11 +260,18 @@ const MomentCard: React.FC<MomentCardProps> = ({
   isOwner,
   onDeleteRequest,
   onEdit,
+  onReport,
+  onBlock,
+  onHide,
 }) => {
   const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const hasImage = !!moment.imageUrl && moment.imageUrl !== "";
+  const underReview = moment.status === "UNDER_REVIEW";
+
+  const menuItemClass =
+    "w-full text-left px-4 py-3 text-xs font-bold hover:bg-white/10 flex items-center gap-2 transition-colors";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -244,52 +307,100 @@ const MomentCard: React.FC<MomentCardProps> = ({
               {moment.username}
             </span>
             <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-medium">
-              {moment.timeAgo}
+              {formatPostedTime((moment as any).postedAt) || moment.timeAgo}
             </span>
           </div>
         </div>
 
-        {isOwner && (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="text-zinc-500 hover:text-white p-2 hover:bg-white/5 rounded-full transition-all"
-            >
-              <FaEllipsisH />
-            </button>
-            <AnimatePresence>
-              {showMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-8 w-36 bg-[#222] border border-white/10 rounded-xl shadow-2xl z-20 overflow-hidden"
-                >
-                  <button
-                    onClick={() => {
-                      onEdit(moment);
-                      setShowMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-xs font-bold text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
-                  >
-                    <FaPen size={10} className="text-[#D4AF37]" />{" "}
-                    {t("event_moments.card.menu_edit")}
-                  </button>
-                  <button
-                    onClick={() => {
-                      onDeleteRequest(moment.id);
-                      setShowMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-white/10 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
-                  >
-                    <FaTrash size={10} /> {t("event_moments.card.menu_delete")}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+        {/* Menu … hiện với MỌI bài viết — bắt buộc theo chính sách UGC của
+            Google Play: người xem phải luôn có cách báo cáo và chặn */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            aria-label="Tuỳ chọn bài viết"
+            className="text-zinc-500 hover:text-white p-2 hover:bg-white/5 rounded-full transition-all"
+          >
+            <FaEllipsisH />
+          </button>
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 top-8 w-48 bg-[#222] border border-white/10 rounded-xl shadow-2xl z-20 overflow-hidden"
+              >
+                {isOwner ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        onEdit(moment);
+                        setShowMenu(false);
+                      }}
+                      className={`${menuItemClass} text-zinc-300 hover:text-white`}
+                    >
+                      <FaPen size={10} className="text-[#D4AF37]" />{" "}
+                      {t("event_moments.card.menu_edit")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDeleteRequest(moment.id);
+                        setShowMenu(false);
+                      }}
+                      className={`${menuItemClass} text-red-400 hover:text-red-300 border-t border-white/5`}
+                    >
+                      <FaTrash size={10} />{" "}
+                      {t("event_moments.card.menu_delete")}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        onReport(moment);
+                        setShowMenu(false);
+                      }}
+                      className={`${menuItemClass} text-red-400 hover:text-red-300`}
+                    >
+                      <FaFlag size={10} /> Báo cáo nội dung
+                    </button>
+                    <button
+                      onClick={() => {
+                        onBlock(moment);
+                        setShowMenu(false);
+                      }}
+                      className={`${menuItemClass} text-red-400 hover:text-red-300 border-t border-white/5`}
+                    >
+                      <FaBan size={10} /> Chặn người này
+                    </button>
+                    <button
+                      onClick={() => {
+                        onHide(moment);
+                        setShowMenu(false);
+                      }}
+                      className={`${menuItemClass} text-zinc-300 hover:text-white border-t border-white/5`}
+                    >
+                      <FaEyeSlash size={10} className="text-[#D4AF37]" /> Ẩn bài
+                      viết này
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
+
+      {/* Bài của chính mình đang bị xem xét sau khi có báo cáo */}
+      {isOwner && underReview && (
+        <div className="mx-4 mt-4 flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-amber-500/8 border border-amber-500/25">
+          <FaExclamationTriangle className="text-amber-400 text-xs mt-0.5 shrink-0" />
+          <p className="text-[11px] text-amber-400/90 leading-relaxed">
+            Bài viết đang được kiểm duyệt sau khi bị báo cáo. Người khác tạm thời
+            không nhìn thấy.
+          </p>
+        </div>
+      )}
 
       <div className="relative bg-[#111]">
         {hasImage && (
@@ -354,7 +465,105 @@ export default function EventMomentsPage() {
   const [editingMoment, setEditingMoment] = useState<Moment | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  // --- KIỂM DUYỆT NỘI DUNG (UGC policy) ---
+  const [blockedIds, setBlockedIds] = useState<number[]>(() =>
+    getCachedBlockedUsers().map((u) => u.userId),
+  );
+  const [hiddenIds, setHiddenIds] = useState<number[]>(() =>
+    getHiddenMomentIds(),
+  );
+  const [policyAccepted, setPolicyAccepted] = useState(() =>
+    hasAcceptedCurrentPolicy(),
+  );
+  // Trạng thái kiểm duyệt ghi đè khi backend chưa trả `status` trong MomentDTO.
+  // Khi backend lên, map này rỗng và feed dùng thẳng `m.status` của server.
+  const [statusOverrides, setStatusOverrides] = useState<
+    Record<number, MomentStatus>
+  >(() => getMomentStatusOverrides());
+
+  // GET /users/me nay đã trả `id` kiểu số, khớp với MomentResponseDTO.userId.
+  // Riêng lúc vừa đăng nhập, `user` lấy từ phản hồi /auth/signin có thể chưa
+  // có `id` cho tới khi /users/me tải xong — khi đó mới suy ngược từ
+  // /moments/me như trước (mọi bài trả về ở đó đều là của chính mình).
+  const [myUserId, setMyUserId] = useState<number | null>(null);
+  const coIdSo = typeof user?.id === "number";
+
+  useEffect(() => {
+    if (!realEventId || myUserId != null || coIdSo) return;
+    let huy = false;
+    momentApi
+      .getMyMoments(realEventId)
+      .then((res: any) => {
+        const list = Array.isArray(res) ? res : (res?.data?.content ?? []);
+        const id = list?.[0]?.userId;
+        if (!huy && typeof id === "number") setMyUserId(id);
+      })
+      .catch(() => {
+        /* chưa đăng bài nào thì không suy ra được, dùng nhánh dự phòng bên dưới */
+      });
+    return () => {
+      huy = true;
+    };
+  }, [realEventId, myUserId, coIdSo]);
+
+  /**
+   * Bài này có phải của người đang đăng nhập không.
+   *
+   * Quyết định việc hiện menu Sửa/Xoá hay Báo cáo/Chặn, và việc chủ bài có thấy
+   * bài đang bị kiểm duyệt của mình hay không. Ưu tiên id từ /users/me, rồi id
+   * suy ra từ /moments/me; chỉ khi không có cả hai mới đối chiếu tên, vì tên
+   * hiển thị không đảm bảo duy nhất.
+   */
+  const isOwnMoment = useCallback(
+    (m: Moment) => {
+      if (typeof user?.id === "number") return m.userId === user.id;
+      if (myUserId != null) return m.userId === myUserId;
+      return !!user?.username && m.username === user.username;
+    },
+    [myUserId, user],
+  );
+  const [showPolicyGate, setShowPolicyGate] = useState(false);
+  const [reportingMoment, setReportingMoment] = useState<Moment | null>(null);
+  const [isReporting, setIsReporting] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Đồng bộ danh sách chặn từ server; giữ cache nếu endpoint chưa có
+  useEffect(() => {
+    syncBlockedUsers().then((list) =>
+      setBlockedIds(list.map((u) => u.userId)),
+    );
+  }, []);
+
+  // Người đã đồng ý quy tắc ở thiết bị khác (hoặc trên mobile) thì không hỏi
+  // lại. Lấy phiên bản quy tắc hiện hành từ server trước khi so: backend nâng
+  // phiên bản thì mọi người được hỏi đồng ý lại.
+  useEffect(() => {
+    let huy = false;
+    fetchCurrentPolicyVersion().then(() => {
+      if (!huy) {
+        setPolicyAccepted(
+          syncPolicyAcceptance((user as any)?.contentPolicyAcceptedVersion),
+        );
+      }
+    });
+    return () => {
+      huy = true;
+    };
+  }, [user]);
+
+  // Chế độ thử cục bộ: khi admin gỡ/khôi phục bài ở tab khác, feed cập nhật ngay
+  // mà không phải tải lại trang. Sự kiện `storage` chỉ bắn sang các tab khác.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && !e.key.startsWith("moderation:")) return;
+      setStatusOverrides(getMomentStatusOverrides());
+      setHiddenIds(getHiddenMomentIds());
+      setBlockedIds(getCachedBlockedUsers().map((u) => u.userId));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const tabs = [
     { id: "ALL", label: t("event_moments.tabs.all") },
@@ -465,7 +674,12 @@ export default function EventMomentsPage() {
         setHasMore(!isLast && content.length > 0);
       } else {
         const res: any = await momentApi.getMyMoments(realEventId);
-        setMoments(Array.isArray(res) ? res : res.data?.content || []);
+        const mine = Array.isArray(res) ? res : res.data?.content || [];
+        setMoments(mine);
+        // Tiện thể suy ra userId của mình từ chính danh sách này
+        if (myUserId == null && typeof mine?.[0]?.userId === "number") {
+          setMyUserId(mine[0].userId);
+        }
         setHasMore(false);
       }
     } catch (error) {
@@ -482,6 +696,11 @@ export default function EventMomentsPage() {
   const handleUpload = async () => {
     if ((!caption.trim() && !fileToUpload) || !realEventId)
       return toast.warning(t("event_moments.errors.no_content"));
+    // Bắt buộc đồng ý quy tắc cộng đồng trước lần đăng đầu tiên
+    if (!policyAccepted) {
+      setShowPolicyGate(true);
+      return;
+    }
     setIsUploading(true);
     try {
       let imageUrl = "";
@@ -491,7 +710,12 @@ export default function EventMomentsPage() {
         const res: any = await axiosClient.post("/images/upload", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        imageUrl = res.data?.url || res.data || res;
+        imageUrl = extractUploadedUrl(res);
+        if (!imageUrl) {
+          console.error("Không đọc được URL ảnh từ phản hồi upload:", res);
+          toast.error("Tải ảnh lên thất bại: không đọc được đường dẫn ảnh.");
+          return;
+        }
       }
       await momentApi.createMoment(realEventId, { caption, imageUrl });
       toast.success(t("event_moments.success.posted"));
@@ -542,6 +766,110 @@ export default function EventMomentsPage() {
     }
   };
 
+  // --- HANDLERS KIỂM DUYỆT ---
+
+  // Gửi báo cáo, sau đó ẩn bài ngay trên trình duyệt của người báo cáo
+  const handleSubmitReport = async (reason: ReportReason, detail: string) => {
+    if (!reportingMoment || !realEventId) return;
+    setIsReporting(true);
+    try {
+      const { localOnly } = await reportMoment(
+        realEventId,
+        reportingMoment.id,
+        { reason, detail },
+        {
+          momentCaption: reportingMoment.caption,
+          momentImageUrl: reportingMoment.imageUrl,
+          authorId: reportingMoment.userId,
+          authorName: reportingMoment.username,
+          authorAvatar: reportingMoment.userAvatar,
+          eventName,
+          reporterId: user?.id,
+          reporterName: user?.username,
+        },
+      );
+      // Lưu kèm caption và tác giả để người dùng còn nhận ra bài nào khi muốn
+      // bỏ ẩn ở trang An toàn nội dung.
+      setHiddenIds(
+        hideMomentLocally(reportingMoment.id, {
+          caption: reportingMoment.caption,
+          username: reportingMoment.username,
+          imageUrl: reportingMoment.imageUrl,
+        }),
+      );
+      setStatusOverrides(getMomentStatusOverrides());
+      setReportingMoment(null);
+      toast.success(
+        localOnly
+          ? "Đã ẩn bài viết khỏi màn hình của bạn. API báo cáo chưa sẵn sàng nên chưa gửi được lên hệ thống."
+          : "Đã gửi báo cáo. Đội ngũ kiểm duyệt sẽ xem xét trong vòng 24 giờ.",
+      );
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Không gửi được báo cáo.");
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
+  // Chặn người dùng — ẩn toàn bộ nội dung của họ khỏi feed
+  const handleBlock = async (m: Moment) => {
+    try {
+      const { localOnly } = await blockUser({
+        userId: m.userId,
+        username: m.username,
+        avatarUrl: m.userAvatar,
+      });
+      setBlockedIds((prev) =>
+        prev.includes(m.userId) ? prev : [...prev, m.userId],
+      );
+      toast.success(
+        localOnly
+          ? `Đã chặn ${m.username} trên trình duyệt này. API chặn chưa sẵn sàng nên chưa đồng bộ lên hệ thống.`
+          : `Đã chặn ${m.username}. Bạn sẽ không thấy nội dung của người này nữa.`,
+      );
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Chặn người dùng thất bại.");
+    }
+  };
+
+  const handleHide = (m: Moment) => {
+    setHiddenIds(
+      hideMomentLocally(m.id, {
+        caption: m.caption,
+        username: m.username,
+        imageUrl: m.imageUrl,
+      }),
+    );
+    toast.info(
+      "Đã ẩn bài viết. Muốn xem lại, bấm «Xem và bỏ ẩn» phía trên danh sách bài.",
+    );
+  };
+
+  const handleAcceptPolicy = async () => {
+    await acceptContentPolicy();
+    setPolicyAccepted(true);
+    setShowPolicyGate(false);
+  };
+
+  // Feed đã lọc theo kiểm duyệt:
+  // - bỏ bài của người đã chặn
+  // - bỏ bài đã báo cáo/ẩn trên trình duyệt này
+  // - bỏ bài đã bị admin gỡ
+  // - bài đang bị xem xét chỉ chủ bài viết còn thấy
+  const visibleMoments = useMemo(
+    () =>
+      moments.filter((m) => {
+        if (blockedIds.includes(m.userId)) return false;
+        if (hiddenIds.includes(m.id)) return false;
+        // Server là nguồn chuẩn; override chỉ lấp chỗ trống khi backend chưa có API
+        const status = m.status ?? statusOverrides[m.id];
+        if (status === "REMOVED") return false;
+        if (status === "UNDER_REVIEW" && !isOwnMoment(m)) return false;
+        return true;
+      }),
+    [moments, blockedIds, hiddenIds, statusOverrides, isOwnMoment],
+  );
+
   return (
     <div className="min-h-screen bg-black text-white font-noto selection:bg-[#D4AF37] selection:text-black relative">
       <div className="fixed inset-0 z-0 bg-black">
@@ -563,7 +891,7 @@ export default function EventMomentsPage() {
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
           style={{
-            backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")`,
+            backgroundImage: `url("${NOISE_TEXTURE_URL}")`,
           }}
         ></div>
       </div>
@@ -734,25 +1062,58 @@ export default function EventMomentsPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Nhắc quy tắc cộng đồng ngay tại điểm đăng bài */}
+                <Link
+                  to="/community-guidelines"
+                  className="mt-3 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-white/2 border border-white/8 hover:border-[#D4AF37]/30 transition-all group w-fit"
+                >
+                  <FaShieldAlt className="text-[#D4AF37] text-xs shrink-0" />
+                  <span className="text-[11px] text-zinc-500 leading-relaxed">
+                    Không đăng nội dung phản cảm, bạo lực hay quấy rối.{" "}
+                    <span className="text-[#D4AF37] font-bold group-hover:underline">
+                      Xem quy tắc cộng đồng
+                    </span>
+                  </span>
+                </Link>
               </motion.div>
             )}
 
-            {isLoadingList && moments.length === 0 ? (
+            {/* Lối quay lại những gì đã ẩn/chặn. Chỉ hiện khi thực sự có, và
+                nằm ngoài khối đăng bài để cả người chưa check-in cũng thấy. */}
+            {(hiddenIds.length > 0 || blockedIds.length > 0) && (
+              <Link
+                to="/blocked-users"
+                className="mb-6 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-white/2 border border-white/8 hover:border-[#D4AF37]/30 transition-all group w-fit"
+              >
+                <FaEyeSlash className="text-zinc-500 text-xs shrink-0" />
+                <span className="text-[11px] text-zinc-500 leading-relaxed">
+                  Trên trình duyệt này bạn đang ẩn {hiddenIds.length} bài và chặn{" "}
+                  {blockedIds.length} người.{" "}
+                  <span className="text-[#D4AF37] font-bold group-hover:underline">
+                    Xem và bỏ ẩn
+                  </span>
+                </span>
+              </Link>
+            )}
+
+            {isLoadingList && visibleMoments.length === 0 ? (
               <div className="py-20 flex justify-center opacity-60">
                 <FaSpinner className="text-[#D4AF37] animate-spin text-3xl" />
               </div>
-            ) : moments.length > 0 ? (
+            ) : visibleMoments.length > 0 ? (
               <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6 pb-12">
                 <AnimatePresence>
-                  {moments.map((m) => (
+                  {visibleMoments.map((m) => (
                     <MomentCard
                       key={m.id}
                       moment={m}
-                      isOwner={
-                        activeTab === "MINE" || (user && user.id === m.userId)
-                      }
+                      isOwner={activeTab === "MINE" || isOwnMoment(m)}
                       onDeleteRequest={setDeleteId}
                       onEdit={setEditingMoment}
+                      onReport={setReportingMoment}
+                      onBlock={handleBlock}
+                      onHide={handleHide}
                     />
                   ))}
                 </AnimatePresence>
@@ -768,7 +1129,7 @@ export default function EventMomentsPage() {
               </div>
             )}
 
-            {activeTab === "ALL" && hasMore && moments.length > 0 && (
+            {activeTab === "ALL" && hasMore && visibleMoments.length > 0 && (
               <div className="text-center mt-8 pb-10">
                 <button
                   onClick={() => fetchMoments(false)}
@@ -794,6 +1155,17 @@ export default function EventMomentsPage() {
           onConfirm={handleConfirmDelete}
           title={t("event_moments.modal_delete.title")}
           message={t("event_moments.modal_delete.message")}
+        />
+        <ReportModal
+          isOpen={!!reportingMoment}
+          onClose={() => setReportingMoment(null)}
+          onSubmit={handleSubmitReport}
+          isSubmitting={isReporting}
+        />
+        <PolicyGateModal
+          isOpen={showPolicyGate}
+          onClose={() => setShowPolicyGate(false)}
+          onAccept={handleAcceptPolicy}
         />
       </div>
     </div>

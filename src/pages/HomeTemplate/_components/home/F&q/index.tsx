@@ -8,7 +8,7 @@ const fadeIn = {
 };
 
 export default function FAQSection() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   const toggle = (i: number) => setOpenIdx(openIdx === i ? null : i);

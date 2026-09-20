@@ -26,6 +26,7 @@ import {
 import type { AppDispatch, RootState } from "@/store";
 import { ROLES } from "@/constants";
 import { motion, AnimatePresence } from "framer-motion";
+import { parseServerDate } from "../../../utils/datetime";
 
 type NotificationData = {
   unlockReason?: string;
@@ -102,7 +103,7 @@ const NotificationPanel = () => {
   const filteredItems = useMemo(() => {
     let result = [...items].sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        parseServerDate(b.createdAt).getTime() - parseServerDate(a.createdAt).getTime(),
     );
 
     if (activeTab === "ACTION") {

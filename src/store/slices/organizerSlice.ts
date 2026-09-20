@@ -60,9 +60,11 @@ export const approveOrganizer = createAsyncThunk(
   async (organizerId: number, { rejectWithValue }) => {
     try {
       await apiService.put(`/organizers/${organizerId}/approve`);
-      toast.success("Đã duyệt tổ chức thành công!");
       return organizerId;
     } catch (error: any) {
+      // Toast lỗi đặt ở thunk cho đồng nhất với lock/unlock/reject.
+      // Toast thành công do component bắn, vì chỉ ở đó mới có tên tổ chức.
+      toast.error(error.message || "Duyệt tổ chức thất bại");
       return rejectWithValue(error.message);
     }
   },
@@ -145,6 +147,10 @@ const organizerSlice = createSlice({
           state.data[index] = { ...state.data[index], ...statusData };
         }
       })
+      .addCase(approveOrganizer.fulfilled, (state, action: any) => {
+        const org = state.data.find((o) => o.organizerId === action.payload);
+        if (org) org.approved = true;
+      })
       .addCase(lockOrganizer.fulfilled, (state, action: any) => {
         const org = state.data.find((o) => o.organizerId === action.payload);
         if (org) org.locked = true;
@@ -158,7 +164,6 @@ const organizerSlice = createSlice({
       })
       .addCase(rejectOrganizer.fulfilled, (state, action) => {
         state.data = state.data.filter((o) => o.organizerId !== action.payload);
-        toast.success("Đã từ chối đơn đăng ký thành công!");
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.data = [];

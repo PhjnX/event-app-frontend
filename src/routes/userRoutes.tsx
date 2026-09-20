@@ -25,6 +25,18 @@ const EventMomentsPage = React.lazy(
 const NewsDetail = React.lazy(
   () => import("../pages/HomeTemplate/NewsPage/NewsDetail"),
 );
+const CommunityGuidelinesPage = React.lazy(
+  () => import("../pages/HomeTemplate/EventPage/CommunityGuidelinesPage"),
+);
+const BlockedUsersPage = React.lazy(
+  () => import("../pages/HomeTemplate/EventPage/BlockedUsersPage"),
+);
+// Bản theo ngôn ngữ của trang chính sách. Đường dẫn chuẩn khai với Google là
+// /privacy (không tiền tố), nhưng nút đổi VI/EN trên Header luôn chèn tiền tố
+// nên phải có route này, nếu không đổi ngôn ngữ sẽ rơi vào trang 404.
+const PrivacyPolicyPage = React.lazy(
+  () => import("../pages/HomeTemplate/PrivacyPolicyPage"),
+);
 
 const HomeRedirect = () => {
   const { lang } = useParams();
@@ -59,6 +71,7 @@ const userRoutes: RouteObject = {
             { path: "value", element: <ValuePage /> },
             { path: "events", element: <EventPage /> },
             { path: "news", element: <NewsPage /> },
+            { path: "privacy", element: <PrivacyPolicyPage /> },
 
             // THÊM ROUTE MỚI CÓ CATEGORY SLUG Ở ĐÂY
             { path: "news/:categorySlug/:slug", element: <NewsDetail /> },
@@ -76,6 +89,11 @@ const userRoutes: RouteObject = {
                   path: "event/:eventSlug/moments",
                   element: <EventMomentsPage />,
                 },
+                {
+                  path: "community-guidelines",
+                  element: <CommunityGuidelinesPage />,
+                },
+                { path: "blocked-users", element: <BlockedUsersPage /> },
               ],
             },
           ],

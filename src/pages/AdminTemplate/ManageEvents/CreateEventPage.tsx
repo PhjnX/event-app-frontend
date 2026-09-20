@@ -20,6 +20,7 @@ import {
 import type { AppDispatch } from "../../../store";
 
 import LockedGuard from "../_components/LockedGuard";
+import { DateTimeField } from "../../../components/common/DateTimePicker";
 
 const formatToBackendISO = (dateTimeLocal: string) => {
   if (!dateTimeLocal) return "";
@@ -68,6 +69,16 @@ export default function CreateEventPage() {
     }
     if (!formData.startDate || !formData.endDate) {
       toast.warn("Vui lòng nhập đầy đủ thời gian bắt đầu và kết thúc!");
+      return;
+    }
+    if (!formData.registrationDeadline) {
+      toast.warn("Vui lòng nhập hạn chót đăng ký!");
+      return;
+    }
+    if (
+      new Date(formData.registrationDeadline) > new Date(formData.startDate)
+    ) {
+      toast.error("Hạn chót đăng ký phải trước thời gian bắt đầu sự kiện!");
       return;
     }
 
@@ -128,7 +139,7 @@ export default function CreateEventPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-20 font-noto text-gray-200">
-      <div className="flex items-center justify-between mb-8 py-4 border-b border-white/10 sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-md">
+      <div className="flex items-center justify-between mb-8 py-4 border-b border-white/10">
         <div className="flex items-center gap-4">
           <Link
             to="/admin/events"
@@ -229,39 +240,34 @@ export default function CreateEventPage() {
                     <label className={labelClass}>
                       <FaClock /> Bắt đầu
                     </label>
-                    <input
-                      required
-                      type="datetime-local"
-                      name="startDate"
+                    <DateTimeField
                       value={formData.startDate}
-                      onChange={handleChange}
-                      className={`${inputClass} scheme-dark`}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, startDate: v }))
+                      }
                     />
                   </div>
                   <div>
                     <label className={labelClass}>
                       <FaClock /> Kết thúc
                     </label>
-                    <input
-                      required
-                      type="datetime-local"
-                      name="endDate"
+                    <DateTimeField
                       value={formData.endDate}
-                      onChange={handleChange}
-                      className={`${inputClass} scheme-dark`}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, endDate: v }))
+                      }
                     />
                   </div>
                   <div className="md:col-span-2">
                     <label className={`${labelClass} text-red-400`}>
                       <FaClock /> Hạn chót đăng ký
                     </label>
-                    <input
-                      required
-                      type="datetime-local"
-                      name="registrationDeadline"
+                    <DateTimeField
                       value={formData.registrationDeadline}
-                      onChange={handleChange}
-                      className={`${inputClass} scheme-dark bg-red-500/5`}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, registrationDeadline: v }))
+                      }
+                      dateClassName="flex-1 bg-[rgba(127,29,29,0.05)] border border-red-900/40 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-red-500 hover:border-red-700 transition"
                     />
                   </div>
                 </div>

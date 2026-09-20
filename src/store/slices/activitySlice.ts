@@ -140,5 +140,4 @@ const activitySlice = createSlice({
   },
 });
 
-export const {} = activitySlice.actions;
 export default activitySlice.reducer;

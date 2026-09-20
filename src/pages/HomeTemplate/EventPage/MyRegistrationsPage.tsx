@@ -23,6 +23,7 @@ import {
 import type { AppDispatch, RootState } from "@/store";
 import { fetchMyRegistrations } from "@/store/slices/eventSlice";
 import LoadingScreen from "../_components/common/LoadingSrceen";
+import { NOISE_TEXTURE_URL } from "@/constants/textures";
 
 const formatDate = (dateString: string, locale: string) => {
   if (!dateString)
@@ -108,6 +109,9 @@ const LuxuryTicket = ({ ticket, index }: { ticket: any; index: number }) => {
         return "bg-emerald-500 shadow-[0_0_10px_#10b981]";
       case "REJECTED":
         return "bg-red-500";
+      // Vé bị huỷ khi chủ vé xoá tài khoản, hoặc sự kiện bị huỷ
+      case "CANCELLED":
+        return "bg-zinc-500";
       default:
         return "bg-zinc-400";
     }
@@ -369,7 +373,10 @@ export default function MyRegistrationsPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-noto">
-      <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] z-0" />
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{ backgroundImage: `url("${NOISE_TEXTURE_URL}")` }}
+      />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 pt-32 pb-24">
         <header className="mb-20">

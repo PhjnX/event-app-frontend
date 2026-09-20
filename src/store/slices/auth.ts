@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiService from "../../services/apiService";
 import { STORAGE_KEYS } from "../../constants";
 import type { User } from "../../models/user";
+import { getApiErrorMessage, isBadCredentials } from "../../utils/apiError";
 
 interface AuthState {
   user: User | null;
@@ -24,9 +25,7 @@ export const registerUser = createAsyncThunk(
       const response = await apiService.post("/auth/signup", userData);
       return response;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Đăng ký thất bại"
-      );
+      return rejectWithValue(getApiErrorMessage(error, "Đăng ký thất bại"));
     }
   }
 );
@@ -41,9 +40,7 @@ export const verifyUser = createAsyncThunk(
       const response = await apiService.post("/auth/verify", data);
       return response;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Mã xác thực không đúng"
-      );
+      return rejectWithValue(getApiErrorMessage(error, "Mã xác thực không đúng"));
     }
   }
 );
@@ -59,9 +56,10 @@ export const loginUser = createAsyncThunk(
       }
       return response;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Đăng nhập thất bại"
-      );
+      // Giữ chuỗi "Bad credentials" làm dấu hiệu: LoginModal nhận ra nó rồi hiện
+      // câu đã dịch theo ngôn ngữ đang chọn (t("...bad_credentials")).
+      if (isBadCredentials(error)) return rejectWithValue("Bad credentials");
+      return rejectWithValue(getApiErrorMessage(error, "Đăng nhập thất bại"));
     }
   }
 );
@@ -110,9 +108,7 @@ export const updateUserProfile = createAsyncThunk(
       const response: any = await apiService.put("/users/me", userData);
       return response;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Cập nhật thất bại"
-      );
+      return rejectWithValue(getApiErrorMessage(error, "Cập nhật thất bại"));
     }
   }
 );

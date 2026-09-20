@@ -36,6 +36,7 @@ import type { Event } from "@/models/event";
 import type { Activity } from "@/models/activity";
 import type { Presenter } from "@/models/presenter";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { laHetCho, laKhongGioiHan } from "../../../utils/capacity";
 
 export default function PublicEventDetail() {
   const { t, i18n } = useTranslation();
@@ -85,8 +86,10 @@ export default function PublicEventDetail() {
               );
               const myRegisteredIds = myRegisteredActs.map((a) => a.activityId);
               setRegisteredActivityIds(myRegisteredIds);
-            } catch (err) {
-              console.log("User chưa tham gia sự kiện này.");
+            } catch {
+              // Chưa đăng ký sự kiện này thì endpoint trả lỗi — coi như chưa
+              // đăng ký hoạt động nào, không có gì để báo cho người dùng.
+              setRegisteredActivityIds([]);
             }
           }
 
@@ -112,10 +115,11 @@ export default function PublicEventDetail() {
     return isoTime.split("T")[1].substring(0, 5);
   };
 
-  const checkIsFull = (act: any) => {
-    if (!act.maxAttendees || act.maxAttendees === 0) return false;
-    return (act.currentAttendees || 0) >= act.maxAttendees;
-  };
+  // maxAttendees = 0 là HẾT CHỖ chứ không phải không giới hạn — backend chặn
+  // đăng ký với câu "Hoạt động X đã hết chỗ". Trước đây chỗ này coi 0 là không
+  // giới hạn nên người dùng chọn được rồi mới bị từ chối.
+  const checkIsFull = (act: any) =>
+    laHetCho(act.maxAttendees, act.currentAttendees);
 
   const toggleActivity = (activityId: number, isFull: boolean) => {
     if (registeredActivityIds.includes(activityId)) return;
@@ -265,8 +269,7 @@ export default function PublicEventDetail() {
                   );
 
                   const isFull = checkIsFull(act);
-                  const isUnlimited =
-                    !act.maxAttendees || act.maxAttendees === 0;
+                  const isUnlimited = laKhongGioiHan(act.maxAttendees);
 
                   const isShaking = shakeId === act.activityId;
 

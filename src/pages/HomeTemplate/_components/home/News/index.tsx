@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "@/store";
 import { fetchPublicPosts } from "@/store/slices/newsSlice";
 import { useTranslation } from "react-i18next";
+import { parseServerDate } from "../../../../../utils/datetime";
 
 interface NewsUI {
   id: number | string;
@@ -278,7 +279,7 @@ const NewsSection = () => {
           image: item.thumbnailUrl || "https://placehold.co/800x450",
           category: item.categoryName || "",
           date: item.createdAt
-            ? new Date(item.createdAt).toLocaleDateString(
+            ? parseServerDate(item.createdAt).toLocaleDateString(
                 effectiveLang === "en" ? "en-US" : "vi-VN",
               )
             : "",

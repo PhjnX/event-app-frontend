@@ -38,6 +38,7 @@ import {
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { useTranslation } from "react-i18next";
 import logoEms from "@/assets/images/Logo_EMS.webp";
+import { parseServerDate } from "../../../utils/datetime";
 
 const DOMAIN = "https://ems.webie.com.vn";
 
@@ -592,7 +593,7 @@ const ShareButtons = ({
 
 const autoLinkify = (html: string): string => {
   const emailRegex =
-    /(?<!href=["'][^"']{0,200})([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g;
+    /(?<!href=["'][^"']{0,200})([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
   return html.replace(emailRegex, '<a href="mailto:$1">$1</a>');
 };
 
@@ -666,12 +667,15 @@ const NewsContentRenderer = ({ content }: { content: string }) => {
               <figure key={block.id} className="img-block">
                 <div className="img-block-frame">
                   {isVideo ? (
+                    /* Video nằm trong nội dung bài là thứ người đọc vào để
+                       xem, nên có thanh điều khiển và phát kèm tiếng, giống
+                       bản trên điện thoại. Khác với video làm ảnh bìa hay ảnh
+                       thu nhỏ — những chỗ đó chạy nền, tắt tiếng và lặp. */
                     <video
                       src={imgSrc}
-                      autoPlay
-                      muted
-                      loop
+                      controls
                       playsInline
+                      preload="metadata"
                       className="w-full block img-block-img"
                     />
                   ) : (
@@ -899,7 +903,7 @@ const RelatedPostsBottom = ({
           const catSlug = post.categorySlug || "tin-tuc";
           const href = `/news/${catSlug}/${post.slug || post.id}`;
 
-          const dateStr = new Date(post.createdAt).toLocaleDateString(locale, {
+          const dateStr = parseServerDate(post.createdAt).toLocaleDateString(locale, {
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -1107,7 +1111,7 @@ const RightSidebar = ({
                       className="text-[11px] font-medium"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      {new Date(post.createdAt).toLocaleDateString(locale)}
+                      {parseServerDate(post.createdAt).toLocaleDateString(locale)}
                     </span>
                   </div>
                 </Link>
@@ -1306,7 +1310,7 @@ const NewsDetail = () => {
     : [];
 
   const locale = i18n.language === "en" ? "en-US" : "vi-VN";
-  const dateStr = new Date(postDetail.createdAt).toLocaleDateString(locale, {
+  const dateStr = parseServerDate(postDetail.createdAt).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",

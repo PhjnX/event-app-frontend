@@ -698,7 +698,8 @@
         "rejected": "Bị từ chối",
         "confirmed": "Đã xác nhận",
         "pending": "Chờ duyệt",
-        "label": "Trạng thái"
+        "label": "Trạng thái",
+        "cancelled": "Đã huỷ"
       },
       "location_tba": "Đang cập nhật",
       "date_label": "Ngày",

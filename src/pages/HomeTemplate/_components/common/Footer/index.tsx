@@ -58,6 +58,9 @@ export default function Footer() {
   const getPath = (path: string) => {
     if (path === "") return homePath;
     if (path.startsWith("#") || path.startsWith("http")) return path;
+    // Hai trang này khai trong Google Play Console nên URL phải cố định,
+    // không được thêm tiền tố /vi hay /en.
+    if (path === "/privacy" || path === "/account/delete") return path;
 
     const cleanPath = path.startsWith("/") ? path.substring(1) : path;
     return `/${currentUrlLang}/${cleanPath}`;
@@ -104,7 +107,7 @@ export default function Footer() {
         links: [
           { label: t("footer.sections.support.items.help_center"), path: "#" },
           { label: t("footer.sections.support.items.docs"), path: "#" },
-          { label: t("footer.sections.support.items.privacy"), path: "#" },
+          { label: t("footer.sections.support.items.privacy"), path: "/privacy" },
           { label: t("footer.sections.support.items.terms"), path: "#" },
         ],
       },
@@ -301,12 +304,12 @@ export default function Footer() {
             {t("footer.bottom.rights")}
           </p>
           <div className="flex flex-wrap justify-center gap-6 text-xs font-light">
-            <a
-              href="#"
+            <Link
+              to="/privacy"
               className="text-gray-500 hover:text-[#D8C97B] transition-colors"
             >
               {t("footer.bottom.privacy")}
-            </a>
+            </Link>
             <a
               href="#"
               className="text-gray-500 hover:text-[#D8C97B] transition-colors"

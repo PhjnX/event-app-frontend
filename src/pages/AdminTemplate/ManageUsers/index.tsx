@@ -38,6 +38,7 @@ import {
 import { uploadAvatar } from "../../../store/slices/auth";
 import { ROLES } from "@/constants";
 import type { User } from "../../../models/user";
+import { tenNguoiDung, emailNguoiDung } from "../../../utils/deletedUser";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -168,8 +169,8 @@ export default function ManageUsers() {
     }
     const dataToExport = filteredData.map((u: any) => ({
       ID: u.uid,
-      "Họ và tên": u.username,
-      Email: u.email,
+      "Họ và tên": tenNguoiDung(u),
+      Email: emailNguoiDung(u),
       "Số điện thoại": u.phoneNumber || "---",
       "Vai trò": u.role,
     }));
@@ -202,9 +203,14 @@ export default function ManageUsers() {
   };
 
   const handleDeleteClick = async (uid: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
+    try {
+      // Thunk deleteUser tự báo thành công/thất bại — không toast thêm ở đây,
+      // nếu không người dùng thấy hai thông báo chồng nhau.
       await dispatch(deleteUser(uid)).unwrap();
-      toast.success("Đã xóa người dùng.");
+    } catch (error) {
+      // Thiếu catch thì lỗi từ unwrap() văng thành "Uncaught (in promise)"
+      console.error(error);
     }
   };
 
@@ -225,10 +231,10 @@ export default function ManageUsers() {
         finalAvatarUrl = await dispatch(uploadAvatar(fileToUpload)).unwrap();
       }
       const updateData = { ...formData, avatarUrl: finalAvatarUrl };
+      // Thunk updateUser tự báo thành công/thất bại — không toast thêm ở đây
       await dispatch(
         updateUser({ uid: selectedUser.uid, data: updateData }),
       ).unwrap();
-      toast.success("Cập nhật thành công!");
       setIsDrawerOpen(false);
     } catch (error) {
       console.error(error);
@@ -457,9 +463,9 @@ export default function ManageUsers() {
                             <img
                               src={
                                 user.avatarUrl ||
-                                `https://ui-avatars.com/api/?name=${user.username}`
+                                `https://ui-avatars.com/api/?name=${tenNguoiDung(user)}`
                               }
-                              alt={user.username}
+                              alt={tenNguoiDung(user)}
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -467,9 +473,9 @@ export default function ManageUsers() {
                         <div className="text-center mt-3 w-full">
                           <h3
                             className="text-white font-bold text-base truncate px-2"
-                            title={user.username}
+                            title={tenNguoiDung(user)}
                           >
-                            {user.username}
+                            {tenNguoiDung(user)}
                           </h3>
                           <div className="text-[10px] text-gray-500 font-mono mt-1">
                             ID: #{String(user.uid).substring(0, 8)}

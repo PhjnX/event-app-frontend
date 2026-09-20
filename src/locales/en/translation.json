@@ -698,7 +698,8 @@
         "rejected": "Rejected",
         "confirmed": "Confirmed",
         "pending": "Pending",
-        "label": "Status"
+        "label": "Status",
+        "cancelled": "Cancelled"
       },
       "location_tba": "TBA",
       "date_label": "Date",

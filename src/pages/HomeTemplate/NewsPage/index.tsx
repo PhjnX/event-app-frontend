@@ -193,18 +193,18 @@ const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
     setCurrent(0);
   }, [posts]);
 
-  useEffect(() => {
-    if (posts.length <= 1) return;
-    const timer = setInterval(() => go(1), 8000);
-    return () => clearInterval(timer);
-  }, [current, posts.length]);
-
   const go = (dir: 1 | -1) => {
     if (animating) return;
     setAnimating(true);
     setCurrent((p) => (p + dir + posts.length) % posts.length);
     setTimeout(() => setAnimating(false), 800);
   };
+
+  useEffect(() => {
+    if (posts.length <= 1) return;
+    const timer = setInterval(() => go(1), 8000);
+    return () => clearInterval(timer);
+  }, [current, posts.length]);
 
   if (!posts?.length) return null;
 

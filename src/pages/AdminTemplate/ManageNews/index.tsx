@@ -28,6 +28,7 @@ import {
 } from "../../../store/slices/categorySlice";
 import { type AppDispatch, type RootState } from "@/store";
 import CategoryManagerModal from "./CategoryManagerModal";
+import { parseServerDate } from "../../../utils/datetime";
 
 // ─── Kiểm tra URL có phải là Video không ──────────────────────────────────────
 const checkIsVideo = (url?: string | null) => {
@@ -130,7 +131,7 @@ const ManageNews: React.FC = () => {
             100,
           ) + "...",
         "Ngày tạo": post.createdAt
-          ? new Date(post.createdAt).toLocaleDateString("vi-VN")
+          ? parseServerDate(post.createdAt).toLocaleDateString("vi-VN")
           : "N/A",
         "Người tạo": post.authorName || "Admin",
         "Hình ảnh (URL)": post.thumbnailUrl || "N/A",
@@ -410,7 +411,7 @@ const ManageNews: React.FC = () => {
                         </td>
                         <td className="p-4 text-gray-400 text-sm">
                           {post.createdAt
-                            ? new Date(post.createdAt).toLocaleDateString(
+                            ? parseServerDate(post.createdAt).toLocaleDateString(
                                 "vi-VN",
                               )
                             : "N/A"}

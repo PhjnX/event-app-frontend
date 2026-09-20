@@ -5,6 +5,7 @@ import {
   FaChalkboardTeacher,
   FaBuilding,
   FaNewspaper,
+  FaFlag,
 } from "react-icons/fa";
 import { ROLES } from "@/constants";
 
@@ -53,6 +54,12 @@ export const ADMIN_MENU: MenuItem[] = [
     title: "Quản lý Tin Tức",
     path: "/admin/news",
     icon: FaNewspaper,
+    roles: [ROLES.SUPER_ADMIN],
+  },
+  {
+    title: "Kiểm duyệt Moments",
+    path: "/admin/reports",
+    icon: FaFlag,
     roles: [ROLES.SUPER_ADMIN],
   },
 ];

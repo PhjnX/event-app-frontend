@@ -45,7 +45,14 @@ apiService.interceptors.response.use(
 
       console.error(`API Error [${status}]:`, errorData);
 
-      if (status === 401) {
+      // 401 ở chính lời gọi đăng nhập/đăng ký nghĩa là gõ sai thông tin, không
+      // phải phiên hết hạn — không được xoá token và đẩy sang /auth. Thiếu dòng
+      // này thì khi backend đổi lỗi sai mật khẩu từ 500 sang 401, gõ sai trong
+      // hộp đăng nhập ở trang chủ là bị văng khỏi trang đang xem.
+      const laGoiXacThuc = /\/auth\/|forgot-password|reset-password/.test(
+        error.config?.url || "",
+      );
+      if (status === 401 && !laGoiXacThuc) {
         if (!window.location.pathname.includes("/auth")) {
           localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
           window.location.href = "/auth";

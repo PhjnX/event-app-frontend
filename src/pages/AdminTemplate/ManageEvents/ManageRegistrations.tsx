@@ -35,6 +35,7 @@ import {
   clearRegistrationDetail,
 } from "@/store/slices/eventSlice";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { tenNguoiDung, emailNguoiDung } from "../../../utils/deletedUser";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -358,7 +359,7 @@ export default function ManageRegistrations() {
                               {item.avatarUrl ? (
                                 <OptimizedImage
                                   src={item.avatarUrl}
-                                  alt={item.username || "User"}
+                                  alt={tenNguoiDung(item)}
                                   width={48}
                                   height={48}
                                   className="w-full h-full object-cover"
@@ -371,7 +372,7 @@ export default function ManageRegistrations() {
                             </div>
                             <div>
                               <div className="font-bold text-white text-sm sm:text-base group-hover:text-[#B5A65F] transition-colors">
-                                {item.username || "Unknown"}
+                                {tenNguoiDung(item)}
                               </div>
                               <div className="text-[10px] text-gray-500 font-mono mt-0.5">
                                 ID: {item.userId}
@@ -389,9 +390,9 @@ export default function ManageRegistrations() {
                               </div>
                               <span
                                 className="text-xs text-gray-300 font-medium truncate max-w-[150px]"
-                                title={item.email}
+                                title={emailNguoiDung(item)}
                               >
-                                {item.email}
+                                {emailNguoiDung(item)}
                               </span>
                             </div>
                             <div className="flex items-center gap-2.5">

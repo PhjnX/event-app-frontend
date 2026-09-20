@@ -14,6 +14,7 @@ import {
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import apiService from "../../../services/apiService";
+import { TimeSelect24 } from "../../../components/common/DateTimePicker";
 import {
   updateEvent,
   uploadEventImage,
@@ -278,14 +279,12 @@ export default function EditEventPage() {
                       value={formData.startDateDate}
                       onChange={handleChange}
                     />
-                    <input
-                      type="time"
-                      required
-                      className={`${groupInputClass} w-28`}
-                      style={{ colorScheme: "dark" }}
-                      name="startDateTime"
+                    <TimeSelect24
+                      className="w-28 shrink-0"
                       value={formData.startDateTime}
-                      onChange={handleChange}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, startDateTime: v }))
+                      }
                     />
                   </div>
                 </div>
@@ -303,14 +302,12 @@ export default function EditEventPage() {
                       value={formData.endDateDate}
                       onChange={handleChange}
                     />
-                    <input
-                      type="time"
-                      required
-                      className={`${groupInputClass} w-28`}
-                      style={{ colorScheme: "dark" }}
-                      name="endDateTime"
+                    <TimeSelect24
+                      className="w-28 shrink-0"
                       value={formData.endDateTime}
-                      onChange={handleChange}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, endDateTime: v }))
+                      }
                     />
                   </div>
                 </div>
@@ -331,14 +328,12 @@ export default function EditEventPage() {
                       value={formData.regDateDate}
                       onChange={handleChange}
                     />
-                    <input
-                      type="time"
-                      required
-                      className={`${groupInputClass} w-28 border-red-900/40 bg-[rgba(127,29,29,0.05)]`}
-                      style={{ colorScheme: "dark" }}
-                      name="regDateTime"
+                    <TimeSelect24
+                      className="w-28 shrink-0"
                       value={formData.regDateTime}
-                      onChange={handleChange}
+                      onChange={(v) =>
+                        setFormData((f) => ({ ...f, regDateTime: v }))
+                      }
                     />
                   </div>
                 </div>

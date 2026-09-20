@@ -555,6 +555,24 @@ const eventSlice = createSlice({
         state.isLoading = false;
         state.registrations = [];
       })
+      .addCase(approveRegistration.fulfilled, (state, action) => {
+        const reg = state.registrations.find(
+          (r: any) =>
+            r.id === action.payload || r.registrationId === action.payload,
+        );
+        if (reg) reg.status = "APPROVED";
+      })
+      .addCase(rejectRegistration.fulfilled, (state, action) => {
+        const { registrationId, reason } = action.payload;
+        const reg = state.registrations.find(
+          (r: any) =>
+            r.id === registrationId || r.registrationId === registrationId,
+        );
+        if (reg) {
+          reg.status = "REJECTED";
+          reg.rejectionReason = reason;
+        }
+      })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.data = state.data.filter((e) => e.slug !== action.payload);
       })
