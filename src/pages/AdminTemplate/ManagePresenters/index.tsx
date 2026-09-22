@@ -73,7 +73,8 @@ export default function ManagePresenters() {
   // Mặc định isChecking true nếu là Organizer
   const [isChecking, setIsChecking] = useState(isOrganizer);
 
-  // ✅ FIX: Logic check status mới nhất bằng API /me/status
+  // Hỏi lại trạng thái tổ chức qua /me/status thay vì tin vào dữ liệu trong
+  // phiên đăng nhập: quản trị viên có thể vừa khoá tài khoản tổ chức này.
   useEffect(() => {
     if (isOrganizer && user) {
       setIsChecking(true);

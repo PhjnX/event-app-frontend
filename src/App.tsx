@@ -32,11 +32,12 @@ function AuthHandler() {
     if (!rawToken || processingRef.current) return;
 
     processingRef.current = true;
-    console.log("🔍 [AuthHandler] Nhận được token từ URL:", rawToken);
+    // Không in rawToken ra console: token này mở được tài khoản, mà console
+    // thì ai mở DevTools hay cài tiện ích mở rộng cũng đọc được.
 
     if (!isJwtToken(rawToken)) {
       console.error(
-        "❌ [LỖI TOKEN] Backend trả về Token không phải JWT (AccessToken).",
+        "[Đăng nhập] Backend trả về token không đúng định dạng JWT.",
       );
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
 
@@ -52,7 +53,6 @@ function AuthHandler() {
     }
 
     try {
-      console.log("✅ [AuthHandler] Token JWT hợp lệ. Đang xử lý...");
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, rawToken);
       window.history.replaceState({}, document.title, window.location.pathname);
       toast.success("Đăng nhập thành công! Đang vào hệ thống...");
@@ -79,14 +79,15 @@ function AppContent() {
         searchParams.get("accessToken") ||
         searchParams.get("refreshToken")
       ) {
-        console.log("🛑 [AppContent] URL Login -> Dừng init.");
+        // Đang đăng nhập bằng token trên URL: để AuthHandler ở trên xử lý,
+        // chạy tiếp ở đây sẽ đọc phải token cũ trong localStorage.
         return;
       }
 
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
       if (!token || !isJwtToken(token)) {
-        if (token) console.warn("⚠️ Token rác -> Xóa.");
+        if (token) console.warn("[Đăng nhập] Token hỏng, đã xoá khỏi máy.");
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         setIsInitializing(false);
         return;

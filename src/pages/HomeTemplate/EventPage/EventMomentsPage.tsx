@@ -54,7 +54,6 @@ import {
 import type { MomentStatus, ReportReason } from "@/models/moderation";
 import { formatPostedTime } from "../../../utils/datetime";
 
-// --- TYPES ---
 interface Moment {
   id: number;
   userId: number;
@@ -465,7 +464,7 @@ export default function EventMomentsPage() {
   const [editingMoment, setEditingMoment] = useState<Moment | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  // --- KIỂM DUYỆT NỘI DUNG (UGC policy) ---
+  // KIỂM DUYỆT NỘI DUNG (UGC policy)
   const [blockedIds, setBlockedIds] = useState<number[]>(() =>
     getCachedBlockedUsers().map((u) => u.userId),
   );
@@ -766,7 +765,6 @@ export default function EventMomentsPage() {
     }
   };
 
-  // --- HANDLERS KIỂM DUYỆT ---
 
   // Gửi báo cáo, sau đó ẩn bài ngay trên trình duyệt của người báo cáo
   const handleSubmitReport = async (reason: ReportReason, detail: string) => {

@@ -10,7 +10,6 @@ export default function HomeTemplate() {
   const [showOrgModal, setShowOrgModal] = useState(false);
 
   const handleOpenModal = () => {
-    console.log("🚀 Đã nhận lệnh mở Modal từ nút bấm!"); 
     setShowOrgModal(true);
   };
 

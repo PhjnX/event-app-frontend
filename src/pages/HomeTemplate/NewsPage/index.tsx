@@ -30,7 +30,6 @@ import { SeoHelmet } from "@/components/common/SeoHelmet";
 import { SEO_DATA } from "@/constants/seo-config";
 import LoadingScreen from "./../_components/common/LoadingSrceen";
 
-// ─── Hàm kiểm tra xem URL có phải là Video không ─────────────────────────────
 const checkIsVideo = (url?: string | null) => {
   if (!url) return false;
   // Tách bỏ các query params (như ?v=123) để lấy đúng phần đuôi mở rộng
@@ -107,7 +106,6 @@ const RevealOnScroll: React.FC<{
   );
 };
 
-// ─── NewsCard ─────────────────────────────────────────────────────────────────
 const NewsCard: React.FC<{
   post: any;
   label?: string;
@@ -182,7 +180,6 @@ const NewsCard: React.FC<{
   );
 };
 
-// ─── HeroSlider ───────────────────────────────────────────────────────────────
 
 const HeroSlider: React.FC<{ posts: any[] }> = ({ posts }) => {
   const { t, i18n } = useTranslation();

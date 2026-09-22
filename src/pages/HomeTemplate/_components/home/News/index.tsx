@@ -31,13 +31,12 @@ interface NewsUI {
   excerpt: string;
 }
 
-// ─── Video detection ──────────────────────────────────────────────────────────
+// Video detection
 const checkIsVideo = (url?: string | null): boolean => {
   if (!url) return false;
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url.split("?")[0]);
 };
 
-// ─── MediaThumb: renders video or image depending on URL ──────────────────────
 const MediaThumb = ({ src, alt }: { src: string; alt: string }) => {
   const isVideo = checkIsVideo(src);
 
@@ -81,7 +80,6 @@ const MediaThumb = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const BackgroundDecoration = () => (
   <div

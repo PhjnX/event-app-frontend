@@ -137,7 +137,7 @@ export default function ManageEvents() {
     return "HAPPENING";
   };
 
-  // Close dropdown logic
+  // Bấm ra ngoài thì đóng menu thả xuống.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -151,7 +151,7 @@ export default function ManageEvents() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch Data Loop
+  // Quản trị hệ thống thấy mọi sự kiện, ban tổ chức chỉ thấy sự kiện của mình.
   useEffect(() => {
     const fetchData = () => {
       if (isSAdmin) {
@@ -167,7 +167,7 @@ export default function ManageEvents() {
     return () => clearInterval(interval);
   }, [dispatch, isSAdmin]);
 
-  // Logic Highlight & Auto Switch Tab
+  // Vào từ thông báo: tự nhảy sang đúng tab chứa sự kiện rồi làm nổi dòng đó.
   useEffect(() => {
     if (highlightId && data.length > 0) {
       const target = data.find((e) => String(e.eventId) === highlightId);
@@ -208,7 +208,6 @@ export default function ManageEvents() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
-  // --- FILTER & SORT (UPDATED) ---
   const filteredAndSortedData = useMemo(() => {
     let result = data.filter((event) => {
       const evt = event as any;
@@ -221,7 +220,7 @@ export default function ManageEvents() {
       if (activeTab === "EDIT_REQUEST")
         return evt.editRequestStatus === "PENDING";
 
-      // 3. Tab Approved
+      // Tab "Đã duyệt" gom cả hai trạng thái vì backend dùng lẫn lộn.
       if (activeTab === "APPROVED")
         return event.status === "PUBLISHED" || event.status === "APPROVED";
 
@@ -265,7 +264,6 @@ export default function ManageEvents() {
 
   const totalPages = Math.ceil(filteredAndSortedData.length / ITEMS_PER_PAGE);
 
-  // --- ACTIONS ---
   const handleToggleState = async (event: any, isHero: boolean) => {
     if (
       !isSAdmin ||
@@ -329,7 +327,7 @@ export default function ManageEvents() {
       } else if (type === "SEND") {
         await dispatch(submitEventForApproval(data.slug)).unwrap();
       }
-      // --- LOGIC MỚI ---
+      // LOGIC MỚI
       else if (type === "APPROVE_EDIT") {
         await dispatch(approveEditRequest(data.eventId)).unwrap();
         toast.success("Đã mở khóa sự kiện!");

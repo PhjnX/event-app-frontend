@@ -6,10 +6,18 @@ import path from "node:path";
 
 const DIST = "./dist";
 const PORT = 3033;
-// /privacy nằm trong danh sách vì Google Play và trình thu thập của Google đọc
-// đường dẫn này để duyệt ứng dụng — có sẵn HTML tĩnh thì không phụ thuộc vào
-// việc JavaScript có chạy được hay không.
-const ROUTES = ["/", "/about", "/value", "/events", "/news", "/privacy"];
+// Hai đường dẫn /privacy và /account/delete được khai với Google Play nên bắt
+// buộc phải mở được. Sinh sẵn HTML tĩnh cho chúng để không phụ thuộc vào luật
+// rewrite của hosting hay vào việc JavaScript có chạy được hay không.
+const ROUTES = [
+  "/",
+  "/about",
+  "/value",
+  "/events",
+  "/news",
+  "/privacy",
+  "/account/delete",
+];
 
 // Tạo server tạm để serve dist/
 const server = createServer((req, res) =>

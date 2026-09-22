@@ -30,7 +30,6 @@ import { type AppDispatch, type RootState } from "@/store";
 import CategoryManagerModal from "./CategoryManagerModal";
 import { parseServerDate } from "../../../utils/datetime";
 
-// ─── Kiểm tra URL có phải là Video không ──────────────────────────────────────
 const checkIsVideo = (url?: string | null) => {
   if (!url) return false;
   const path = url.split("?")[0].toLowerCase();
@@ -75,7 +74,6 @@ const ManageNews: React.FC = () => {
     }
   };
 
-  // ─── Toggle featured ──────────────────────────────────────────────────────
   const handleToggleFeatured = (post: any) => {
     if (post.isFeatured) {
       dispatch(removePostFromFeatured(post.id));

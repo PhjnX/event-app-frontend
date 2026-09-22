@@ -79,7 +79,7 @@ export default function ManageUsers() {
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [formData, setFormData] = useState<Partial<User>>({});
 
-  // --- 1. INIT DATA ---
+  // Ban tổ chức cần danh sách sự kiện của mình trước để lọc người tham dự.
   useEffect(() => {
     if (isOrganizer) {
       dispatch(fetchMyAttendees());
@@ -89,7 +89,7 @@ export default function ManageUsers() {
     }
   }, [dispatch, isOrganizer]);
 
-  // --- 2. FETCH DATA THEO EVENT ---
+  // Đổi sự kiện đang lọc thì tải lại danh sách người tham dự của sự kiện đó.
   useEffect(() => {
     if (isOrganizer && filterEventId !== "ALL") {
       dispatch(fetchEventRegistrations(Number(filterEventId)));
@@ -99,7 +99,7 @@ export default function ManageUsers() {
     setCurrentPage(1);
   }, [filterEventId, isOrganizer, dispatch]);
 
-  // --- 3. CLICK OUTSIDE DROPDOWN ---
+  // Bấm ra ngoài thì đóng menu thả xuống.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -113,7 +113,7 @@ export default function ManageUsers() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- 4. DATA PROCESSING ---
+  // Lọc theo sự kiện thì lấy từ danh sách đăng ký, còn lại lấy danh sách người dùng.
   const displayData = useMemo(() => {
     if (isOrganizer && filterEventId !== "ALL") {
       return eventAttendees.map(
@@ -161,7 +161,6 @@ export default function ManageUsers() {
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
 
-  // --- 5. HANDLERS ---
   const handleExportExcel = () => {
     if (filteredData.length === 0) {
       toast.warn("Không có dữ liệu để xuất!");

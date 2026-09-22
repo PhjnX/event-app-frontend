@@ -341,7 +341,8 @@ export default function EventDetail() {
       } else if (res?.data && typeof res.data === "string") {
         finalUrl = res.data;
       } else if (res?.file?.url) {
-        // 👈 Thêm trường hợp nếu response dạng { file: { url: "https://..." }, success: 1 }
+        // Dạng { file: { url }, success: 1 } — trình soạn thảo EditorJS trả về
+        // kiểu này, khác với các nơi khác trong hệ thống.
         finalUrl = res.file.url;
       }
 
@@ -350,7 +351,7 @@ export default function EventDetail() {
         return;
       }
 
-      // 🎯 Đảm bảo gán CHUỖI STRING vào state
+      // Luôn gán chuỗi vào state, vì API trả về ba dạng khác nhau ở trên.
       setActForm((prev) => ({ ...prev, activityImageUrl: finalUrl }));
       setPreviewImage(finalUrl);
       toast.success("Đã tải ảnh lên!");

@@ -430,7 +430,7 @@ export const subscribeNewsletter = createAsyncThunk(
   },
 );
 
-// --- CÁC ACTION MỚI CHO EDIT REQUEST WORKFLOW ---
+// CÁC ACTION MỚI CHO EDIT REQUEST WORKFLOW
 
 // 1. Organizer gửi yêu cầu chỉnh sửa
 export const requestEditEvent = createAsyncThunk(

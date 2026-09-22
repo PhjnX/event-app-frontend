@@ -42,7 +42,6 @@ import { parseServerDate } from "../../../utils/datetime";
 
 const DOMAIN = "https://ems.webie.com.vn";
 
-// ─── Hàm kiểm tra xem URL có phải là Video không ─────────────────────────────
 const checkIsVideo = (url?: string | null) => {
   if (!url) return false;
   const path = url.split("?")[0].toLowerCase();

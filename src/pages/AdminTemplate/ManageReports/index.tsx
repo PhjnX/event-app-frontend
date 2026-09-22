@@ -82,7 +82,7 @@ export default function ManageReports() {
     load();
   }, []);
 
-  // ─── Số liệu vận hành ───────────────────────────────────────────────────────
+  // Số liệu vận hành
   const stats = useMemo(() => {
     const pending = reports.filter((r) => r.status === "PENDING");
     return {
@@ -122,7 +122,7 @@ export default function ManageReports() {
     });
   }, [reports, activeTab, searchText]);
 
-  // ─── Hành động ──────────────────────────────────────────────────────────────
+  // Hành động
   const patchReport = (id: number, patch: Partial<MomentReport>) =>
     setReports((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...patch } : r)),
@@ -191,7 +191,7 @@ export default function ManageReports() {
     }
   };
 
-  // ─── Thành phần nhỏ ─────────────────────────────────────────────────────────
+  // Thành phần nhỏ
   const ReasonBadge = ({ report }: { report: MomentReport }) => {
     const severe = SEVERE_REASONS.includes(report.reason);
     return (

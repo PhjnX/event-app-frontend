@@ -44,7 +44,6 @@ export const isApiMissing = (error: any): boolean => {
   return false;
 };
 
-// ─── localStorage helpers ─────────────────────────────────────────────────────
 const readJson = <T>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(key);
@@ -62,7 +61,7 @@ const writeJson = (key: string, value: unknown) => {
   }
 };
 
-// ─── Chế độ thử cục bộ ────────────────────────────────────────────────────────
+// Chế độ thử cục bộ
 /**
  * Khi các endpoint kiểm duyệt chưa tồn tại, luồng vẫn phải chạy được trọn vẹn
  * để kiểm thử giao diện: người dùng báo cáo -> báo cáo vào hàng đợi admin ->
@@ -173,7 +172,7 @@ export const clearModerationTestData = () => {
   }
 };
 
-// ─── Báo cáo moment ───────────────────────────────────────────────────────────
+// Báo cáo moment
 export interface ReportResult {
   /** true khi báo cáo chỉ được ghi nhận cục bộ vì backend chưa có endpoint */
   localOnly: boolean;
@@ -206,7 +205,7 @@ export const reportMoment = async (
   }
 };
 
-// ─── Chặn / bỏ chặn ───────────────────────────────────────────────────────────
+// Chặn / bỏ chặn
 export const blockUser = async (u: BlockedUser): Promise<{ localOnly: boolean }> => {
   let localOnly = false;
   try {
@@ -254,7 +253,7 @@ export const syncBlockedUsers = async (): Promise<BlockedUser[]> => {
   }
 };
 
-// ─── Ẩn bài cục bộ ────────────────────────────────────────────────────────────
+// Ẩn bài cục bộ
 /**
  * Danh sách bài người dùng tự ẩn trên thiết bị này.
  *
@@ -291,7 +290,6 @@ export const unhideMomentLocally = (momentId: number): HiddenMoment[] => {
   return next;
 };
 
-// ─── Quy tắc cộng đồng ────────────────────────────────────────────────────────
 /**
  * Phiên bản quy tắc đang áp dụng. Mặc định lấy hằng số trong code, rồi cập nhật
  * theo server qua fetchCurrentPolicyVersion(). Nhờ vậy khi backend nâng phiên
@@ -363,7 +361,7 @@ export const acceptContentPolicy = async () => {
   }
 };
 
-// ─── Admin ────────────────────────────────────────────────────────────────────
+// Admin
 export interface ReportListResult {
   items: MomentReport[];
   /** true khi đang hiển thị dữ liệu mẫu vì backend chưa có endpoint */

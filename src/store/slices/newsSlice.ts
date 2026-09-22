@@ -27,7 +27,6 @@ interface Post {
   isFeatured?: boolean;
 }
 
-// ─── Helper: normalize field "featured" → "isFeatured" ───────────────────────
 // Backend trả về field tên là "featured", frontend dùng "isFeatured"
 // Hàm này đảm bảo cả 2 đều được map đúng
 const normalizePost = (item: any): any => {
@@ -38,7 +37,6 @@ const normalizePost = (item: any): any => {
   };
 };
 
-// ─── Public ───────────────────────────────────────────────────────────────────
 export const fetchPublicPosts = createAsyncThunk(
   "news/fetchPublicPosts",
   async (
@@ -64,7 +62,6 @@ export const fetchPublicPosts = createAsyncThunk(
   },
 );
 
-// ─── Admin: dùng cho ManageNews ───────────────────────────────────────────────
 export const fetchAdminPosts = createAsyncThunk(
   "news/fetchAdminPosts",
   async (
@@ -99,7 +96,7 @@ export const fetchPostBySlug = createAsyncThunk(
   },
 );
 
-// ─── Backward compat ──────────────────────────────────────────────────────────
+// Backward compat
 export const fetchPosts = createAsyncThunk(
   "news/fetchPosts",
   async (
@@ -229,7 +226,6 @@ export const deletePost = createAsyncThunk(
   },
 );
 
-// ─── Featured: thêm bài viết vào nổi bật ─────────────────────────────────────
 // PUT /admin/posts/featured  body: { postIds: [id] }
 export const addPostToFeatured = createAsyncThunk(
   "news/addPostToFeatured",
@@ -255,7 +251,6 @@ export const addPostToFeatured = createAsyncThunk(
   },
 );
 
-// ─── Featured: gỡ bài viết khỏi nổi bật ─────────────────────────────────────
 // DELETE /admin/posts/featured/{postId}
 export const removePostFromFeatured = createAsyncThunk(
   "news/removePostFromFeatured",
@@ -352,7 +347,6 @@ const newsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // ── fetchPublicPosts ──────────────────────────────────────────────────
       .addCase(fetchPublicPosts.pending, (state) => {
         state.loading = true;
       })
@@ -374,7 +368,6 @@ const newsSlice = createSlice({
         state.loading = false;
       })
 
-      // ── fetchAdminPosts ───────────────────────────────────────────────────
       .addCase(fetchAdminPosts.pending, (state) => {
         state.loading = true;
       })
@@ -393,7 +386,6 @@ const newsSlice = createSlice({
         state.loading = false;
       })
 
-      // ── fetchPosts (backward compat) ──────────────────────────────────────
       .addCase(fetchPosts.pending, (state) => {
         state.loading = true;
       })
@@ -412,7 +404,6 @@ const newsSlice = createSlice({
         state.loading = false;
       })
 
-      // ── fetchPostBySlug ───────────────────────────────────────────────────
       .addCase(fetchPostBySlug.pending, (state) => {
         state.loading = true;
       })
@@ -424,7 +415,6 @@ const newsSlice = createSlice({
         state.loading = false;
       })
 
-      // ── fetchPostDetailAdmin ──────────────────────────────────────────────
       .addCase(fetchPostDetailAdmin.pending, (state) => {
         state.loading = true;
       })
@@ -436,13 +426,11 @@ const newsSlice = createSlice({
         state.loading = false;
       })
 
-      // ── deletePost ────────────────────────────────────────────────────────
       .addCase(deletePost.fulfilled, (state, action) => {
         state.data = state.data.filter((item) => item.id !== action.payload);
         if (state.totalElements > 0) state.totalElements -= 1;
       })
 
-      // ── addPostToFeatured ─────────────────────────────────────────────────
       .addCase(addPostToFeatured.pending, (state, action) => {
         state.featuredLoading[action.meta.arg] = true;
       })
@@ -455,7 +443,6 @@ const newsSlice = createSlice({
         delete state.featuredLoading[action.meta.arg];
       })
 
-      // ── removePostFromFeatured ────────────────────────────────────────────
       .addCase(removePostFromFeatured.pending, (state, action) => {
         state.featuredLoading[action.meta.arg] = true;
       })

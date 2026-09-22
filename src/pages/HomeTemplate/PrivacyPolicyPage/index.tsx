@@ -91,6 +91,10 @@ export default function PrivacyPolicyPage() {
                 "Dữ liệu kỹ thuật tối thiểu",
                 "nhật ký máy chủ phục vụ vận hành và xử lý sự cố.",
               ],
+              [
+                "Số liệu truy cập trang web",
+                "trang web dùng Google Analytics để đếm lượt xem và biết trang nào hay được mở, ở dạng thống kê chung. Ứng dụng di động không có công cụ đo đạc nào.",
+              ],
             ].map(([nhan, noi]) => (
               <li key={nhan} className="flex gap-3">
                 <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0" />
@@ -107,7 +111,7 @@ export default function PrivacyPolicyPage() {
           <div className="mt-6 grid sm:grid-cols-3 gap-3">
             {[
               "Không thu thập vị trí",
-              "Không theo dõi quảng cáo",
+              "Không dùng cho quảng cáo",
               "Không bán dữ liệu",
             ].map((t) => (
               <div
@@ -223,6 +227,10 @@ export default function PrivacyPolicyPage() {
                 "Lưu trữ ảnh bạn tải lên (ảnh đại diện, ảnh Khoảnh khắc, ảnh sự kiện).",
               ],
               ["Render", "Nơi đặt máy chủ và cơ sở dữ liệu của hệ thống."],
+              [
+                "Google Analytics",
+                "Đếm lượt truy cập trang web ở dạng thống kê chung. Chỉ chạy trên trang web, không có trong ứng dụng di động.",
+              ],
               [
                 "Dịch vụ gửi email",
                 "Chuyển các email xác thực và thông báo tài khoản tới bạn.",

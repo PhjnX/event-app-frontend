@@ -39,7 +39,6 @@ import { tenNguoiDung, emailNguoiDung } from "../../../utils/deletedUser";
 
 const ITEMS_PER_PAGE = 8;
 
-// --- STATUS BADGE COMPONENT ---
 const StatusBadge = ({ status }: { status: string }) => {
   const config: Record<string, { bg: string; text: string; label: string }> = {
     PENDING: {
@@ -89,7 +88,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// --- MAIN COMPONENT ---
 export default function ManageRegistrations() {
   const { eventId } = useParams();
   const navigate = useNavigate();

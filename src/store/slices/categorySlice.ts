@@ -22,7 +22,7 @@ export interface Category {
   updatedAt?: string;
 }
 
-// ─── slug giờ nằm bên trong từng translation theo API mới ─────────────────────
+// slug giờ nằm bên trong từng translation theo API mới
 export interface CategoryRequestDTO {
   displayOrder?: number | null;
   isActive?: boolean | null;
@@ -43,7 +43,6 @@ export interface CategoryRequestDTO {
   };
 }
 
-// ─── Public ───────────────────────────────────────────────────────────────────
 export const fetchPublicCategories = createAsyncThunk(
   "categories/fetchPublic",
   async (lang: string = "vi", { rejectWithValue }) => {
@@ -58,7 +57,7 @@ export const fetchPublicCategories = createAsyncThunk(
   },
 );
 
-// ─── Admin: lấy tất cả ────────────────────────────────────────────────────────
+// Admin: lấy tất cả
 export const fetchAdminCategories = createAsyncThunk(
   "categories/fetchAdmin",
   async (_, { rejectWithValue }) => {
@@ -71,7 +70,7 @@ export const fetchAdminCategories = createAsyncThunk(
   },
 );
 
-// ─── Admin: lấy chi tiết 1 category theo ID ──────────────────────────────────
+// Admin: lấy chi tiết 1 category theo ID
 export const fetchCategoryById = createAsyncThunk(
   "categories/fetchById",
   async (id: number, { rejectWithValue }) => {
@@ -84,7 +83,7 @@ export const fetchCategoryById = createAsyncThunk(
   },
 );
 
-// ─── Admin: tạo mới ───────────────────────────────────────────────────────────
+// Admin: tạo mới
 export const createCategory = createAsyncThunk(
   "categories/create",
   async (data: CategoryRequestDTO, { rejectWithValue }) => {
@@ -97,7 +96,7 @@ export const createCategory = createAsyncThunk(
   },
 );
 
-// ─── Admin: cập nhật ─────────────────────────────────────────────────────────
+// Admin: cập nhật
 export const updateCategory = createAsyncThunk(
   "categories/update",
   async (
@@ -113,7 +112,7 @@ export const updateCategory = createAsyncThunk(
   },
 );
 
-// ─── Admin: xóa ──────────────────────────────────────────────────────────────
+// Admin: xóa
 export const deleteCategory = createAsyncThunk(
   "categories/delete",
   async (id: number, { rejectWithValue }) => {
@@ -146,7 +145,6 @@ const initialState: CategoryState = {
   error: null,
 };
 
-// ─── Helper: flatten cây thành mảng phẳng ────────────────────────────────────
 const flattenCategories = (items: Category[]): Category[] => {
   const flat: Category[] = [];
   const traverse = (list: Category[]) => {
@@ -253,7 +251,6 @@ const categorySlice = createSlice({
 export const { clearCategoryDetail, clearError } = categorySlice.actions;
 export default categorySlice.reducer;
 
-// ─── Helper: lấy tên category theo ngôn ngữ ──────────────────────────────────
 export const getCategoryName = (
   cat: Category | undefined,
   lang: string = "vi",

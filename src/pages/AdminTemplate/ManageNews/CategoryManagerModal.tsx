@@ -31,7 +31,6 @@ import {
 } from "../../../store/slices/categorySlice";
 import { type AppDispatch, type RootState } from "../../../store";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type LangCode = "vi" | "en";
 type ViewMode = "list" | "create" | "edit";
 
@@ -111,7 +110,6 @@ const CategoryManagerModal: React.FC<Props> = ({ open, onClose }) => {
 
   if (!open) return null;
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
   const rootCategories = categories.filter((c) => !c.parent);
   const getChildren = (parentId: number) =>
     categories.filter((c) => c.parent?.id === parentId);
@@ -175,7 +173,6 @@ const CategoryManagerModal: React.FC<Props> = ({ open, onClose }) => {
     }));
   };
 
-  // ─── Auto-generate slug từ name ───────────────────────────────────────────
   const autoSlug = (name: string) =>
     name
       .toLowerCase()
