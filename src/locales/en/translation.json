@@ -900,7 +900,9 @@
     "s10_title": "Children",
     "s10_body": "The service is for people aged 13 and over. We do not knowingly collect data from younger children. If we find an account belonging to a child under this age, we will delete it. Parents can use the email address above to request deletion.",
     "s11_title": "Changes to this policy",
-    "s11_body": "When something changes, we update this page and change the date at the bottom. For significant changes affecting your rights, we will notify you by email or through a notice in the app."
+    "s11_body": "When something changes, we update this page and change the date at the bottom. For significant changes affecting your rights, we will notify you by email or through a notice in the app.",
+    "seo_title": "Privacy Policy | Webie EMS",
+    "seo_desc": "What data Webie EMS collects, what it is used for, who can see it, and how you stay in control of it."
   },
   "account_delete_page": {
     "back": "Back",
@@ -941,6 +943,8 @@
     "err_send_code": "Could not send the confirmation code.",
     "err_code_format": "The confirmation code must be exactly 6 digits.",
     "toast_deleted": "Your account has been deleted.",
-    "err_delete": "Could not delete the account."
+    "err_delete": "Could not delete the account.",
+    "seo_title": "Delete account | Webie EMS",
+    "seo_desc": "Request permanent deletion of your Webie EMS account and all of your personal data."
   }
 }

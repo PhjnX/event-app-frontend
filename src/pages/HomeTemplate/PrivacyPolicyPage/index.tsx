@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { FaArrowLeft, FaEnvelope, FaCheck, FaTimes } from "react-icons/fa";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
 
 /**
  * Chính sách quyền riêng tư.
@@ -330,6 +331,14 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-noto selection:bg-[#D4AF37] selection:text-black">
+      {/* Tiêu đề tab và thẻ mô tả cũng phải đổi theo ngôn ngữ, không thì
+          người xem tiếng Anh vẫn thấy tên trang bằng tiếng Việt. */}
+      <SeoHelmet
+        title={t("privacy_page.seo_title")}
+        description={t("privacy_page.seo_desc")}
+        slug="privacy"
+      />
+
       <div className="max-w-6xl mx-auto px-4 md:px-8 pt-32 pb-24">
         <header className="mb-10 border-b border-white/10 pb-8">
           <div className="flex items-center gap-5">

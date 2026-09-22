@@ -22,6 +22,7 @@ import {
   maHopLe,
 } from "../../../services/accountService";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { SeoHelmet } from "@/components/common/SeoHelmet";
 
 /**
  * Trang xoá tài khoản.
@@ -138,6 +139,12 @@ export default function AccountDeletePage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 font-noto py-20 px-4 selection:bg-[rgba(216,201,123,0.3)]">
+      <SeoHelmet
+        title={t("account_delete_page.seo_title")}
+        description={t("account_delete_page.seo_desc")}
+        slug="account/delete"
+      />
+
       <div className="max-w-2xl mx-auto">
         <button
           type="button"

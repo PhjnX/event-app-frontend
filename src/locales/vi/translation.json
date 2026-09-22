@@ -900,7 +900,9 @@
     "s10_title": "Trẻ em",
     "s10_body": "Dịch vụ dành cho người từ 13 tuổi trở lên. Chúng tôi không cố ý thu thập dữ liệu của trẻ nhỏ hơn. Nếu phát hiện một tài khoản thuộc về trẻ dưới độ tuổi này, chúng tôi sẽ xoá tài khoản đó. Phụ huynh có thể liên hệ email ở trên để yêu cầu xoá.",
     "s11_title": "Thay đổi chính sách",
-    "s11_body": "Khi có thay đổi, chúng tôi cập nhật nội dung tại trang này và đổi mốc thời gian ở cuối trang. Với thay đổi lớn ảnh hưởng tới quyền của bạn, chúng tôi sẽ báo qua email hoặc thông báo trong ứng dụng."
+    "s11_body": "Khi có thay đổi, chúng tôi cập nhật nội dung tại trang này và đổi mốc thời gian ở cuối trang. Với thay đổi lớn ảnh hưởng tới quyền của bạn, chúng tôi sẽ báo qua email hoặc thông báo trong ứng dụng.",
+    "seo_title": "Chính sách quyền riêng tư | Webie EMS",
+    "seo_desc": "Webie EMS thu thập dữ liệu gì, dùng vào việc gì, ai thấy được và bạn kiểm soát dữ liệu của mình bằng cách nào."
   },
   "account_delete_page": {
     "back": "Quay lại",
@@ -941,6 +943,8 @@
     "err_send_code": "Không gửi được mã xác nhận.",
     "err_code_format": "Mã xác nhận gồm đúng 6 chữ số.",
     "toast_deleted": "Tài khoản của bạn đã được xoá.",
-    "err_delete": "Không xoá được tài khoản."
+    "err_delete": "Không xoá được tài khoản.",
+    "seo_title": "Xoá tài khoản | Webie EMS",
+    "seo_desc": "Yêu cầu xoá vĩnh viễn tài khoản Webie EMS và toàn bộ dữ liệu cá nhân của bạn."
   }
 }
