@@ -246,6 +246,9 @@ export default function ProfilePage() {
                   {user?.role !== ROLES.SUPER_ADMIN && (
                     <Link
                       to="/account/delete"
+                      /* noLang: giữ nguyên đường dẫn, không chèn /vi hay /en.
+                         Đây là đường dẫn cố định đã khai với Google Play. */
+                      noLang
                       className="w-full flex items-center gap-3 p-3 bg-[rgba(239,68,68,0.06)] hover:bg-[rgba(239,68,68,0.12)] rounded-xl border border-[rgba(239,68,68,0.18)] hover:border-[rgba(239,68,68,0.4)] transition-all group"
                     >
                       <div className="w-8 h-8 rounded-full bg-[rgba(239,68,68,0.15)] flex items-center justify-center text-red-400 shrink-0">

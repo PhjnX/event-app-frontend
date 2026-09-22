@@ -37,6 +37,9 @@ const BlockedUsersPage = React.lazy(
 const PrivacyPolicyPage = React.lazy(
   () => import("../pages/HomeTemplate/PrivacyPolicyPage"),
 );
+const AccountDeletePage = React.lazy(
+  () => import("../pages/HomeTemplate/AccountDeletePage"),
+);
 
 const HomeRedirect = () => {
   const { lang } = useParams();
@@ -72,6 +75,9 @@ const userRoutes: RouteObject = {
             { path: "events", element: <EventPage /> },
             { path: "news", element: <NewsPage /> },
             { path: "privacy", element: <PrivacyPolicyPage /> },
+            // Đường dẫn chuẩn là /account/delete, nhưng ai đã lưu link có tiền
+            // tố ngôn ngữ thì vẫn vào được thay vì gặp trang 404.
+            { path: "account/delete", element: <AccountDeletePage /> },
 
             // THÊM ROUTE MỚI CÓ CATEGORY SLUG Ở ĐÂY
             { path: "news/:categorySlug/:slug", element: <NewsDetail /> },
