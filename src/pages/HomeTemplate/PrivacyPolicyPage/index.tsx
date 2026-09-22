@@ -231,6 +231,11 @@ export default function PrivacyPolicyPage() {
             {thuEmail}
             {t("privacy_page.s8_outro_after")}
           </p>
+          {/* Điều kiện với tài khoản ban tổ chức: phải khai vì Google đối
+              chiếu chính sách với hành vi thật của sản phẩm. */}
+          <p className="mt-3 text-[13.5px] text-zinc-500">
+            {t("privacy_page.s8_note")}
+          </p>
         </>
       ),
     },

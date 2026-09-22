@@ -906,7 +906,8 @@
     "s11_title": "Changes to this policy",
     "s11_body": "When something changes, we update this page and change the date at the bottom. For significant changes affecting your rights, we will notify you by email or through a notice in the app.",
     "seo_title": "Privacy Policy | Webie EMS",
-    "seo_desc": "What data Webie EMS collects, what it is used for, who can see it, and how you stay in control of it."
+    "seo_desc": "What data Webie EMS collects, what it is used for, who can see it, and how you stay in control of it.",
+    "s8_note": "For organiser accounts: if you still have events that have not finished, the system will ask you to complete or cancel them first, so that people who already registered are not left without an event. The deletion screen names the events involved and offers a way to contact our support team if you cannot resolve it yourself."
   },
   "account_delete_page": {
     "back": "Back",
@@ -949,6 +950,10 @@
     "toast_deleted": "Your account has been deleted.",
     "err_delete": "Could not delete the account.",
     "seo_title": "Delete account | Webie EMS",
-    "seo_desc": "Request permanent deletion of your Webie EMS account and all of your personal data."
+    "seo_desc": "Request permanent deletion of your Webie EMS account and all of your personal data.",
+    "support_intro": "Cannot resolve this yourself? Send a request and our support team will delete the account for you.",
+    "support_btn": "Request help with deletion",
+    "support_mail_subject": "Webie EMS account deletion request",
+    "support_mail_body": "I would like to delete my Webie EMS account.\n\nAccount email: {{email}}\n\nI cannot delete it myself because the system says:\n{{reason}}\n\nPlease help me complete this request. Thank you."
   }
 }

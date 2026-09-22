@@ -35,6 +35,8 @@ import { SeoHelmet } from "@/components/common/SeoHelmet";
 
 const BUOC = { CANH_BAO: 1, NHAP_MA: 2 } as const;
 
+const EMAIL_HO_TRO = "huyen.dang@webie.com.vn";
+
 const phutGiay = (giay: number) => {
   const p = Math.floor(giay / 60);
   const g = giay % 60;
@@ -55,6 +57,8 @@ export default function AccountDeletePage() {
   const [conLaiGuiLai, setConLaiGuiLai] = useState(0);
   const [conLaiHetHan, setConLaiHetHan] = useState(0);
   const [hoiLanCuoi, setHoiLanCuoi] = useState(false);
+  /** Bật khi lỗi thuộc loại người dùng tự xử lý không được, để mở lối liên hệ. */
+  const [canHoTro, setCanHoTro] = useState(false);
   const oMa = useRef<HTMLInputElement>(null);
 
   const laQuanTri = user?.role === ROLES.SUPER_ADMIN;
@@ -76,6 +80,7 @@ export default function AccountDeletePage() {
 
   const xinMa = async (guiLai = false) => {
     setLoi("");
+    setCanHoTro(false);
     setDangGui(true);
     try {
       const res = await xinMaXoaTaiKhoan();
@@ -88,7 +93,12 @@ export default function AccountDeletePage() {
     } catch (e: unknown) {
       // 409: còn sự kiện đang hoạt động — message liệt kê tên sự kiện.
       // 403: tài khoản quản trị. 429: xin mã quá nhanh.
+      const err = e as { response?: { status?: number } };
       setLoi(getApiErrorMessage(e, t("account_delete_page.err_send_code")));
+      // Google Play đòi: nếu người dùng phải làm thêm bước gì trước khi xoá thì
+      // phải nói rõ VÀ có kênh hỗ trợ. 409 và 403 là hai trường hợp người dùng
+      // tự xử lý không được, nên mở sẵn lối liên hệ thay vì để họ mắc kẹt.
+      setCanHoTro([409, 403].includes(err?.response?.status ?? 0));
       if (guiLai) setConLaiGuiLai(30);
     } finally {
       setDangGui(false);
@@ -223,9 +233,35 @@ export default function AccountDeletePage() {
                   </div>
 
                   {loi && (
-                    <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.25)] rounded-xl p-3">
-                      {loi}
-                    </p>
+                    <div className="text-sm bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.25)] rounded-xl p-3 space-y-3">
+                      <p className="text-red-400">{loi}</p>
+
+                      {/* Google Play đòi phải có kênh hỗ trợ khi người dùng
+                          không tự hoàn tất được việc xoá. Thư soạn sẵn kèm
+                          email tài khoản và lý do hệ thống đưa ra, để bộ phận
+                          hỗ trợ không phải hỏi lại. */}
+                      {canHoTro && (
+                        <div className="pt-1 border-t border-[rgba(239,68,68,0.2)] space-y-2">
+                          <p className="text-gray-300 text-[13px]">
+                            {t("account_delete_page.support_intro")}
+                          </p>
+                          <a
+                            href={`mailto:${EMAIL_HO_TRO}?subject=${encodeURIComponent(
+                              t("account_delete_page.support_mail_subject"),
+                            )}&body=${encodeURIComponent(
+                              t("account_delete_page.support_mail_body", {
+                                email: user?.email ?? "",
+                                reason: loi,
+                              }),
+                            )}`}
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-[#D8C97B] hover:underline"
+                          >
+                            <FaEnvelopeOpenText size={13} />
+                            {t("account_delete_page.support_btn")}
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   <div className="flex flex-col sm:flex-row gap-3">

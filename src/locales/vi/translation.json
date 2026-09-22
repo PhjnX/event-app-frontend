@@ -906,7 +906,8 @@
     "s11_title": "Thay đổi chính sách",
     "s11_body": "Khi có thay đổi, chúng tôi cập nhật nội dung tại trang này và đổi mốc thời gian ở cuối trang. Với thay đổi lớn ảnh hưởng tới quyền của bạn, chúng tôi sẽ báo qua email hoặc thông báo trong ứng dụng.",
     "seo_title": "Chính sách quyền riêng tư | Webie EMS",
-    "seo_desc": "Webie EMS thu thập dữ liệu gì, dùng vào việc gì, ai thấy được và bạn kiểm soát dữ liệu của mình bằng cách nào."
+    "seo_desc": "Webie EMS thu thập dữ liệu gì, dùng vào việc gì, ai thấy được và bạn kiểm soát dữ liệu của mình bằng cách nào.",
+    "s8_note": "Riêng tài khoản ban tổ chức: nếu bạn còn sự kiện chưa kết thúc, hệ thống sẽ yêu cầu bạn hoàn tất hoặc huỷ những sự kiện đó trước, để người đã đăng ký không bị mất sự kiện giữa chừng. Màn hình xoá tài khoản nêu rõ sự kiện nào đang vướng và có sẵn lối gửi yêu cầu tới bộ phận hỗ trợ nếu bạn không tự xử lý được."
   },
   "account_delete_page": {
     "back": "Quay lại",
@@ -949,6 +950,10 @@
     "toast_deleted": "Tài khoản của bạn đã được xoá.",
     "err_delete": "Không xoá được tài khoản.",
     "seo_title": "Xoá tài khoản | Webie EMS",
-    "seo_desc": "Yêu cầu xoá vĩnh viễn tài khoản Webie EMS và toàn bộ dữ liệu cá nhân của bạn."
+    "seo_desc": "Yêu cầu xoá vĩnh viễn tài khoản Webie EMS và toàn bộ dữ liệu cá nhân của bạn.",
+    "support_intro": "Không tự xử lý được? Gửi yêu cầu để bộ phận hỗ trợ xoá tài khoản giúp bạn.",
+    "support_btn": "Gửi yêu cầu hỗ trợ xoá tài khoản",
+    "support_mail_subject": "Yêu cầu xoá tài khoản Webie EMS",
+    "support_mail_body": "Tôi muốn xoá tài khoản Webie EMS của mình.\n\nEmail tài khoản: {{email}}\n\nTôi không tự xoá được vì hệ thống báo:\n{{reason}}\n\nMong bộ phận hỗ trợ xử lý giúp. Xin cảm ơn."
   }
 }
