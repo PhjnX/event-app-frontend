@@ -256,10 +256,10 @@ export default function ProfilePage() {
                       </div>
                       <div className="text-left">
                         <p className="text-xs text-gray-400 uppercase font-bold group-hover:text-red-300 transition-colors">
-                          Tài khoản
+                          {t("profile_page.sidebar.account.label")}
                         </p>
                         <p className="text-sm text-red-300 font-medium">
-                          Xoá tài khoản
+                          {t("profile_page.sidebar.account.delete")}
                         </p>
                       </div>
                     </Link>

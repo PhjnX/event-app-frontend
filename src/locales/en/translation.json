@@ -788,6 +788,10 @@
       "security": {
         "label": "Security",
         "change_password": "Change Password"
+      },
+      "account": {
+        "label": "Account",
+        "delete": "Delete account"
       }
     },
     "organizer_card": {

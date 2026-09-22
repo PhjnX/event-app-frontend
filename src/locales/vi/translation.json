@@ -788,6 +788,10 @@
       "security": {
         "label": "Bảo mật",
         "change_password": "Đổi mật khẩu"
+      },
+      "account": {
+        "label": "Tài khoản",
+        "delete": "Xoá tài khoản"
       }
     },
     "organizer_card": {
