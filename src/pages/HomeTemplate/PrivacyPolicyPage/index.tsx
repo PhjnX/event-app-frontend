@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import {
-  FaArrowLeft,
-  FaEnvelope,
-  FaCheck,
-  FaTimes,
-} from "react-icons/fa";
+import { FaArrowLeft, FaEnvelope, FaCheck, FaTimes } from "react-icons/fa";
 
 /**
  * Chính sách quyền riêng tư.
@@ -15,24 +11,25 @@ import {
  * sách này ở hai nơi: ô khai trong Play Console và một đường dẫn mở được ngay
  * trong sản phẩm. Đường dẫn /privacy là đường dẫn đã khai, KHÔNG đổi.
  *
- * Nội dung dưới đây mô tả đúng những gì hệ thống thật sự thu thập — soát lại
- * mỗi khi thêm tính năng chạm tới dữ liệu cá nhân (đặc biệt là quyền thiết bị
- * và dịch vụ bên thứ ba), vì khai sai còn rủi ro hơn không khai.
+ * Nội dung mô tả đúng những gì hệ thống thật sự thu thập — soát lại mỗi khi
+ * thêm tính năng chạm tới dữ liệu cá nhân (đặc biệt là quyền thiết bị và dịch
+ * vụ bên thứ ba), vì khai sai còn rủi ro hơn không khai.
  *
- * Câu chữ phải trùng với bản trong app (event-app-mobile,
- * src/constants/privacy.ts). Sửa một bên thì sửa cả bên kia.
+ * Chữ nằm trong src/locales (vi và en), dưới khoá `privacy_page`, để đổi
+ * theo ngôn ngữ đang chọn. Sửa một thứ tiếng thì sửa cả hai, và nhớ sửa cả bản
+ * trong app (event-app-mobile, src/constants/privacy.ts).
  */
 
 const CAP_NHAT = "17/09/2026";
 const EMAIL_LIEN_HE = "huyen.dang@webie.com.vn";
 
-type Muc = { id: string; tieuDe: string; noiDung: React.ReactNode };
+const LOP_LINK = "text-[#D4AF37] hover:underline";
 
 export default function PrivacyPolicyPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [mucDangXem, setMucDangXem] = useState("muc-1");
-  const boQuanSat = useRef<IntersectionObserver | null>(null);
   const oChoMucLuc = useRef<HTMLDivElement>(null);
   const cuoiNoiDung = useRef<HTMLDivElement>(null);
   const [leTrai, setLeTrai] = useState(0);
@@ -40,69 +37,67 @@ export default function PrivacyPolicyPage() {
   const [leTren, setLeTren] = useState(112);
   const [hienMucLuc, setHienMucLuc] = useState(true);
 
-  const cac: Muc[] = [
+  const thuEmail = (
+    <a href={`mailto:${EMAIL_LIEN_HE}`} className={LOP_LINK}>
+      {EMAIL_LIEN_HE}
+    </a>
+  );
+
+  /** Một dòng gạch đầu dòng có nhãn in đậm ở đầu. */
+  const DongCoNhan = ({ nhan, chu }: { nhan: string; chu: string }) => (
+    <li className="flex gap-3">
+      <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0" />
+      <span>
+        <strong className="text-white font-semibold">{nhan}</strong> {chu}
+      </span>
+    </li>
+  );
+
+  /** Một dòng gạch đầu dòng có dấu tích. */
+  const DongCoTich = ({ children }: { children: React.ReactNode }) => (
+    <li className="flex gap-3">
+      <span className="mt-0.5 w-5 h-5 rounded-full bg-[#D4AF37]/12 text-[#D4AF37] flex items-center justify-center shrink-0">
+        <FaCheck className="text-[9px]" />
+      </span>
+      <span>{children}</span>
+    </li>
+  );
+
+  /** Thẻ nhỏ: tên dịch vụ hoặc tên quyền, kèm mô tả. */
+  const The = ({ nhan, chu }: { nhan: string; chu: string }) => (
+    <div className="bg-[#18181b] border border-white/5 rounded-xl px-4 py-3.5">
+      <p className="text-white font-semibold text-sm mb-1">{nhan}</p>
+      <p className="text-[13px] text-zinc-400 leading-relaxed">{chu}</p>
+    </div>
+  );
+
+  const cac: { id: string; tieuDe: string; noiDung: React.ReactNode }[] = [
     {
       id: "muc-1",
-      tieuDe: "Chúng tôi là ai",
+      tieuDe: t("privacy_page.s1_title"),
       noiDung: (
         <p>
-          Webie EMS là hệ thống quản lý sự kiện của Webie Vietnam, gồm trang web
-          tại ems.webie.com.vn và ứng dụng di động EMS. Chính sách này áp dụng
-          cho cả hai. Đơn vị chịu trách nhiệm về dữ liệu là Webie Vietnam, liên
-          hệ qua{" "}
-          <a
-            href={`mailto:${EMAIL_LIEN_HE}`}
-            className="text-[#D4AF37] hover:underline"
-          >
-            {EMAIL_LIEN_HE}
-          </a>
-          .
+          {t("privacy_page.s1_body")}
+          {thuEmail}.
         </p>
       ),
     },
     {
       id: "muc-2",
-      tieuDe: "Dữ liệu chúng tôi thu thập",
+      tieuDe: t("privacy_page.s2_title"),
       noiDung: (
         <>
-          <p className="mb-4">
-            Chúng tôi chỉ thu thập dữ liệu cần cho việc đăng ký và tham dự sự
-            kiện:
-          </p>
+          <p className="mb-4">{t("privacy_page.s2_intro")}</p>
           <ul className="space-y-3">
             {[
-              [
-                "Thông tin tài khoản",
-                "tên hiển thị, email, mật khẩu đã mã hoá. Nếu bạn đăng nhập bằng Google, chúng tôi nhận tên, email và ảnh đại diện từ tài khoản Google của bạn.",
-              ],
-              [
-                "Thông tin hồ sơ (tuỳ bạn điền)",
-                "số điện thoại, địa chỉ, giới tính, ngày sinh, ảnh đại diện.",
-              ],
-              [
-                "Dữ liệu tham dự sự kiện",
-                "sự kiện bạn đăng ký, hoạt động bạn chọn, mã vé, thời điểm check-in và điểm danh.",
-              ],
-              [
-                "Nội dung bạn đăng",
-                "ảnh và chú thích trong mục Khoảnh khắc, cùng các báo cáo vi phạm và danh sách người bạn đã chặn.",
-              ],
-              [
-                "Dữ liệu kỹ thuật tối thiểu",
-                "nhật ký máy chủ phục vụ vận hành và xử lý sự cố.",
-              ],
-              [
-                "Số liệu truy cập trang web",
-                "trang web dùng Google Analytics để đếm lượt xem và biết trang nào hay được mở, ở dạng thống kê chung. Ứng dụng di động không có công cụ đo đạc nào.",
-              ],
-            ].map(([nhan, noi]) => (
-              <li key={nhan} className="flex gap-3">
-                <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0" />
-                <span>
-                  <strong className="text-white font-semibold">{nhan}:</strong>{" "}
-                  {noi}
-                </span>
-              </li>
+              [t("privacy_page.s2_i1_label"), t("privacy_page.s2_i1_text")],
+              [t("privacy_page.s2_i2_label"), t("privacy_page.s2_i2_text")],
+              [t("privacy_page.s2_i3_label"), t("privacy_page.s2_i3_text")],
+              [t("privacy_page.s2_i4_label"), t("privacy_page.s2_i4_text")],
+              [t("privacy_page.s2_i5_label"), t("privacy_page.s2_i5_text")],
+              [t("privacy_page.s2_i6_label"), t("privacy_page.s2_i6_text")],
+            ].map(([nhan, chu]) => (
+              <DongCoNhan key={nhan} nhan={nhan + ":"} chu={chu} />
             ))}
           </ul>
 
@@ -110,19 +105,19 @@ export default function PrivacyPolicyPage() {
               khi đối chiếu với mục Data safety trong Play Console. */}
           <div className="mt-6 grid sm:grid-cols-3 gap-3">
             {[
-              "Không thu thập vị trí",
-              "Không dùng cho quảng cáo",
-              "Không bán dữ liệu",
-            ].map((t) => (
+              t("privacy_page.s2_badge1"),
+              t("privacy_page.s2_badge2"),
+              t("privacy_page.s2_badge3"),
+            ].map((chu) => (
               <div
-                key={t}
+                key={chu}
                 className="flex items-center gap-2.5 bg-[#18181b] border border-white/5 rounded-xl px-4 py-3"
               >
                 <span className="w-6 h-6 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center shrink-0">
                   <FaTimes className="text-[10px]" />
                 </span>
                 <span className="text-[13px] text-zinc-300 font-medium leading-tight">
-                  {t}
+                  {chu}
                 </span>
               </div>
             ))}
@@ -132,26 +127,20 @@ export default function PrivacyPolicyPage() {
     },
     {
       id: "muc-3",
-      tieuDe: "Quyền truy cập thiết bị trên ứng dụng di động",
+      tieuDe: t("privacy_page.s3_title"),
       noiDung: (
         <div className="grid sm:grid-cols-2 gap-4">
           {[
-            [
-              "Máy ảnh",
-              "Chỉ dùng để quét mã QR khi check-in vào sự kiện và điểm danh hoạt động. Hình ảnh từ máy ảnh không được lưu lại hay gửi đi.",
-            ],
-            [
-              "Thư viện ảnh",
-              "Chỉ khi bạn chủ động chọn ảnh để đăng Khoảnh khắc hoặc đổi ảnh đại diện. Ứng dụng chỉ nhận đúng tấm ảnh bạn chọn, không đọc toàn bộ thư viện.",
-            ],
-          ].map(([nhan, noi]) => (
+            [t("privacy_page.s3_i1_label"), t("privacy_page.s3_i1_text")],
+            [t("privacy_page.s3_i2_label"), t("privacy_page.s3_i2_text")],
+          ].map(([nhan, chu]) => (
             <div
               key={nhan}
               className="bg-[#18181b] border border-white/5 rounded-2xl p-5"
             >
               <h3 className="text-white font-bold text-[15px] mb-2">{nhan}</h3>
               <p className="text-[13.5px] leading-relaxed text-zinc-400">
-                {noi}
+                {chu}
               </p>
             </div>
           ))}
@@ -160,91 +149,51 @@ export default function PrivacyPolicyPage() {
     },
     {
       id: "muc-4",
-      tieuDe: "Dùng dữ liệu để làm gì",
+      tieuDe: t("privacy_page.s4_title"),
       noiDung: (
         <ul className="space-y-3">
           {[
-            "Tạo và quản lý tài khoản, xác thực khi bạn đăng nhập.",
-            "Xử lý đăng ký sự kiện, cấp vé, xác nhận check-in và điểm danh hoạt động.",
-            "Hiển thị tên và ảnh đại diện của bạn cho ban tổ chức sự kiện bạn tham dự, và cho người tham dự khác khi bạn đăng Khoảnh khắc.",
-            "Gửi email liên quan tới tài khoản: xác thực tài khoản, đặt lại mật khẩu, xác nhận xoá tài khoản, thông báo về sự kiện bạn đăng ký.",
-            "Kiểm duyệt nội dung: xử lý báo cáo vi phạm nhằm giữ môi trường an toàn theo quy tắc cộng đồng.",
-          ].map((t) => (
-            <li key={t} className="flex gap-3">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-[#D4AF37]/12 text-[#D4AF37] flex items-center justify-center shrink-0">
-                <FaCheck className="text-[9px]" />
-              </span>
-              <span>{t}</span>
-            </li>
+            t("privacy_page.s4_i1"),
+            t("privacy_page.s4_i2"),
+            t("privacy_page.s4_i3"),
+            t("privacy_page.s4_i4"),
+            t("privacy_page.s4_i5"),
+          ].map((chu) => (
+            <DongCoTich key={chu}>{chu}</DongCoTich>
           ))}
         </ul>
       ),
     },
     {
       id: "muc-5",
-      tieuDe: "Ai có thể thấy dữ liệu của bạn",
+      tieuDe: t("privacy_page.s5_title"),
       noiDung: (
         <ul className="space-y-3">
           {[
-            [
-              "Ban tổ chức sự kiện bạn đăng ký",
-              "thấy tên, email, số điện thoại (nếu có) và trạng thái vé của bạn, để phục vụ việc đón tiếp tại sự kiện.",
-            ],
-            [
-              "Người tham dự cùng sự kiện",
-              "thấy tên, ảnh đại diện và nội dung bạn đăng trong Khoảnh khắc.",
-            ],
-            [
-              "Quản trị viên hệ thống",
-              "truy cập dữ liệu khi xử lý báo cáo vi phạm hoặc hỗ trợ kỹ thuật.",
-            ],
-          ].map(([nhan, noi]) => (
-            <li key={nhan} className="flex gap-3">
-              <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0" />
-              <span>
-                <strong className="text-white font-semibold">{nhan}</strong>{" "}
-                {noi}
-              </span>
-            </li>
+            [t("privacy_page.s5_i1_label"), t("privacy_page.s5_i1_text")],
+            [t("privacy_page.s5_i2_label"), t("privacy_page.s5_i2_text")],
+            [t("privacy_page.s5_i3_label"), t("privacy_page.s5_i3_text")],
+          ].map(([nhan, chu]) => (
+            <DongCoNhan key={nhan} nhan={nhan} chu={chu} />
           ))}
         </ul>
       ),
     },
     {
       id: "muc-6",
-      tieuDe: "Dịch vụ bên thứ ba",
+      tieuDe: t("privacy_page.s6_title"),
       noiDung: (
         <>
-          <p className="mb-4">
-            Hệ thống dùng một số dịch vụ bên ngoài, mỗi dịch vụ chỉ nhận phần dữ
-            liệu cần thiết:
-          </p>
+          <p className="mb-4">{t("privacy_page.s6_intro")}</p>
           <div className="grid sm:grid-cols-2 gap-3">
             {[
-              ["Google", "Cho tuỳ chọn đăng nhập bằng tài khoản Google."],
-              [
-                "Cloudinary",
-                "Lưu trữ ảnh bạn tải lên (ảnh đại diện, ảnh Khoảnh khắc, ảnh sự kiện).",
-              ],
-              ["Render", "Nơi đặt máy chủ và cơ sở dữ liệu của hệ thống."],
-              [
-                "Google Analytics",
-                "Đếm lượt truy cập trang web ở dạng thống kê chung. Chỉ chạy trên trang web, không có trong ứng dụng di động.",
-              ],
-              [
-                "Dịch vụ gửi email",
-                "Chuyển các email xác thực và thông báo tài khoản tới bạn.",
-              ],
-            ].map(([nhan, noi]) => (
-              <div
-                key={nhan}
-                className="bg-[#18181b] border border-white/5 rounded-xl px-4 py-3.5"
-              >
-                <p className="text-white font-semibold text-sm mb-1">{nhan}</p>
-                <p className="text-[13px] text-zinc-400 leading-relaxed">
-                  {noi}
-                </p>
-              </div>
+              [t("privacy_page.s6_i1_label"), t("privacy_page.s6_i1_text")],
+              [t("privacy_page.s6_i2_label"), t("privacy_page.s6_i2_text")],
+              [t("privacy_page.s6_i3_label"), t("privacy_page.s6_i3_text")],
+              [t("privacy_page.s6_i4_label"), t("privacy_page.s6_i4_text")],
+              [t("privacy_page.s6_i5_label"), t("privacy_page.s6_i5_text")],
+            ].map(([nhan, chu]) => (
+              <The key={nhan} nhan={nhan} chu={chu} />
             ))}
           </div>
         </>
@@ -252,100 +201,52 @@ export default function PrivacyPolicyPage() {
     },
     {
       id: "muc-7",
-      tieuDe: "Lưu trữ bao lâu",
-      noiDung: (
-        <p>
-          Dữ liệu tài khoản được giữ trong thời gian bạn còn sử dụng dịch vụ. Khi
-          bạn xoá tài khoản, thông tin cá nhân (tên, email, số điện thoại, địa
-          chỉ, ảnh đại diện) bị xoá và toàn bộ Khoảnh khắc của bạn bị gỡ. Lịch sử
-          đăng ký sự kiện được giữ lại ở dạng ẩn danh — không còn gắn với danh
-          tính của bạn — để ban tổ chức không mất số liệu của những sự kiện đã
-          diễn ra.
-        </p>
-      ),
+      tieuDe: t("privacy_page.s7_title"),
+      noiDung: <p>{t("privacy_page.s7_body")}</p>,
     },
     {
       id: "muc-8",
-      tieuDe: "Quyền của bạn",
+      tieuDe: t("privacy_page.s8_title"),
       noiDung: (
         <>
           <ul className="space-y-3">
             {[
-              "Xem và chỉnh sửa thông tin cá nhân ngay trong trang Hồ sơ.",
-              "Đổi mật khẩu bất cứ lúc nào.",
-              "Xoá Khoảnh khắc bạn đã đăng, chặn người dùng khác, ẩn bài viết.",
-            ].map((t) => (
-              <li key={t} className="flex gap-3">
-                <span className="mt-0.5 w-5 h-5 rounded-full bg-[#D4AF37]/12 text-[#D4AF37] flex items-center justify-center shrink-0">
-                  <FaCheck className="text-[9px]" />
-                </span>
-                <span>{t}</span>
-              </li>
+              t("privacy_page.s8_i1"),
+              t("privacy_page.s8_i2"),
+              t("privacy_page.s8_i3"),
+            ].map((chu) => (
+              <DongCoTich key={chu}>{chu}</DongCoTich>
             ))}
-            <li className="flex gap-3">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-[#D4AF37]/12 text-[#D4AF37] flex items-center justify-center shrink-0">
-                <FaCheck className="text-[9px]" />
-              </span>
-              <span>
-                Xoá vĩnh viễn tài khoản, ngay trong ứng dụng hoặc tại{" "}
-                <Link
-                  to="/account/delete"
-                  className="text-[#D4AF37] hover:underline font-medium"
-                >
-                  trang xoá tài khoản
-                </Link>
-                .
-              </span>
-            </li>
+            <DongCoTich>
+              {t("privacy_page.s8_i4_before")}
+              <Link to="/account/delete" className={`${LOP_LINK} font-medium`}>
+                {t("privacy_page.delete_link")}
+              </Link>
+              .
+            </DongCoTich>
           </ul>
           <p className="mt-4">
-            Nếu cần bản sao dữ liệu của mình hoặc có khiếu nại về quyền riêng tư,
-            hãy gửi email tới{" "}
-            <a
-              href={`mailto:${EMAIL_LIEN_HE}`}
-              className="text-[#D4AF37] hover:underline"
-            >
-              {EMAIL_LIEN_HE}
-            </a>
-            . Chúng tôi phản hồi trong vòng 30 ngày.
+            {t("privacy_page.s8_outro_before")}
+            {thuEmail}
+            {t("privacy_page.s8_outro_after")}
           </p>
         </>
       ),
     },
     {
       id: "muc-9",
-      tieuDe: "An toàn dữ liệu",
-      noiDung: (
-        <p>
-          Mọi kết nối giữa ứng dụng và máy chủ đều được mã hoá bằng HTTPS. Mật
-          khẩu được lưu dưới dạng băm, không ai đọc được mật khẩu gốc. Phiên đăng
-          nhập dùng mã thông báo có hạn. Dù vậy, không hệ thống nào an toàn tuyệt
-          đối, nên bạn hãy dùng mật khẩu mạnh và không chia sẻ tài khoản.
-        </p>
-      ),
+      tieuDe: t("privacy_page.s9_title"),
+      noiDung: <p>{t("privacy_page.s9_body")}</p>,
     },
     {
       id: "muc-10",
-      tieuDe: "Trẻ em",
-      noiDung: (
-        <p>
-          Dịch vụ dành cho người từ 13 tuổi trở lên. Chúng tôi không cố ý thu
-          thập dữ liệu của trẻ nhỏ hơn. Nếu phát hiện một tài khoản thuộc về trẻ
-          dưới độ tuổi này, chúng tôi sẽ xoá tài khoản đó. Phụ huynh có thể liên
-          hệ email ở trên để yêu cầu xoá.
-        </p>
-      ),
+      tieuDe: t("privacy_page.s10_title"),
+      noiDung: <p>{t("privacy_page.s10_body")}</p>,
     },
     {
       id: "muc-11",
-      tieuDe: "Thay đổi chính sách",
-      noiDung: (
-        <p>
-          Khi có thay đổi, chúng tôi cập nhật nội dung tại trang này và đổi mốc
-          thời gian ở cuối trang. Với thay đổi lớn ảnh hưởng tới quyền của bạn, chúng tôi sẽ
-          báo qua email hoặc thông báo trong ứng dụng.
-        </p>
-      ),
+      tieuDe: t("privacy_page.s11_title"),
+      noiDung: <p>{t("privacy_page.s11_body")}</p>,
     },
   ];
 
@@ -362,7 +263,6 @@ export default function PrivacyPolicyPage() {
     document
       .querySelectorAll("section[id^='muc-']")
       .forEach((el) => bo.observe(el));
-    boQuanSat.current = bo;
     return () => bo.disconnect();
   }, []);
 
@@ -411,9 +311,9 @@ export default function PrivacyPolicyPage() {
 
   /**
    * Trang này mở được từ Play Console hoặc từ link dán thẳng, lúc đó lịch sử
-   * trình duyệt rỗng nên navigate(-1) không đi đâu cả (đúng lỗi "bấm back không
-   * được"). location.key là "default" khi đây là mục đầu tiên của lịch sử —
-   * trường hợp đó đưa về trang chủ.
+   * trình duyệt rỗng nên navigate(-1) không đi đâu cả. location.key là
+   * "default" khi đây là mục đầu tiên của lịch sử — trường hợp đó đưa về trang
+   * chủ.
    */
   const quayLai = () => {
     if (location.key !== "default") navigate(-1);
@@ -436,13 +336,13 @@ export default function PrivacyPolicyPage() {
             <button
               type="button"
               onClick={quayLai}
-              aria-label="Quay lại"
+              aria-label={t("privacy_page.back")}
               className="w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-white/10 hover:border-[#D4AF37] transition-all group shrink-0 cursor-pointer"
             >
               <FaArrowLeft className="text-zinc-300 group-hover:text-[#D4AF37] text-sm" />
             </button>
             <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-none">
-              Chính sách quyền riêng tư
+              {t("privacy_page.title")}
             </h1>
           </div>
         </header>
@@ -464,7 +364,7 @@ export default function PrivacyPolicyPage() {
               }}
             >
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500 mb-4">
-                Nội dung
+                {t("privacy_page.toc")}
               </p>
               <ul className="space-y-1 border-l border-white/10">
                 {cac.map((m, i) => {
@@ -491,10 +391,7 @@ export default function PrivacyPolicyPage() {
 
           <div className="min-w-0">
             <p className="text-zinc-300 text-[15px] leading-relaxed border-l-2 border-[#D4AF37] pl-5 mb-12">
-              Chính sách này nói rõ chúng tôi thu thập dữ liệu gì, dùng vào việc
-              gì, ai thấy được, và bạn kiểm soát dữ liệu của mình bằng cách nào.
-              Chúng tôi chỉ thu thập những gì cần cho việc đăng ký và tham dự sự
-              kiện.
+              {t("privacy_page.intro")}
             </p>
 
             <div className="space-y-12">
@@ -529,10 +426,10 @@ export default function PrivacyPolicyPage() {
               </span>
               <div className="flex-1">
                 <p className="text-white font-bold text-[15px] mb-0.5">
-                  Câu hỏi về quyền riêng tư?
+                  {t("privacy_page.contact_title")}
                 </p>
                 <p className="text-[13.5px] text-zinc-400">
-                  Gửi thư cho chúng tôi, phản hồi trong vòng 30 ngày.
+                  {t("privacy_page.contact_desc")}
                 </p>
               </div>
               <a
@@ -546,7 +443,7 @@ export default function PrivacyPolicyPage() {
             {/* Chính sách nào cũng phải ghi mốc thời gian để người đọc biết bản
                 mình đang xem có còn hiệu lực không — để cuối trang cho gọn. */}
             <p className="mt-6 text-xs text-zinc-500 text-center">
-              Cập nhật lần cuối: {CAP_NHAT}
+              {t("privacy_page.updated", { date: CAP_NHAT })}
             </p>
 
             {/* Mốc đánh dấu hết bài, dùng để ẩn mục lục khi đọc tới cuối. */}
