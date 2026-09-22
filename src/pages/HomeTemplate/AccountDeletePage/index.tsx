@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
@@ -40,6 +41,7 @@ const phutGiay = (giay: number) => {
 };
 
 export default function AccountDeletePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -80,12 +82,12 @@ export default function AccountDeletePage() {
       setOtp("");
       setConLaiGuiLai(res?.resendAfterSeconds ?? 60);
       setConLaiHetHan(res?.expiresInSeconds ?? 600);
-      toast.success(res?.message || "Đã gửi mã xác nhận tới email của bạn.");
+      toast.success(res?.message || t("account_delete_page.toast_code_sent"));
       setTimeout(() => oMa.current?.focus(), 100);
     } catch (e: unknown) {
       // 409: còn sự kiện đang hoạt động — message liệt kê tên sự kiện.
       // 403: tài khoản quản trị. 429: xin mã quá nhanh.
-      setLoi(getApiErrorMessage(e, "Không gửi được mã xác nhận."));
+      setLoi(getApiErrorMessage(e, t("account_delete_page.err_send_code")));
       if (guiLai) setConLaiGuiLai(30);
     } finally {
       setDangGui(false);
@@ -95,7 +97,7 @@ export default function AccountDeletePage() {
   const xacNhan = async () => {
     setLoi("");
     if (!maHopLe(otp)) {
-      setLoi("Mã xác nhận gồm đúng 6 chữ số.");
+      setLoi(t("account_delete_page.err_code_format"));
       return;
     }
     setDangGui(true);
@@ -103,12 +105,12 @@ export default function AccountDeletePage() {
       const res = await xacNhanXoaTaiKhoan(otp, lyDo);
       donDepPhienDaXoa();
       dispatch(logoutUser());
-      toast.success(res?.message || "Tài khoản của bạn đã được xoá.");
+      toast.success(res?.message || t("account_delete_page.toast_deleted"));
       navigate("/auth", { replace: true });
     } catch (e: unknown) {
       const err = e as { response?: { status?: number } };
       const status = err?.response?.status;
-      setLoi(getApiErrorMessage(e, "Không xoá được tài khoản."));
+      setLoi(getApiErrorMessage(e, t("account_delete_page.err_delete")));
       // Nhập sai quá số lần cho phép thì mã bị huỷ, phải xin mã mới
       if (status === 429) {
         setBuoc(BUOC.CANH_BAO);
@@ -122,13 +124,13 @@ export default function AccountDeletePage() {
 
   const hauQua = useMemo(
     () => [
-      "Hồ sơ cá nhân, ảnh đại diện, số điện thoại và địa chỉ bị xoá khỏi hệ thống.",
-      "Toàn bộ khoảnh khắc bạn đã đăng trong các sự kiện sẽ bị xoá.",
-      "Vé của những sự kiện chưa kết thúc sẽ bị huỷ, bạn không vào cổng được nữa.",
-      "Nếu bạn là ban tổ chức, tài khoản tổ chức sẽ bị khoá.",
-      "Không thể hoàn tác sau khi xoá.",
+      t("account_delete_page.c1"),
+      t("account_delete_page.c2"),
+      t("account_delete_page.c3"),
+      t("account_delete_page.c4"),
+      t("account_delete_page.c5"),
     ],
-    [],
+    [t],
   );
 
   const khung =
@@ -142,7 +144,7 @@ export default function AccountDeletePage() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition mb-6 cursor-pointer"
         >
-          <FaArrowLeft size={12} /> Quay lại
+          <FaArrowLeft size={12} /> {t("account_delete_page.back")}
         </button>
 
         <motion.div
@@ -156,10 +158,10 @@ export default function AccountDeletePage() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-                Xoá tài khoản
+                {t("account_delete_page.title")}
               </h1>
               <p className="text-sm text-gray-400 mt-1">
-                Yêu cầu xoá vĩnh viễn tài khoản Webie EMS của bạn.
+                {t("account_delete_page.subtitle")}
               </p>
             </div>
           </div>
@@ -167,34 +169,31 @@ export default function AccountDeletePage() {
           {!isAuthenticated ? (
             <div className="space-y-5">
               <p className="text-[15px] leading-relaxed text-gray-300">
-                Để xoá tài khoản, bạn cần đăng nhập bằng chính tài khoản đó. Chúng
-                tôi gửi một mã xác nhận tới email của bạn trước khi xoá, nên không
-                ai khác thao tác thay bạn được.
+                {t("account_delete_page.need_login")}
               </p>
               <button
                 type="button"
                 onClick={() => navigate("/auth")}
                 className="w-full py-3.5 rounded-xl bg-[#D8C97B] text-black font-bold hover:brightness-110 transition cursor-pointer"
               >
-                Đăng nhập để tiếp tục
+                {t("account_delete_page.login_btn")}
               </button>
               <p className="text-xs text-gray-500 text-center">
-                Sau khi đăng nhập, mở lại trang này để hoàn tất yêu cầu xoá.
+                {t("account_delete_page.login_hint")}
               </p>
             </div>
           ) : laQuanTri ? (
             <div className="flex items-start gap-3 p-4 rounded-2xl bg-[rgba(216,201,123,0.08)] border border-[rgba(216,201,123,0.25)]">
               <FaShieldAlt className="text-[#D8C97B] mt-0.5 shrink-0" />
               <p className="text-sm text-gray-300">
-                Tài khoản quản trị hệ thống không thể tự xoá. Liên hệ bộ phận kỹ
-                thuật nếu bạn cần đóng tài khoản này.
+                {t("account_delete_page.admin_notice")}
               </p>
             </div>
           ) : (
             <>
               <div className="mb-6 p-4 rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
                 <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-1">
-                  Tài khoản
+                  {t("account_delete_page.account_label")}
                 </p>
                 <p className="text-white font-medium">{user?.username}</p>
                 <p className="text-sm text-gray-400">{user?.email}</p>
@@ -206,7 +205,7 @@ export default function AccountDeletePage() {
                     <FaExclamationTriangle className="text-red-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-semibold text-red-300 mb-2">
-                        Những gì sẽ xảy ra
+                        {t("account_delete_page.consequences_title")}
                       </p>
                       <ul className="space-y-1.5 text-sm text-gray-300 list-disc pl-4">
                         {hauQua.map((h) => (
@@ -228,7 +227,7 @@ export default function AccountDeletePage() {
                       onClick={() => navigate(-1)}
                       className="flex-1 py-3.5 rounded-xl border border-[rgba(255,255,255,0.15)] text-gray-300 font-semibold hover:bg-white/5 transition cursor-pointer"
                     >
-                      Giữ tài khoản
+                      {t("account_delete_page.keep_btn")}
                     </button>
                     <button
                       type="button"
@@ -236,7 +235,9 @@ export default function AccountDeletePage() {
                       onClick={() => xinMa()}
                       className="flex-1 py-3.5 rounded-xl bg-red-500/90 hover:bg-red-500 text-white font-bold transition disabled:opacity-60 cursor-pointer"
                     >
-                      {dangGui ? "Đang gửi mã…" : "Tiếp tục xoá tài khoản"}
+                      {dangGui
+                        ? t("account_delete_page.sending")
+                        : t("account_delete_page.continue_btn")}
                     </button>
                   </div>
                 </div>
@@ -247,13 +248,15 @@ export default function AccountDeletePage() {
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-[rgba(216,201,123,0.07)] border border-[rgba(216,201,123,0.25)]">
                     <FaEnvelopeOpenText className="text-[#D8C97B] mt-0.5 shrink-0" />
                     <p className="text-sm text-gray-300">
-                      Mã xác nhận gồm 6 chữ số đã được gửi tới{" "}
+                      {t("account_delete_page.code_sent_to")}
                       <span className="text-white">{user?.email}</span>.{" "}
                       {conLaiHetHan > 0 ? (
-                        <>Mã hết hạn sau {phutGiay(conLaiHetHan)}.</>
+                        t("account_delete_page.code_expires_in", {
+                          time: phutGiay(conLaiHetHan),
+                        })
                       ) : (
                         <span className="text-red-300">
-                          Mã đã hết hạn, bấm “Gửi lại mã”.
+                          {t("account_delete_page.code_expired")}
                         </span>
                       )}
                     </p>
@@ -264,7 +267,7 @@ export default function AccountDeletePage() {
                       htmlFor="ma-xac-nhan"
                       className="block text-xs uppercase tracking-wider text-gray-400 font-bold mb-2"
                     >
-                      Mã xác nhận
+                      {t("account_delete_page.code_label")}
                     </label>
                     <input
                       id="ma-xac-nhan"
@@ -288,9 +291,9 @@ export default function AccountDeletePage() {
                       htmlFor="ly-do-xoa"
                       className="block text-xs uppercase tracking-wider text-gray-400 font-bold mb-2"
                     >
-                      Lý do rời đi{" "}
+                      {t("account_delete_page.reason_label")}{" "}
                       <span className="normal-case font-normal text-gray-500">
-                        (không bắt buộc)
+                        {t("account_delete_page.reason_optional")}
                       </span>
                     </label>
                     <textarea
@@ -298,7 +301,7 @@ export default function AccountDeletePage() {
                       value={lyDo}
                       onChange={(e) => setLyDo(e.target.value.slice(0, 500))}
                       rows={3}
-                      placeholder="Chia sẻ giúp chúng tôi cải thiện dịch vụ…"
+                      placeholder={t("account_delete_page.reason_placeholder")}
                       className="w-full bg-[#0f0f0f] border border-[rgba(255,255,255,0.12)] focus:border-[#D8C97B] outline-none rounded-xl px-4 py-3 text-sm text-white resize-none"
                     />
                     <p className="text-[11px] text-gray-500 text-right mt-1">
@@ -314,8 +317,8 @@ export default function AccountDeletePage() {
                       className="text-sm text-[#D8C97B] hover:underline disabled:text-gray-500 disabled:no-underline cursor-pointer disabled:cursor-default"
                     >
                       {conLaiGuiLai > 0
-                        ? `Gửi lại mã sau ${conLaiGuiLai}s`
-                        : "Gửi lại mã"}
+                        ? t("account_delete_page.resend_in", { seconds: conLaiGuiLai })
+                        : t("account_delete_page.resend")}
                     </button>
                     <button
                       type="button"
@@ -325,7 +328,7 @@ export default function AccountDeletePage() {
                       }}
                       className="text-sm text-gray-400 hover:text-white cursor-pointer"
                     >
-                      Huỷ
+                      {t("account_delete_page.cancel")}
                     </button>
                   </div>
 
@@ -335,7 +338,7 @@ export default function AccountDeletePage() {
                     onClick={() => setHoiLanCuoi(true)}
                     className="w-full py-3.5 rounded-xl bg-red-500/90 hover:bg-red-500 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    Xoá vĩnh viễn tài khoản
+                    {t("account_delete_page.delete_forever_btn")}
                   </button>
                 </div>
               )}
@@ -344,7 +347,7 @@ export default function AccountDeletePage() {
         </motion.div>
 
         <p className="text-xs text-gray-600 text-center mt-6">
-          Cần giúp đỡ? Liên hệ huyen.dang@webie.com.vn
+          {t("account_delete_page.help", { email: "huyen.dang@webie.com.vn" })}
         </p>
       </div>
 
@@ -356,11 +359,10 @@ export default function AccountDeletePage() {
             className={`${khung} p-7 max-w-md w-full`}
           >
             <h2 className="text-xl font-bold text-white mb-2">
-              Xoá tài khoản vĩnh viễn?
+              {t("account_delete_page.confirm_title")}
             </h2>
             <p className="text-sm text-gray-400 mb-6">
-              Sau bước này, hồ sơ và khoảnh khắc của bạn bị xoá, vé chưa dùng bị
-              huỷ. Thao tác không thể hoàn tác.
+              {t("account_delete_page.confirm_body")}
             </p>
             <div className="flex gap-3">
               <button
@@ -368,7 +370,7 @@ export default function AccountDeletePage() {
                 onClick={() => setHoiLanCuoi(false)}
                 className="flex-1 py-3 rounded-xl border border-[rgba(255,255,255,0.15)] text-gray-300 font-semibold hover:bg-white/5 transition cursor-pointer"
               >
-                Không, giữ lại
+                {t("account_delete_page.confirm_no")}
               </button>
               <button
                 type="button"
@@ -376,7 +378,9 @@ export default function AccountDeletePage() {
                 onClick={xacNhan}
                 className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition disabled:opacity-60 cursor-pointer"
               >
-                {dangGui ? "Đang xoá…" : "Xoá vĩnh viễn"}
+                {dangGui
+                  ? t("account_delete_page.deleting")
+                  : t("account_delete_page.confirm_yes")}
               </button>
             </div>
           </motion.div>
